@@ -1,0 +1,510 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiom-guide.local/schemas/agent-dialogs.json",
+  "title": "AXIOM Agent Dialogs Configuration",
+  "description": "Schema für Agent-Dialog-Konfigurationen im AXIOM HTML-Report Leitfaden",
+  "type": "object",
+  "required": ["version", "metadata", "dialogs", "globalSettings"],
+  
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Versionsnummer im Format 'Major.Minor'"
+    },
+    
+    "metadata": {
+      "type": "object",
+      "required": ["description", "created", "agent_name", "selector_system"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Kurze Beschreibung der Dialog-Konfiguration"
+        },
+        "created": {
+          "type": "string",
+          "format": "date",
+          "description": "Erstellungsdatum im Format YYYY-MM-DD"
+        },
+        "agent_name": {
+          "type": "string",
+          "description": "Name des Agenten (z.B. 'Spürhund Rex')"
+        },
+        "selector_system": {
+          "type": "string",
+          "description": "Beschreibung des verwendeten Selector-Systems"
+        }
+      }
+    },
+    
+    "dialogs": {
+      "type": "object",
+      "description": "Sammlung aller verfügbaren Dialoge",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "$ref": "#/$defs/Dialog"
+        }
+      }
+    },
+    
+    "sectionTriggers": {
+      "type": "object",
+      "description": "Automatische Trigger basierend auf Section-Interaktion",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "$ref": "#/$defs/SectionTrigger"
+        }
+      }
+    },
+    
+    "globalSettings": {
+      "$ref": "#/$defs/GlobalSettings"
+    },
+    
+    "responsePatterns": {
+      "$ref": "#/$defs/ResponsePatterns"
+    }
+  },
+  
+  "$defs": {
+    "Dialog": {
+      "type": "object",
+      "required": ["id", "title", "targetSelectors"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+          "description": "Eindeutige Dialog-ID (alphanumerisch, Bindestriche und Unterstriche erlaubt)"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Menschenlesbarer Titel des Dialogs"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optionale Beschreibung des Dialog-Zwecks"
+        },
+        "targetSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[#.]?[a-zA-Z][a-zA-Z0-9_-]*.*$"
+          },
+          "minItems": 1,
+          "description": "Array von CSS-Selektoren für Ziel-Elemente"
+        },
+        "initialMessage": {
+          "type": "string",
+          "description": "Erste Nachricht des Agenten bei Dialog-Start"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Verfügbare Aktionen für den Dialog"
+        },
+        "questions": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+              "$ref": "#/$defs/Question"
+            }
+          },
+          "description": "Spezifische Fragen innerhalb des Dialogs"
+        }
+      }
+    },
+    
+    "Action": {
+      "type": "object",
+      "required": ["id", "type", "label"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+          "description": "Eindeutige Action-ID"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["navigate", "showInfo", "askQuestion", "showActions", "highlightElements"],
+          "description": "Typ der Aktion"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Emoji oder Icon für die Aktion"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Button-Text für die Aktion"
+        },
+        "targetSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[#.]?[a-zA-Z][a-zA-Z0-9_-]*.*$"
+          },
+          "description": "CSS-Selektoren für Navigation/Highlighting"
+        },
+        "content": {
+          "type": "string",
+          "description": "HTML-Content für showInfo-Actions"
+        },
+        "question": {
+          "type": "string",
+          "description": "Frage-Text für askQuestion-Actions"
+        },
+        "scrollBehavior": {
+          "type": "string",
+          "enum": ["auto", "smooth", "instant"],
+          "default": "smooth",
+          "description": "Scroll-Verhalten bei Navigation"
+        },
+        "highlightDuration": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "default": 2000,
+          "description": "Highlight-Dauer in Millisekunden"
+        },
+        "contextBlock": {
+          "$ref": "#/$defs/ContextBlock"
+        },
+        "nextActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Follow-up-Aktionen nach dieser Aktion"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Unter-Aktionen für verschachtelte Dialoge"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "navigate"
+              }
+            }
+          },
+          "then": {
+            "required": ["targetSelectors"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "showInfo"
+              }
+            }
+          },
+          "then": {
+            "required": ["content"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "askQuestion"
+              }
+            }
+          },
+          "then": {
+            "required": ["question"]
+          }
+        }
+      ]
+    },
+    
+    "ContextBlock": {
+      "type": "object",
+      "required": ["targetSelectors", "content"],
+      "properties": {
+        "targetSelectors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[#.]?[a-zA-Z][a-zA-Z0-9_-]*.*$"
+          },
+          "minItems": 1,
+          "description": "CSS-Selektoren für Context-Block-Ziele"
+        },
+        "content": {
+          "type": "string",
+          "description": "HTML-Inhalt für den Context-Block"
+        },
+        "autoHide": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatisch nach bestimmter Zeit ausblenden"
+        },
+        "hideDelay": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 30000,
+          "default": 10000,
+          "description": "Zeit bis automatisches Ausblenden (ms)"
+        }
+      }
+    },
+    
+    "Question": {
+      "type": "object",
+      "required": ["id", "message"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+          "description": "Eindeutige Question-ID"
+        },
+        "message": {
+          "type": "string",
+          "description": "HTML-Inhalt der Frage"
+        },
+        "expectInput": {
+          "type": "boolean",
+          "default": false,
+          "description": "Erwartet Texteingabe vom Benutzer"
+        },
+        "inputPlaceholder": {
+          "type": "string",
+          "description": "Placeholder-Text für Eingabefeld"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Aktionen als Antwort-Optionen"
+        },
+        "fallbackActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Fallback-Aktionen bei unbekannter Eingabe"
+        }
+      }
+    },
+    
+    "SectionTrigger": {
+      "type": "object",
+      "required": ["id", "sectionId", "contextId"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$",
+          "description": "Eindeutige Trigger-ID"
+        },
+        "sectionId": {
+          "type": "string",
+          "description": "ID der zu beobachtenden Section"
+        },
+        "contextId": {
+          "type": "string",
+          "description": "ID des auszulösenden Dialog-Kontexts"
+        },
+        "autoOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Agent automatisch öffnen bei Trigger"
+        },
+        "delay": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000,
+          "default": 2000,
+          "description": "Verzögerung vor Trigger-Auslösung (ms)"
+        },
+        "conditions": {
+          "type": "object",
+          "properties": {
+            "intersectionRatio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.5,
+              "description": "Mindest-Sichtbarkeit der Section (0-1)"
+            },
+            "dwellTime": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 30000,
+              "default": 3000,
+              "description": "Mindest-Verweildauer in Section (ms)"
+            }
+          }
+        },
+        "notificationMessage": {
+          "type": "string",
+          "description": "Nachricht für Notification-Badge"
+        },
+        "triggered": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ob Trigger bereits ausgelöst wurde"
+        }
+      }
+    },
+    
+    "GlobalSettings": {
+      "type": "object",
+      "required": ["agentName", "agentIcon"],
+      "properties": {
+        "agentName": {
+          "type": "string",
+          "description": "Anzeigename des Agenten"
+        },
+        "agentIcon": {
+          "type": "string",
+          "description": "Emoji/Icon für den Agenten"
+        },
+        "welcomeMessage": {
+          "type": "string",
+          "description": "Begrüßungsnachricht beim ersten Öffnen"
+        },
+        "fallbackMessage": {
+          "type": "string",
+          "description": "Standard-Antwort bei unverstandener Eingabe"
+        },
+        "errorMessage": {
+          "type": "string",
+          "description": "Fehlernachricht bei technischen Problemen"
+        },
+        "closeOnMobileAfterNavigation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Agent auf Mobile nach Navigation schließen"
+        },
+        "highlightDuration": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 5000,
+          "default": 2000,
+          "description": "Standard-Highlight-Dauer (ms)"
+        },
+        "typingDelayMin": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 3000,
+          "default": 800,
+          "description": "Minimale Typing-Simulation (ms)"
+        },
+        "typingDelayMax": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 5000,
+          "default": 1200,
+          "description": "Maximale Typing-Simulation (ms)"
+        },
+        "scrollBehavior": {
+          "type": "string",
+          "enum": ["auto", "smooth", "instant"],
+          "default": "smooth",
+          "description": "Standard-Scroll-Verhalten"
+        }
+      }
+    },
+    
+    "ResponsePatterns": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9|_-]+$": {
+              "$ref": "#/$defs/KeywordPattern"
+            }
+          },
+          "description": "Keyword-basierte Antwortmuster (Regex-Pattern als Key)"
+        }
+      }
+    },
+    
+    "KeywordPattern": {
+      "type": "object",
+      "required": ["responses"],
+      "properties": {
+        "responses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Array möglicher Antworten (zufällig gewählt)"
+        },
+        "followUpActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "description": "Follow-up-Aktionen nach der Antwort"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.8,
+          "description": "Confidence-Level für Pattern-Matching"
+        }
+      }
+    }
+  },
+  
+  "examples": [
+    {
+      "version": "1.0",
+      "metadata": {
+        "description": "Agent-Dialog-Konfiguration für AXIOM Leitfaden",
+        "created": "2025-09-29",
+        "agent_name": "Spürhund Rex",
+        "selector_system": "CSS-Selectors mit data-ref Attributen"
+      },
+      "dialogs": {
+        "format-decision": {
+          "id": "format-decision",
+          "title": "Format-Entscheidungshilfe",
+          "targetSelectors": [
+            "#section-step2",
+            "#section-step2 [data-ref='format-options']"
+          ],
+          "initialMessage": "<p>Wuff! 🐕‍🦺 Wie kann ich Ihnen bei der Format-Wahl helfen?</p>",
+          "actions": [
+            {
+              "id": "show-html-info",
+              "type": "showInfo",
+              "icon": "💬",
+              "label": "HTML-Format erklären",
+              "content": "<p>HTML ist ideal für interaktive Reports!</p>",
+              "nextActions": [
+                {
+                  "id": "navigate-to-html",
+                  "type": "navigate",
+                  "icon": "🎯",
+                  "label": "Zu HTML-Details",
+                  "targetSelectors": ["#section-step2 [data-ref='format-html']"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "globalSettings": {
+        "agentName": "Spürhund Rex",
+        "agentIcon": "🐕‍🦺",
+        "welcomeMessage": "<p>Wuff! Ich bin Rex, Ihr Assistent!</p>"
+      }
+    }
+  ]
+}

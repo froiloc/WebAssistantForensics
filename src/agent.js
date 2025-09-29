@@ -96,10 +96,18 @@ function closeAgent() {
 }
 
 // ===== NOTIFICATION BADGE =====
-function showAgentNotification() {
+function showAgentNotification(message) {
     const badge = document.getElementById('agent-notification');
     if (badge) {
         badge.style.display = 'flex';
+        
+        // Optional: Message als Tooltip anzeigen
+        if (message) {
+            badge.title = message;
+            badge.textContent = '💡';
+        } else {
+            badge.textContent = '!';
+        }
     }
 }
 
@@ -259,10 +267,12 @@ function sendAgentInput() {
     // Verarbeitung mit Verzögerung (simuliert "Nachdenken")
     showAgentTyping();
     
+    const delay = getRandomTypingDelay();
+    
     setTimeout(function() {
         hideAgentTyping();
         processAgentInput(userMessage);
-    }, 1000);
+    }, delay);
 }
 
 // ===== DIALOG HANDLING =====
@@ -270,16 +280,20 @@ function startAgentDialog(contextId) {
     agentCurrentContext = contextId;
     
     // Dialog-Daten aus JSON laden
-    if (!agentDialogData || !agentDialogData[contextId]) {
-        addAgentMessage('<p>Wuff! Leider habe ich zu diesem Thema noch keine Informationen. 🤔</p>');
+    if (!agentDialogData || !agentDialogData.dialogs || !agentDialogData.dialogs[contextId]) {
+        const fallbackMessage = agentDialogData?.globalSettings?.fallbackMessage || 
+                               '<p>Wuff! Leider habe ich zu diesem Thema noch keine Informationen. 🤔</p>';
+        addAgentMessage(fallbackMessage);
         return;
     }
     
-    const dialog = agentDialogData[contextId];
+    const dialog = agentDialogData.dialogs[contextId];
     
     // Initial Message
     if (dialog.initialMessage) {
         showAgentTyping();
+        const delay = getRandomTypingDelay();
+        
         setTimeout(function() {
             hideAgentTyping();
             addAgentMessage(dialog.initialMessage);
@@ -293,10 +307,19 @@ function startAgentDialog(contextId) {
             if (dialog.expectInput) {
                 showAgentInput(dialog.inputPlaceholder || 'Antwort eingeben...');
             }
-        }, 800);
+        }, delay);
     }
 }
 
+// ===== TYPING DELAY BERECHNEN =====
+function getRandomTypingDelay() {
+    const settings = agentDialogData?.globalSettings;
+    const min = settings?.typingDelayMin || 800;
+    const max = settings?.typingDelayMax || 1200;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// ===== ACTION HANDLING (ERWEITERT) =====
 function handleAgentAction(action) {
     // Benutzer-Wahl als Nachricht anzeigen
     addAgentMessage(`<p>${action.label}</p>`, true);
@@ -307,60 +330,160 @@ function handleAgentAction(action) {
     // Typing-Indikator
     showAgentTyping();
     
+    const delay = getRandomTypingDelay();
+    
     setTimeout(function() {
         hideAgentTyping();
-        
-        // Je nach Action-Type
-        if (action.type === 'navigate') {
-            // Zum Leitfaden-Element navigieren
-            navigateToSection(action.targetId);
-            
-            // Feedback-Nachricht
-            addAgentMessage(`<p>Wuff! 🎯 Ich bringe Sie zu "${action.targetTitle}".</p>`);
-            
-            // Optional: Kontext-Block im Leitfaden einblenden
-            if (action.contextBlockId) {
-                showContextBlock(action.contextBlockId, action.contextContent);
-            }
-            
-        } else if (action.type === 'showInfo') {
-            // Informationen anzeigen
-            addAgentMessage(action.content);
-            
-            // Weitere Actions?
-            if (action.nextActions) {
-                showQuickActions(action.nextActions);
-            }
-            
-        } else if (action.type === 'askQuestion') {
-            // Neue Frage stellen
-            addAgentMessage(action.question);
-            
-            if (action.actions) {
-                showQuickActions(action.actions);
-            } else if (action.expectInput) {
-                showAgentInput(action.inputPlaceholder);
-            }
-        }
-    }, 1000);
+        processActionByType(action);
+    }, delay);
 }
 
-function processAgentInput(userInput) {
-    // Hier kann später NLP oder Keyword-Matching implementiert werden
-    // Für jetzt: Einfache Antwort
+// ===== ACTION-TYPE PROCESSING =====
+function processActionByType(action) {
+    switch (action.type) {
+        case 'navigate':
+            handleNavigateAction(action);
+            break;
+        case 'showInfo':
+            handleShowInfoAction(action);
+            break;
+        case 'askQuestion':
+            handleAskQuestionAction(action);
+            break;
+        case 'highlightElements':
+            handleHighlightAction(action);
+            break;
+        case 'showActions':
+            handleShowActionsAction(action);
+            break;
+        default:
+            console.warn('Unbekannter Action-Type:', action.type);
+            addAgentMessage(agentDialogData?.globalSettings?.errorMessage || 
+                           '<p>Da ist etwas schiefgelaufen! 😅</p>');
+    }
+}
+
+// ===== NAVIGATE ACTION =====
+function handleNavigateAction(action) {
+    if (!action.targetSelectors || action.targetSelectors.length === 0) {
+        console.error('Navigate action ohne targetSelectors:', action);
+        return;
+    }
     
-    const response = generateAgentResponse(userInput);
-    addAgentMessage(response);
+    // Erstes verfügbares Target finden und navigieren
+    let navigated = false;
+    for (const selector of action.targetSelectors) {
+        if (navigateToSelector(selector, action.scrollBehavior)) {
+            navigated = true;
+            break;
+        }
+    }
+    
+    if (navigated) {
+        const targetTitle = action.targetTitle || 'gewünschter Bereich';
+        addAgentMessage(`<p>Wuff! 🎯 Ich bringe Sie zu "${targetTitle}".</p>`);
+        
+        // Context-Block anzeigen falls vorhanden
+        if (action.contextBlock) {
+            showContextBlockFromAction(action.contextBlock);
+        }
+        
+        // Mobile: Agent schließen
+        if (shouldCloseOnMobile()) {
+            setTimeout(closeAgent, 1500);
+        }
+    } else {
+        addAgentMessage('<p>Entschuldigung, ich konnte das Ziel nicht finden. 😅</p>');
+    }
+    
+    // Next Actions anbieten
+    if (action.nextActions && action.nextActions.length > 0) {
+        setTimeout(() => showQuickActions(action.nextActions), 1000);
+    }
+}
+
+// ===== SHOW INFO ACTION =====
+function handleShowInfoAction(action) {
+    if (action.content) {
+        addAgentMessage(action.content);
+    }
+    
+    // Next Actions anbieten
+    if (action.nextActions && action.nextActions.length > 0) {
+        showQuickActions(action.nextActions);
+    }
+}
+
+// ===== ASK QUESTION ACTION =====
+function handleAskQuestionAction(action) {
+    if (action.question) {
+        addAgentMessage(action.question);
+    }
+    
+    if (action.actions && action.actions.length > 0) {
+        showQuickActions(action.actions);
+    } else if (action.expectInput) {
+        showAgentInput(action.inputPlaceholder || 'Antwort eingeben...');
+    }
+}
+
+// ===== HIGHLIGHT ACTION =====
+function handleHighlightAction(action) {
+    if (action.targetSelectors && action.targetSelectors.length > 0) {
+        highlightMultipleElements(action.targetSelectors, action.highlightDuration);
+        addAgentMessage('<p>Wuff! Ich habe die wichtigen Bereiche markiert! 🎯</p>');
+    }
+}
+
+// ===== SHOW ACTIONS ACTION =====
+function handleShowActionsAction(action) {
+    if (action.actions && action.actions.length > 0) {
+        showQuickActions(action.actions);
+    }
+}
+
+// ===== INPUT PROCESSING =====
+function processAgentInput(userInput) {
+    // Keyword-Pattern-Matching aus JSON
+    const patterns = agentDialogData?.responsePatterns?.keywords;
+    
+    if (patterns) {
+        for (const [pattern, config] of Object.entries(patterns)) {
+            // Regex-Pattern aus Key erstellen
+            const regex = new RegExp(pattern, 'i');
+            if (regex.test(userInput)) {
+                // Random Response auswählen
+                const responses = config.responses || [];
+                if (responses.length > 0) {
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addAgentMessage(randomResponse);
+                    
+                    // Follow-up Actions
+                    if (config.followUpActions && config.followUpActions.length > 0) {
+                        showQuickActions(config.followUpActions);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Fallback-Response
+    const fallbackMessage = agentDialogData?.globalSettings?.fallbackMessage || 
+                           '<p>Interessante Frage! Lassen Sie mich nachdenken... 🤔 Können Sie mir mehr Details geben?</p>';
+    addAgentMessage(fallbackMessage);
     
     // Standard-Actions anbieten
     showQuickActions([
         {
+            id: 'back-overview',
             icon: '🏠',
             label: 'Zurück zur Übersicht',
             type: 'navigate',
-            targetId: 'section-intro'
+            targetSelectors: ['#section-intro']
         },
         {
+            id: 'ask-question',
             icon: '❓',
             label: 'Weitere Frage stellen',
             type: 'askQuestion',
@@ -370,75 +493,94 @@ function processAgentInput(userInput) {
     ]);
 }
 
-function generateAgentResponse(userInput) {
-    // Einfaches Keyword-Matching für Demo
-    const input = userInput.toLowerCase();
-    
-    if (input.includes('html') || input.includes('format')) {
-        return '<p>Wuff! HTML-Reports sind ideal für interaktive Darstellung und Chat-Analysen. Sie bieten Hyperlinks und web-basierte Navigation. 🐾</p>';
-    } else if (input.includes('pdf')) {
-        return '<p>PDF-Reports eignen sich perfekt für Gerichtsberichte und finale Dokumentation. Sie sind unveränderbar und druckoptimiert. 📄</p>';
-    } else if (input.includes('hilfe') || input.includes('help')) {
-        return '<p>Gerne! Ich kann Ihnen bei folgenden Themen helfen: Report-Format wählen, Daten exportieren, Best Practices. Was interessiert Sie? 🐕‍🦺</p>';
-    } else {
-        return '<p>Interessante Frage! Lassen Sie mich nachdenken... 🤔 Können Sie mir mehr Details geben?</p>';
-    }
-}
-
-// ===== NAVIGATION ZU LEITFADEN-ELEMENTEN =====
-function navigateToSection(targetId) {
-    const element = document.getElementById(targetId);
+// ===== NAVIGATION ZU LEITFADEN-ELEMENTEN (CSS-SELECTOR) =====
+function navigateToSelector(selector, scrollBehavior = 'smooth') {
+    const element = document.querySelector(selector);
     
     if (element) {
+        // Scroll-Verhalten aus globalSettings oder Parameter
+        const behavior = scrollBehavior || 
+                        agentDialogData?.globalSettings?.scrollBehavior || 
+                        'smooth';
+        
         // Smooth scroll zum Element
         element.scrollIntoView({ 
-            behavior: 'smooth', 
+            behavior: behavior, 
             block: 'center' 
         });
         
-        // Optional: Element kurz highlighten
-        element.classList.add('highlight-flash');
+        // Highlight-Effekt
+        const duration = agentDialogData?.globalSettings?.highlightDuration || 2000;
+        element.classList.add('agent-highlight');
         setTimeout(function() {
-            element.classList.remove('highlight-flash');
-        }, 2000);
+            element.classList.remove('agent-highlight');
+        }, duration);
         
-        // Agent auf Mobile schließen
-        if (window.innerWidth <= 1024) {
-            setTimeout(closeAgent, 1500);
+        return true;
+    } else {
+        console.warn(`Element mit Selector "${selector}" nicht gefunden`);
+        return false;
+    }
+}
+
+// ===== MULTIPLE ELEMENTS HIGHLIGHTEN =====
+function highlightMultipleElements(selectors, duration) {
+    const highlightDuration = duration || 
+                             agentDialogData?.globalSettings?.highlightDuration || 
+                             2000;
+    
+    selectors.forEach(selector => {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.classList.add('agent-highlight');
+            setTimeout(() => {
+                element.classList.remove('agent-highlight');
+            }, highlightDuration);
+        } else {
+            console.warn(`Element mit Selector "${selector}" nicht gefunden`);
+        }
+    });
+}
+
+// ===== CONTEXT-BLOCK VON ACTION =====
+function showContextBlockFromAction(contextBlock) {
+    if (!contextBlock.targetSelectors || contextBlock.targetSelectors.length === 0) {
+        console.error('ContextBlock ohne targetSelectors:', contextBlock);
+        return;
+    }
+    
+    // Erstes verfügbares Target finden
+    for (const selector of contextBlock.targetSelectors) {
+        const block = document.querySelector(selector);
+        if (block) {
+            // Content einfügen
+            block.innerHTML = contextBlock.content;
+            
+            // Block anzeigen
+            block.style.display = 'block';
+            
+            // Zum Block scrollen
+            block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Auto-Hide falls konfiguriert
+            if (contextBlock.autoHide) {
+                const hideDelay = contextBlock.hideDelay || 10000;
+                setTimeout(() => {
+                    block.style.display = 'none';
+                }, hideDelay);
+            }
+            
+            return; // Erfolgreich, keine weiteren Selektoren probieren
         }
     }
+    
+    console.warn('Kein Context-Block-Target gefunden:', contextBlock.targetSelectors);
 }
 
-// ===== KONTEXT-BLÖCKE IM LEITFADEN =====
-function showContextBlock(contextBlockId, content) {
-    const block = document.getElementById(contextBlockId);
-    
-    if (!block) return;
-    
-    // Content einfügen
-    block.innerHTML = `
-        <div class="agent-context-header">
-            <span class="agent-context-icon">🐕‍🦺</span>
-            <h4 class="agent-context-title">Rex' Tipp</h4>
-            <button class="agent-context-close" onclick="hideContextBlock('${contextBlockId}')" aria-label="Tipp schließen">✕</button>
-        </div>
-        <div class="agent-context-content">
-            ${content}
-        </div>
-    `;
-    
-    // Block anzeigen
-    block.style.display = 'block';
-    
-    // Zum Block scrollen
-    block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function hideContextBlock(contextBlockId) {
-    const block = document.getElementById(contextBlockId);
-    if (block) {
-        block.style.display = 'none';
-    }
+// ===== MOBILE DETECTION =====
+function shouldCloseOnMobile() {
+    const closeOnMobile = agentDialogData?.globalSettings?.closeOnMobileAfterNavigation;
+    return closeOnMobile !== false && window.innerWidth <= 1024;
 }
 
 // ===== INLINE TRIGGERS =====
@@ -454,8 +596,8 @@ function initInlineTriggers() {
             openAgent(contextId);
             
             // Optional: Spezifische Frage starten
-            if (questionId && agentDialogData && agentDialogData[contextId]) {
-                const dialog = agentDialogData[contextId];
+            if (questionId && agentDialogData && agentDialogData.dialogs[contextId]) {
+                const dialog = agentDialogData.dialogs[contextId];
                 if (dialog.questions && dialog.questions[questionId]) {
                     startSpecificQuestion(dialog.questions[questionId]);
                 }
@@ -475,6 +617,8 @@ function initInlineTriggers() {
 function startSpecificQuestion(questionData) {
     showAgentTyping();
     
+    const delay = getRandomTypingDelay();
+    
     setTimeout(function() {
         hideAgentTyping();
         addAgentMessage(questionData.message);
@@ -482,7 +626,7 @@ function startSpecificQuestion(questionData) {
         if (questionData.actions) {
             showQuickActions(questionData.actions);
         }
-    }, 800);
+    }, delay);
 }
 
 // ===== SECTION-ENTER TRIGGERS =====
@@ -492,13 +636,13 @@ function initSectionTriggers() {
     
     const triggerObserver = new IntersectionObserver(function(entries) {
         entries.forEach(entry => {
-            if (entry.isIntersecting && entry.intersectionRatio > 0.7) {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
                 const sectionId = entry.target.dataset.section;
-                checkSectionTrigger(sectionId);
+                checkSectionTrigger(sectionId, entry.intersectionRatio);
             }
         });
     }, {
-        threshold: [0.7]
+        threshold: [0.1, 0.5, 0.7, 0.9]
     });
     
     sections.forEach(section => {
@@ -506,142 +650,206 @@ function initSectionTriggers() {
     });
 }
 
-function checkSectionTrigger(sectionId) {
+function checkSectionTrigger(sectionId, intersectionRatio) {
     // Prüfen ob für diese Section ein Auto-Trigger definiert ist
-    if (!agentDialogData || !agentDialogData.sectionTriggers) return;
+    const sectionTriggers = agentDialogData?.sectionTriggers;
+    if (!sectionTriggers) return;
     
-    const trigger = agentDialogData.sectionTriggers[sectionId];
+    // Trigger für diese Section finden
+    const trigger = Object.values(sectionTriggers).find(t => t.sectionId === sectionId);
     
     if (trigger && !trigger.triggered) {
-        // Trigger nur einmal auslösen
-        trigger.triggered = true;
+        const conditions = trigger.conditions || {};
+        const minRatio = conditions.intersectionRatio || 0.5;
+        const dwellTime = conditions.dwellTime || 3000;
         
-        // Notification Badge anzeigen
-        showAgentNotification();
-        
-        // Optional: Nach Verzögerung automatisch öffnen
-        if (trigger.autoOpen) {
-            setTimeout(function() {
-                openAgent(trigger.contextId);
-            }, trigger.delay || 3000);
+        // Prüfen ob Intersection-Ratio ausreicht
+        if (intersectionRatio >= minRatio) {
+            // Timer für Dwell-Time starten
+            setTimeout(() => {
+                // Nochmal prüfen ob Section noch im Fokus ist
+                const section = document.querySelector(`[data-section="${sectionId}"]`);
+                if (section && isElementInViewport(section, minRatio)) {
+                    triggerSectionAction(trigger);
+                }
+            }, dwellTime);
         }
     }
 }
 
+function triggerSectionAction(trigger) {
+    // Trigger markieren als ausgelöst
+    trigger.triggered = true;
+    
+    // Notification Badge anzeigen
+    if (trigger.notificationMessage) {
+        showAgentNotification(trigger.notificationMessage);
+    } else {
+        showAgentNotification();
+    }
+    
+    // Optional: Nach Verzögerung automatisch öffnen
+    if (trigger.autoOpen && trigger.contextId) {
+        setTimeout(function() {
+            openAgent(trigger.contextId);
+        }, trigger.delay || 3000);
+    }
+}
+
+function isElementInViewport(element, minRatio = 0.5) {
+    const rect = element.getBoundingClientRect();
+    const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+    const viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth);
+    
+    const visibleHeight = Math.min(rect.bottom, viewHeight) - Math.max(rect.top, 0);
+    const visibleWidth = Math.min(rect.right, viewWidth) - Math.max(rect.left, 0);
+    
+    const elementArea = rect.height * rect.width;
+    const visibleArea = Math.max(0, visibleHeight) * Math.max(0, visibleWidth);
+    
+    return elementArea > 0 && (visibleArea / elementArea) >= minRatio;
+}
+
 // ===== DIALOG-DATEN LADEN (JSON) =====
 function loadAgentDialogs() {
-    // Zunächst mit Beispiel-Daten (später aus JSON-Datei)
-    agentDialogData = {
-        // Context: Format-Entscheidung
-        'format-decision': {
-            initialMessage: '<p>Wuff! 🐕‍🦺 Ich sehe, Sie müssen ein Report-Format wählen.</p><p>Lassen Sie mich Ihnen helfen! Wofür benötigen Sie den Report?</p>',
-            actions: [
-                {
-                    icon: '💬',
-                    label: 'Chat-Analysen und interaktive Darstellung',
-                    type: 'showInfo',
-                    content: '<p>Perfekt! Für Chat-Analysen ist <strong>HTML</strong> die beste Wahl! 🎯</p><p>HTML-Reports bieten:</p><ul><li>✅ Interaktive Navigation</li><li>✅ Chat-Thread Darstellung</li><li>✅ Hyperlinks zwischen Beweisen</li><li>✅ UTF-8 Support für mehrsprachige Inhalte</li></ul>',
-                    nextActions: [
-                        {
-                            icon: '🎯',
-                            label: 'Zu Schritt "HTML wählen" springen',
-                            type: 'navigate',
-                            targetId: 'step2-intro',
-                            targetTitle: 'Format HTML wählen',
-                            contextBlockId: 'agent-context-format-decision',
-                            contextContent: '<p><strong>Rex\' Expertentipp:</strong> Bei Chat-Daten aus WhatsApp, Telegram oder Signal ist HTML unschlagbar, weil die Threading-Struktur erhalten bleibt und Emojis korrekt dargestellt werden.</p>'
-                        }
-                    ]
-                },
-                {
-                    icon: '⚖️',
-                    label: 'Gerichtsberichte und offizielle Dokumentation',
-                    type: 'showInfo',
-                    content: '<p>Ah, für offizielle Zwecke! Dann empfehle ich <strong>PDF</strong>. 📄</p><p>PDF-Reports sind:</p><ul><li>✅ Unveränderbar und gerichtsfest</li><li>✅ Druckoptimiert</li><li>✅ Plattformunabhängig</li><li>✅ Mit automatischem Inhaltsverzeichnis</li></ul>',
-                    nextActions: [
-                        {
-                            icon: '📚',
-                            label: 'Mehr über PDF-Export erfahren',
-                            type: 'navigate',
-                            targetId: 'step2-format-pdf'
-                        }
-                    ]
-                },
-                {
-                    icon: '📊',
-                    label: 'Datenanalyse und Timeline-Auswertung',
-                    type: 'showInfo',
-                    content: '<p>Ausgezeichnet für Analysen! Wählen Sie <strong>XLSX</strong>. 📈</p><p>XLSX-Exports ermöglichen:</p><ul><li>✅ Timeline-Analysen</li><li>✅ Filterbare Tabellen</li><li>✅ Statistische Auswertungen</li><li>✅ Weiterverarbeitung in Excel</li></ul>',
-                    nextActions: [
-                        {
-                            icon: '📊',
-                            label: 'Zu Excel-Export Details',
-                            type: 'navigate',
-                            targetId: 'step2-format-xlsx'
-                        }
-                    ]
-                }
-            ],
-            questions: {
-                'why-html': {
-                    message: '<p>Gute Frage! 🤓 HTML ist ideal weil:</p><ul><li>Interaktive Links zwischen Beweisen</li><li>Chat-Threads bleiben strukturiert</li><li>Emojis und Sonderzeichen funktionieren perfekt</li><li>Durchsuchbar im Browser</li></ul><p>Soll ich Ihnen zeigen, wie man HTML auswählt?</p>',
-                    actions: [
-                        {
-                            icon: '✅',
-                            label: 'Ja, zeig mir wie!',
-                            type: 'navigate',
-                            targetId: 'step2-intro',
-                            targetTitle: 'Format HTML wählen'
-                        },
-                        {
-                            icon: '❓',
-                            label: 'Was ist mit PDF?',
-                            type: 'askQuestion',
-                            question: '<p>PDF ist super für offizielle Dokumente! Soll ich mehr darüber erzählen?</p>',
-                            actions: [
-                                {
-                                    icon: '📄',
-                                    label: 'Ja, erkläre PDF',
-                                    type: 'showInfo',
-                                    content: '<p>PDF-Reports sind unveränderbar und perfekt für Gerichte...</p>'
-                                }
-                            ]
-                        }
-                    ]
-                }
+    // JSON-Datei laden
+    fetch('agent-dialogs.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Agent dialogs loaded successfully:', data.metadata);
+            agentDialogData = data;
+            
+            // Global Settings anwenden
+            if (data.globalSettings) {
+                applyGlobalSettings(data.globalSettings);
+            }
+        })
+        .catch(error => {
+            console.error('Fehler beim Laden der Agent-Dialoge:', error);
+            // Fallback auf minimale Konfiguration
+            agentDialogData = createFallbackDialogData();
+        });
+}
+
+// ===== GLOBAL SETTINGS ANWENDEN =====
+function applyGlobalSettings(settings) {
+    // Agent-Name und Icon aktualisieren
+    const agentTitle = document.querySelector('.agent-title h2');
+    if (agentTitle && settings.agentName) {
+        agentTitle.textContent = settings.agentName;
+    }
+    
+    const agentDog = document.querySelector('.agent-dog');
+    const agentIcon = document.querySelector('.agent-icon');
+    if (settings.agentIcon) {
+        if (agentDog) agentDog.textContent = settings.agentIcon;
+        if (agentIcon) agentIcon.textContent = settings.agentIcon;
+    }
+    
+    // Welcome Message aktualisieren
+    if (settings.welcomeMessage) {
+        const welcomeMessage = document.querySelector('.agent-welcome-message .agent-message-bubble');
+        if (welcomeMessage) {
+            welcomeMessage.innerHTML = settings.welcomeMessage;
+        }
+    }
+}
+
+// ===== FALLBACK DIALOG-DATEN =====
+function createFallbackDialogData() {
+    return {
+        version: "1.0",
+        metadata: {
+            description: "Fallback Agent-Dialog-Konfiguration",
+            agent_name: "Spürhund Rex"
+        },
+        dialogs: {
+            'format-decision': {
+                id: 'format-decision',
+                title: 'Format-Entscheidungshilfe',
+                targetSelectors: ['#section-step2'],
+                initialMessage: '<p>Wuff! 🐕‍🦺 Ich helfe bei der Format-Wahl!</p>',
+                actions: [
+                    {
+                        id: 'html-help',
+                        icon: '💬',
+                        label: 'HTML erklären',
+                        type: 'showInfo',
+                        content: '<p>HTML ist ideal für interaktive Reports!</p>'
+                    }
+                ]
             }
         },
-        
-        // Section Triggers (automatisch wenn Section betreten wird)
-        'sectionTriggers': {
-            'step2': {
-                contextId: 'format-decision',
-                autoOpen: false, // Nur Notification, nicht auto-öffnen
-                delay: 2000,
-                triggered: false
-            }
+        globalSettings: {
+            agentName: "Spürhund Rex",
+            agentIcon: "🐕‍🦺",
+            welcomeMessage: "<p>Wuff! 🎉 Ich bin Rex!</p>",
+            fallbackMessage: "<p>Interessante Frage! Können Sie mehr Details geben? 🤔</p>"
         }
     };
-    
-    // TODO: Später aus externer JSON-Datei laden:
-    // fetch('agent-dialogs.json')
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         agentDialogData = data;
-    //     });
+}
+
+// ===== LEGACY FUNCTIONS (FÜR RÜCKWÄRTSKOMPATIBILITÄT) =====
+// Diese Funktionen sind für bestehende HTML-Referenzen
+function navigateToSection(targetId) {
+    return navigateToSelector(`#${targetId}`);
+}
+
+function showContextBlock(contextBlockId, content) {
+    const contextBlock = {
+        targetSelectors: [`#${contextBlockId}`],
+        content: `
+            <div class="agent-context-header">
+                <span class="agent-context-icon">🐕‍🦺</span>
+                <h4 class="agent-context-title">Rex' Tipp</h4>
+                <button class="agent-context-close" onclick="hideContextBlock('${contextBlockId}')" aria-label="Tipp schließen">✕</button>
+            </div>
+            <div class="agent-context-content">
+                ${content}
+            </div>
+        `
+    };
+    showContextBlockFromAction(contextBlock);
+}
+
+function hideContextBlock(contextBlockId) {
+    const block = document.getElementById(contextBlockId);
+    if (block) {
+        block.style.display = 'none';
+    }
 }
 
 // ===== UTILITY FUNKTIONEN =====
 // Highlight-Effekt für navigierte Elemente
 const style = document.createElement('style');
 style.textContent = `
-    .highlight-flash {
-        animation: highlightPulse 2s ease;
+    .agent-highlight {
+        animation: agentHighlightPulse 2s ease;
     }
     
-    @keyframes highlightPulse {
-        0%, 100% { background-color: transparent; }
-        50% { background-color: rgba(245, 87, 108, 0.2); }
+    @keyframes agentHighlightPulse {
+        0%, 100% { 
+            background-color: transparent; 
+            border-color: transparent; 
+        }
+        25%, 75% { 
+            background-color: rgba(245, 87, 108, 0.2);
+            border-color: rgba(245, 87, 108, 0.5);
+        }
+        50% { 
+            background-color: rgba(245, 87, 108, 0.3);
+            border-color: rgba(245, 87, 108, 0.8);
+        }
+    }
+    
+    /* Legacy Support */
+    .highlight-flash {
+        animation: agentHighlightPulse 2s ease;
     }
 `;
 document.head.appendChild(style);
@@ -652,7 +860,28 @@ window.agentAPI = {
     close: closeAgent,
     addMessage: addAgentMessage,
     showActions: showQuickActions,
-    navigateTo: navigateToSection,
-    showContext: showContextBlock,
-    hideContext: hideContextBlock
+    navigateTo: navigateToSelector,
+    navigateToSection: navigateToSection, // Legacy
+    showContext: showContextBlockFromAction,
+    showContextBlock: showContextBlock, // Legacy  
+    hideContext: hideContextBlock,
+    highlightElements: highlightMultipleElements,
+    loadDialogs: loadAgentDialogs,
+    getDialogData: () => agentDialogData,
+    validateSelector: (selector) => {
+        try {
+            const element = document.querySelector(selector);
+            return {
+                valid: true,
+                exists: element !== null,
+                element: element
+            };
+        } catch (e) {
+            return {
+                valid: false,
+                exists: false,
+                error: e.message
+            };
+        }
+    }
 };

@@ -83,22 +83,6 @@ mkdir -p "$log_dir"
 echo "Web server log: $log_dir/$log_file"
 
 # Try servers in order of preference
-if command -v nc > /dev/null 2>&1; then
-    echo "Found netcat, attempting to start basic HTTP server..."
-    cd "${root_path}"
-    start_netcat_server "${root_path}" "${port}"
-    sleep 2
-    # Check if netcat server is running by checking the pid file
-    if [ -f "/tmp/webserver_nc_${port}.pid" ] && kill -0 $(cat "/tmp/webserver_nc_${port}.pid") 2>/dev/null; then
-        echo "✓ Successfully started netcat HTTP server on port ${port}"
-        echo "⚠️  Note: Netcat server provides basic directory listing only"
-        echo "Access it at http://localhost:${port}/"
-        exit 0
-    else
-        echo "Netcat server failed..."
-    fi
-fi
-
 if command -v npx > /dev/null 2>&1; then
     echo "Found npx (Node.js), attempting to start server..."
     start_node_server "${root_path}" "${port}"
@@ -183,12 +167,28 @@ if command -v webfsd > /dev/null 2>&1; then
     fi
 fi
 
+if command -v nc > /dev/null 2>&1; then
+    echo "Found netcat, attempting to start basic HTTP server..."
+    cd "${root_path}"
+    start_netcat_server "${root_path}" "${port}"
+    sleep 2
+    # Check if netcat server is running by checking the pid file
+    if [ -f "/tmp/webserver_nc_${port}.pid" ] && kill -0 $(cat "/tmp/webserver_nc_${port}.pid") 2>/dev/null; then
+        echo "✓ Successfully started netcat HTTP server on port ${port}"
+        echo "⚠️  Note: Netcat server provides basic directory listing only"
+        echo "Access it at http://localhost:${port}/"
+        exit 0
+    else
+        echo "Netcat server failed..."
+    fi
+fi
+
 echo "ERROR: No suitable web server found. Please install one of the following:" >&2
-echo "  - netcat (nc)" >&2
 echo "  - Node.js (with npx)" >&2
 echo "  - Python 3" >&2
 echo "  - PHP" >&2
 echo "  - Busybox (with httpd)" >&2
 echo "  - Ruby" >&2
 echo "  - webfs" >&2
+echo "  - netcat (nc)" >&2
 exit 1

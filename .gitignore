@@ -1,6 +1,19 @@
+# Tempfiles and logs
 nohup.out
 *.kate-swp
 *.kate-swo
 *.swp
 *.swo
 *.log
+
+# Environments
+.env
+.envrc
+.venv
+env/
+tools/venv/
+ENV/
+env.bak/
+venv.bak/
+
+

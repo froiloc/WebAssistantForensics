@@ -1,0 +1,380 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "description": "Agent-Dialog-Konfiguration für AXIOM Leitfaden",
+    "created": "2025-09-29",
+    "agent_name": "Spürhund Rex",
+    "selector_system": "CSS-Selectors mit data-ref Attributen"
+  },
+  
+  "dialogs": {
+    "format-decision": {
+      "id": "format-decision",
+      "title": "Format-Entscheidungshilfe",
+      "description": "Hilft bei der Wahl zwischen HTML, PDF und XLSX",
+      "targetSelectors": [
+        "#section-step2",
+        "#section-step2 [data-ref='format-options']"
+      ],
+      "initialMessage": "<p>Wuff! 🐕‍🦺 Ich sehe, Sie müssen ein Report-Format wählen.</p><p>Lassen Sie mich Ihnen helfen! Wofür benötigen Sie den Report?</p>",
+      "actions": [
+        {
+          "id": "chat-analysis",
+          "type": "showInfo",
+          "icon": "💬",
+          "label": "Chat-Analysen und interaktive Darstellung",
+          "content": "<p>Perfekt! Für Chat-Analysen ist <strong>HTML</strong> die beste Wahl! 🎯</p><p>HTML-Reports bieten:</p><ul><li>✅ Interaktive Navigation</li><li>✅ Chat-Thread Darstellung</li><li>✅ Hyperlinks zwischen Beweisen</li><li>✅ UTF-8 Support für mehrsprachige Inhalte</li></ul>",
+          "nextActions": [
+            {
+              "id": "navigate-to-html",
+              "type": "navigate",
+              "icon": "🎯",
+              "label": "Zu HTML-Format springen",
+              "targetSelectors": ["#section-step2 [data-ref='format-html']"],
+              "scrollBehavior": "smooth",
+              "highlightDuration": 2000,
+              "contextBlock": {
+                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' Expertentipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>Rex' Expertentipp:</strong> Bei Chat-Daten aus WhatsApp, Telegram oder Signal ist HTML unschlagbar, weil die Threading-Struktur erhalten bleibt und Emojis korrekt dargestellt werden.</p></div>"
+              }
+            }
+          ]
+        },
+        {
+          "id": "court-reports",
+          "type": "showInfo",
+          "icon": "⚖️",
+          "label": "Gerichtsberichte und offizielle Dokumentation",
+          "content": "<p>Ah, für offizielle Zwecke! Dann empfehle ich <strong>PDF</strong>. 📄</p><p>PDF-Reports sind:</p><ul><li>✅ Unveränderbar und gerichtsfest</li><li>✅ Druckoptimiert</li><li>✅ Plattformunabhängig</li><li>✅ Mit automatischem Inhaltsverzeichnis</li></ul>",
+          "nextActions": [
+            {
+              "id": "navigate-to-pdf",
+              "type": "navigate", 
+              "icon": "📚",
+              "label": "Mehr über PDF-Export erfahren",
+              "targetSelectors": ["#section-step2 [data-ref='format-pdf']"],
+              "contextBlock": {
+                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' PDF-Tipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>PDF für Gerichte:</strong> PDF-Reports sind unveränderbar und damit gerichtsfest. Sie eignen sich perfekt für finale Dokumentation und offizielle Berichte.</p></div>"
+              }
+            }
+          ]
+        },
+        {
+          "id": "data-analysis",
+          "type": "showInfo",
+          "icon": "📊",
+          "label": "Datenanalyse und Timeline-Auswertung",
+          "content": "<p>Ausgezeichnet für Analysen! Wählen Sie <strong>XLSX</strong>. 📈</p><p>XLSX-Exports ermöglichen:</p><ul><li>✅ Timeline-Analysen</li><li>✅ Filterbare Tabellen</li><li>✅ Statistische Auswertungen</li><li>✅ Weiterverarbeitung in Excel</li></ul>",
+          "nextActions": [
+            {
+              "id": "navigate-to-xlsx",
+              "type": "navigate",
+              "icon": "📊", 
+              "label": "Zu Excel-Export Details",
+              "targetSelectors": ["#section-step2 [data-ref='format-xlsx']"],
+              "contextBlock": {
+                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' Excel-Tipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>XLSX für Analysen:</strong> Excel-Exports sind ideal für Timeline-Analysen und statistische Auswertungen. Sie können die Daten filtern, sortieren und grafisch darstellen.</p></div>"
+              }
+            }
+          ]
+        }
+      ],
+      "questions": {
+        "why-html": {
+          "id": "why-html",
+          "message": "<p>Gute Frage! 🤔 HTML ist ideal weil:</p><ul><li>Interaktive Links zwischen Beweisen</li><li>Chat-Threads bleiben strukturiert</li><li>Emojis und Sonderzeichen funktionieren perfekt</li><li>Durchsuchbar im Browser</li></ul><p>Soll ich Ihnen zeigen, wie man HTML auswählt?</p>",
+          "actions": [
+            {
+              "id": "show-html-selection",
+              "type": "navigate",
+              "icon": "✅",
+              "label": "Ja, zeig mir wie!",
+              "targetSelectors": ["#section-step2 [data-ref='explanation-text']"],
+              "scrollBehavior": "smooth"
+            },
+            {
+              "id": "ask-about-pdf", 
+              "type": "askQuestion",
+              "icon": "❓",
+              "label": "Was ist mit PDF?",
+              "question": "<p>PDF ist super für offizielle Dokumente! Soll ich mehr darüber erzählen?</p>",
+              "actions": [
+                {
+                  "id": "explain-pdf",
+                  "type": "showInfo",
+                  "icon": "📄",
+                  "label": "Ja, erkläre PDF",
+                  "content": "<p>PDF-Reports sind unveränderbar und perfekt für Gerichte. Sie bieten:</p><ul><li>Gerichtsfeste Dokumentation</li><li>Druckoptimierte Darstellung</li><li>Plattformunabhängige Anzeige</li><li>Automatisches Inhaltsverzeichnis</li></ul>"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "export-start-help": {
+      "id": "export-start-help", 
+      "title": "Export-Start Hilfe",
+      "description": "Hilft beim Start des HTML-Report-Exports",
+      "targetSelectors": [
+        "#section-workflow [data-ref='step1-basic']",
+        "#section-workflow [data-ref='step1-standard']"
+      ],
+      "initialMessage": "<p>Wuff! 🐕‍🦺 Ich helfe Ihnen beim Export-Start!</p><p>Es gibt zwei Wege, um einen HTML-Report zu erstellen. Welcher Weg interessiert Sie?</p>",
+      "actions": [
+        {
+          "id": "main-menu-path",
+          "type": "showInfo",
+          "icon": "📋",
+          "label": "Hauptmenü-Weg (Datei → Bericht/Export)",
+          "content": "<p>Der klassische Weg über das Hauptmenü:</p><ol><li><strong>Datei</strong> → <strong>Bericht/Export erstellen</strong></li><li>Funktioniert von überall in AXIOM</li><li>Alle Beweise stehen zur Auswahl</li></ol><p>Dieser Weg ist standardisiert und immer verfügbar! 📂</p>",
+          "nextActions": [
+            {
+              "id": "show-menu-details",
+              "type": "navigate",
+              "icon": "🔍",
+              "label": "Mehr Details anzeigen",
+                              "targetSelectors": ["#section-workflow [data-ref='step1-menu-path']"]
+            }
+          ]
+        },
+        {
+          "id": "context-menu-path",
+          "type": "showInfo", 
+          "icon": "🎯",
+          "label": "Kontextmenü-Weg (Rechtsklick auf Beweise)",
+          "content": "<p>Der effiziente Weg mit Vorauswahl:</p><ol><li>Beweise im <strong>Artifacts Explorer</strong> markieren</li><li><strong>Rechtsklick</strong> → <strong>Bericht/Export erstellen</strong></li><li>Ausgewählte Beweise sind bereits vorselektiert</li></ol><p>Zeitersparnis durch gezielte Auswahl! ⚡</p>",
+          "nextActions": [
+            {
+              "id": "show-context-details",
+              "type": "navigate",
+              "icon": "🔍", 
+              "label": "Mehr Details anzeigen",
+                              "targetSelectors": ["#section-workflow [data-ref='step1-context-path']"]
+            }
+          ]
+        },
+        {
+          "id": "best-practice-tip",
+          "type": "showInfo",
+          "icon": "💡",
+          "label": "Best Practice: Beweise taggen",
+          "content": "<p><strong>Rex' Profi-Tipp:</strong> Taggen Sie wichtige Beweise VOR dem Export! 🏷️</p><p>Warum das smart ist:</p><ul><li>Option 'Only tagged items' nutzen</li><li>Fokussierte Reports erstellen</li><li>Zeit bei der Auswahl sparen</li><li>Konsistente Ergebnisse</li></ul>",
+          "nextActions": [
+            {
+              "id": "show-tip-details",
+              "type": "navigate",
+              "icon": "💡",
+              "label": "Tip-Details anzeigen", 
+                              "targetSelectors": ["#section-workflow [data-ref='step1-tip']"]
+            }
+          ]
+        }
+      ],
+      "questions": {
+        "export-methods": {
+          "id": "export-methods",
+          "message": "<p>Welche Export-Methode ist für Sie am besten geeignet? 🤔</p>",
+          "expectInput": true,
+          "inputPlaceholder": "Beschreiben Sie Ihre Situation...",
+          "fallbackActions": [
+            {
+              "id": "general-guidance",
+              "type": "showInfo",
+              "icon": "🎯",
+              "label": "Allgemeine Empfehlung",
+              "content": "<p>Für die meisten Fälle empfehle ich:</p><ul><li><strong>Kontextmenü-Weg</strong> wenn Sie bereits wissen, welche Beweise Sie brauchen</li><li><strong>Hauptmenü-Weg</strong> für umfassende Reports mit allen Daten</li><li><strong>Taggen</strong> für wiederkehrende Report-Arten</li></ul>"
+            }
+          ]
+        }
+      }
+    },
+
+    "intro-format-choice": {
+      "id": "intro-format-choice",
+      "title": "Format-Überblick Einleitung",
+      "description": "Erklärt die Grundlagen der Format-Wahl", 
+      "targetSelectors": [
+        "#section-intro [data-ref='intro-text']",
+        "#section-intro [data-ref='comparison-text']"
+      ],
+      "initialMessage": "<p>Wuff! 🐕‍🦺 Ich sehe, Sie lesen über die verschiedenen Report-Formate.</p><p>Möchten Sie mehr über die Unterschiede zwischen HTML, PDF und XLSX erfahren?</p>",
+      "actions": [
+        {
+          "id": "explain-html-benefits",
+          "type": "showInfo",
+          "icon": "🌐",
+          "label": "HTML-Vorteile erklären",
+          "content": "<p><strong>HTML ist perfekt für:</strong></p><ul><li>📱 <strong>Chat-Analysen</strong> - Threading bleibt erhalten</li><li>🔗 <strong>Interaktive Navigation</strong> - Links zwischen Beweisen</li><li>🌍 <strong>Mehrsprachige Inhalte</strong> - UTF-8 Support</li><li>🔍 <strong>Browser-Suche</strong> - Durchsuchbar mit Strg+F</li></ul>",
+          "nextActions": [
+            {
+              "id": "jump-to-format-section",
+              "type": "navigate",
+              "icon": "🎯",
+              "label": "Zur Format-Auswahl springen",
+                              "targetSelectors": ["#section-step2"]
+            }
+          ]
+        },
+        {
+          "id": "format-comparison",
+          "type": "showInfo",
+          "icon": "⚖️", 
+          "label": "Alle Formate vergleichen",
+          "content": "<p><strong>Schnellvergleich:</strong></p><table style='width:100%; border-collapse: collapse;'><tr><th style='border: 1px solid #ddd; padding: 8px;'>Format</th><th style='border: 1px solid #ddd; padding: 8px;'>Ideal für</th></tr><tr><td style='border: 1px solid #ddd; padding: 8px;'><strong>HTML</strong></td><td style='border: 1px solid #ddd; padding: 8px;'>Chat-Analysen, interaktive Präsentation</td></tr><tr><td style='border: 1px solid #ddd; padding: 8px;'><strong>PDF</strong></td><td style='border: 1px solid #ddd; padding: 8px;'>Gerichtsberichte, finale Dokumentation</td></tr><tr><td style='border: 1px solid #ddd; padding: 8px;'><strong>XLSX</strong></td><td style='border: 1px solid #ddd; padding: 8px;'>Datenanalyse, Timeline-Auswertung</td></tr></table>",
+          "nextActions": [
+            {
+              "id": "detailed-comparison",
+              "type": "navigate", 
+              "icon": "📊",
+              "label": "Detailvergleich ansehen",
+                              "targetSelectors": ["#section-step2 [data-ref='format-comparison']"]
+            }
+          ]
+        }
+      ]
+    },
+
+    "template-usage": {
+      "id": "template-usage",
+      "title": "Template-Nutzung erklärt",
+      "description": "Hilft bei der effektiven Nutzung von AXIOM-Templates",
+      "targetSelectors": [
+        "#section-intro [data-ref='technical-details']"
+      ],
+      "initialMessage": "<p>Wuff! 🐕‍🦺 Templates sind ein mächtiges Werkzeug!</p><p>Möchten Sie lernen, wie Sie Templates effektiv nutzen können?</p>",
+      "actions": [
+        {
+          "id": "template-benefits",
+          "type": "showInfo",
+          "icon": "⚡",
+          "label": "Warum Templates verwenden?",
+          "content": "<p><strong>Templates sparen massiv Zeit:</strong></p><ul><li>🔄 <strong>Wiederkehrende Reports</strong> - Einmal konfigurieren, oft nutzen</li><li>⚡ <strong>Konsistente Ergebnisse</strong> - Gleiche Qualität bei jedem Export</li><li>👥 <strong>Team-Standards</strong> - Alle nutzen gleiche Vorlagen</li><li>🎯 <strong>Spezialisierte Setups</strong> - Chat-Template, Forensik-Template, etc.</li></ul>",
+          "nextActions": [
+            {
+              "id": "template-creation",
+              "type": "askQuestion",
+              "icon": "🛠️",
+              "label": "Wie erstelle ich Templates?",
+              "question": "<p>Möchten Sie lernen, wie man Templates erstellt und verwaltet? 🤔</p>",
+              "actions": [
+                {
+                  "id": "template-steps",
+                  "type": "showInfo",
+                  "icon": "📝",
+                  "label": "Ja, zeig mir die Schritte!",
+                  "content": "<p><strong>Template-Erstellung in 4 Schritten:</strong></p><ol><li>📋 <strong>Export konfigurieren</strong> - Alle Einstellungen nach Wunsch</li><li>💾 <strong>'Save as Template'</strong> - Im Export-Dialog</li><li>🏷️ <strong>Namen vergeben</strong> - Z.B. 'Chat-Analyse-Standard'</li><li>✅ <strong>Testen & Verfeinern</strong> - Template bei nächstem Export nutzen</li></ol>"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  "sectionTriggers": {
+    "step2": {
+      "id": "step2-trigger",
+      "sectionId": "step2", 
+      "contextId": "format-decision",
+      "autoOpen": false,
+      "delay": 2000,
+      "conditions": {
+        "intersectionRatio": 0.5,
+        "dwellTime": 3000
+      },
+      "notificationMessage": "💡 Rex kann bei der Format-Wahl helfen!",
+      "triggered": false
+    },
+    "intro": {
+      "id": "intro-trigger",
+      "sectionId": "intro",
+      "contextId": "intro-format-choice", 
+      "autoOpen": false,
+      "delay": 5000,
+      "conditions": {
+        "intersectionRatio": 0.7,
+        "dwellTime": 5000
+      },
+      "notificationMessage": "🐕‍🦺 Rex erklärt die Format-Unterschiede!",
+      "triggered": false
+    }
+  },
+
+  "globalSettings": {
+    "agentName": "Spürhund Rex",
+    "agentIcon": "🐕‍🦺",
+    "welcomeMessage": "<p>Wuff! 🎉 Ich bin Rex, Ihr forensischer Spürhund!</p><p>Ich helfe Ihnen durch die AXIOM-Auswertung. Stellen Sie mir Fragen oder lassen Sie sich von mir durch den Prozess führen.</p>",
+    "fallbackMessage": "<p>Interessante Frage! Lassen Sie mich nachdenken... 🤔 Können Sie mir mehr Details geben?</p>",
+    "errorMessage": "<p>Wuff! Da ist wohl etwas schiefgelaufen. 😅 Können Sie das nochmal versuchen?</p>",
+    "closeOnMobileAfterNavigation": true,
+    "highlightDuration": 2000,
+    "typingDelayMin": 800,
+    "typingDelayMax": 1200,
+    "scrollBehavior": "smooth"
+  },
+
+  "responsePatterns": {
+    "keywords": {
+      "html": {
+        "responses": [
+          "<p>Wuff! HTML-Reports sind ideal für interaktive Darstellung und Chat-Analysen. Sie bieten Hyperlinks und web-basierte Navigation. 🐾</p>"
+        ],
+        "followUpActions": [
+          {
+            "id": "navigate-to-html-details",
+            "type": "navigate", 
+            "label": "Zu HTML-Details",
+            "targetSelectors": ["#section-step2 [data-ref='format-html']"]
+          }
+        ]
+      },
+      "pdf": {
+        "responses": [
+          "<p>PDF-Reports eignen sich perfekt für Gerichtsberichte und finale Dokumentation. Sie sind unveränderbar und druckoptimiert. 📄</p>"
+        ],
+        "followUpActions": [
+          {
+            "id": "navigate-to-pdf-details",
+            "type": "navigate",
+            "label": "Zu PDF-Details", 
+            "targetSelectors": ["#section-step2 [data-ref='format-pdf']"]
+          }
+        ]
+      },
+      "hilfe|help": {
+        "responses": [
+          "<p>Gerne! Ich kann Ihnen bei folgenden Themen helfen: Report-Format wählen, Daten exportieren, Best Practices. Was interessiert Sie? 🐕‍🦺</p>"
+        ],
+        "followUpActions": [
+          {
+            "id": "show-format-actions",
+            "type": "showActions",
+            "actions": [
+              {
+                "id": "explain-html-format",
+                "icon": "🌐",
+                "label": "HTML-Format erklären",
+                "type": "showInfo",
+                "content": "<p>HTML ist ideal für interaktive Reports!</p>",
+                "contextId": "format-decision"
+              },
+              {
+                "id": "start-export-help",
+                "icon": "🚀", 
+                "label": "Export starten",
+                "type": "showInfo",
+                "content": "<p>Ich helfe beim Export-Start!</p>",
+                "contextId": "export-start-help"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
