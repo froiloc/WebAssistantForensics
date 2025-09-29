@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIOM HTML-Report Leitfaden</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HTML-Report-Erstellung mit Magnet AXIOM Examiner</h1>
+            <p class="subtitle">Interaktiver Leitfaden für polizeiliche Ermittlungsarbeit</p>
+        </header>
+
+        <!-- Detailgrad-Steuerung -->
+        <!-- <div class="detail-control" role="region" aria-label="Detailgrad-Steuerung">
+            <h2>Detailgrad wählen</h2>
+            <div class="detail-buttons" role="group" aria-label="Detailgrad-Optionen">
+                <button 
+                    class="detail-btn active" 
+                    data-level="1" 
+                    aria-pressed="true"
+                    aria-describedby="detail-info">
+                    Ebene 1: Basis
+                </button>
+                <button 
+                    class="detail-btn" 
+                    data-level="2" 
+                    aria-pressed="false"
+                    aria-describedby="detail-info">
+                    Ebene 2: Standard
+                </button>
+                <button 
+                    class="detail-btn" 
+                    data-level="3" 
+                    aria-pressed="false"
+                    aria-describedby="detail-info">
+                    Ebene 3: Vollständig
+                </button>
+            </div>
+            <div class="detail-info" id="detail-info" role="status" aria-live="polite">
+                <strong>Aktuelle Ebene:</strong> <span id="current-level-text">Basis - Grundlegende Schritte</span>
+            </div>
+        </div> -->
+
+        <!-- Hauptinhalt -->
+        <main>
+            <!-- Einleitung -->
+            <section class="content-section" data-section="intro">
+                <div class="detail-level-1">
+                    <h2>Überblick</h2>
+                    <p>Die Erstellung von HTML-Reports in Magnet AXIOM Examiner folgt einem strukturierten 8-Schritt-Workflow, der polizeilichen Anwendern ermöglicht, professionelle, gerichtsverwertbare Berichte zu erstellen. <strong>HTML-Reports bieten interaktive Navigation, UTF-8-Unterstützung für mehrsprachige Inhalte und web-basierte Darstellung</strong>, die sie besonders für Chat-Analysen und Verbindungsdarstellungen geeignet macht.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+                </div>
+
+                <div class="detail-level-2">
+                    <p>Im Gegensatz zu statischen PDF-Reports ermöglichen HTML-Reports Hyperlinks zwischen Beweisgegenständen und können direkt im Browser präsentiert werden. Der HTML-Export-Prozess nutzt einen benutzerfreundlichen Wizard mit klaren Entscheidungspunkten, umfasst aber erweiterte Konfigurationsmöglichkeiten für erfahrene Anwender.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+                </div>
+
+                <div class="detail-level-3">
+                    <div class="info-box">
+                        <h4>Technische Details zur HTML-Report-Struktur</h4>
+                        <p>Polizeimitarbeiter können durch Template-Nutzung wiederkehrende Report-Arten standardisieren und die Bearbeitungszeit erheblich verkürzen. Die wichtigsten Entscheidungspunkte liegen in der Format-Wahl (HTML vs. PDF vs. XLSX), der Inhaltsauswahl und den spezifischen HTML-Formatierungsoptionen.</p>
+                        <div class="agent-context-block"
+                            id="agent-context-report-format"
+                            data-context-id="report-format-choice"
+                            style="display: none;">
+                            <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                        </div>
+                        <p><strong>HTML-spezifische Ausgabe-Struktur:</strong></p>
+                        <ul>
+                            <li><code>Report.html</code> - Hauptberichtsdatei</li>
+                            <li><code>Attachments/</code> - Anhänge-Ordner</li>
+                            <li><code>Images/</code> - Bilder-Ordner</li>
+                            <li><code>Styles/</code> - CSS-Stilvorlagen</li>
+                            <li><code>Scripts/</code> - JavaScript-Dateien</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Der 8-Schritt Workflow -->
+            <section class="content-section" data-section="workflow">
+                <h2>Der komplette 8-Schritt Workflow</h2>
+
+                <!-- Schritt 1 -->
+                <div class="detail-level-1">
+                    <h3>Schritt 1: Export starten</h3>
+                    <p><strong>Menü:</strong> Datei → Bericht/Export erstellen</p>
+                    <p><strong>Oder:</strong> Rechtsklick auf markierte Beweise → "Bericht/Export erstellen"</p>
+                </div>
+
+                <div class="detail-level-2">
+                    <p>Der HTML-Report-Export startet über zwei Wege: <strong>Datei → Bericht/Export erstellen</strong> im Hauptmenü oder durch <strong>Rechtsklick auf markierte Beweise</strong> im Artifacts Explorer und Auswahl von "Bericht/Export erstellen". Der Kontextmenü-Weg ist effizienter, da bereits relevante Beweise vorausgewählt sind.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+
+                    <div class="tip-box">
+                        <strong>Best Practice:</strong> Taggen Sie wichtige Beweise vor dem Export-Start, um später die Option "Only tagged items" nutzen zu können.
+                    </div>
+                </div>
+
+                <div class="detail-level-3">
+                    <h4>Benutzeroberfläche im Detail</h4>
+                    <p><strong>Hauptmenü-Pfad:</strong> Der vollständige Menüpfad führt von der Hauptmenüleiste über "Datei" zum Untermenü "Bericht/Export erstellen". Dieser Weg ist standardisiert und funktioniert unabhängig von der aktuellen Ansicht.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+
+                    <p><strong>Kontextmenü-Pfad:</strong> Im Artifacts Explorer können Sie eine oder mehrere Beweisgruppen markieren (mit gedrückter Strg-Taste für Mehrfachauswahl), dann Rechtsklick und "Bericht/Export erstellen" wählen. Diese Methode ist besonders zeitsparend bei fokussierten Exporten.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+
+                    <!-- Beispiel 1: Inline Agent-Trigger in einem Abschnitt -->
+                    <span class="agent-inline-trigger"
+                        data-agent-context="report-format-choice"
+                        data-agent-question="format-help"
+                        title="Spürhund Rex um Hilfe bitten"
+                        role="button"
+                        tabindex="0">
+                        🐕‍🦺 <span class="agent-trigger-text">Hilfe zur Format-Wahl</span>
+                    </span>
+                </div>
+            </section>
+
+            <!-- Weitere Sections analog fortführen... (gekürzt für Übersichtlichkeit) -->
+            
+            <!-- Best Practices -->
+            <section class="content-section" data-section="bestpractices">
+                <h2>Wichtige Hinweise und Best Practices</h2>
+
+                <div class="detail-level-1">
+                    <div class="warning-box">
+                        <h3>Häufige Fehler vermeiden</h3>
+                        <ul>
+                            <li><strong>Zu große Reports:</strong> "Select All" vermeiden, nur fallrelevante Kategorien wählen</li>
+                            <li><strong>Fehlende Bilder:</strong> "Include preview images" muss aktiviert sein</li>
+                            <li><strong>Veraltete Templates:</strong> Regelmäßig Templates aktualisieren</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="detail-level-2">
+                    <div class="tip-box">
+                        <h3>Empfohlener Workflow</h3>
+                        <ol>
+                            <li><strong>Vorbereitung:</strong> Wichtige Beweise taggen vor Export-Start</li>
+                            <li><strong>Template nutzen:</strong> Zeitersparnis durch gespeicherte Vorlagen</li>
+                            <li><strong>Qualitätskontrolle:</strong> HTML-Report in verschiedenen Browsern testen</li>
+                            <li><strong>Archivierung:</strong> Templates und Processing-Logs dokumentieren</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Zusammenfassung -->
+            <section class="content-section" data-section="summary">
+                <h2>Zusammenfassung</h2>
+
+                <div class="detail-level-1">
+                    <p>HTML-Reports in AXIOM Examiner bieten <strong>polizeilichen Ermittlern eine leistungsfähige, benutzerfreundliche Lösung</strong> für interaktive Evidenz-Präsentation. Der strukturierte 8-Schritt-Workflow ermöglicht auch IT-Laien die Erstellung professioneller, gerichtsverwertbarer Berichte.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+                </div>
+
+                <div class="detail-level-2">
+                    <p>Die Template-Funktionalität ermöglicht standardisierte Workflows, während erweiterte HTML-Features wie Cross-References und Search-Funktionen komplexe Analysen unterstützen. <strong>Für Chat-Analysen und Verbindungsdarstellungen ist HTML das Format der Wahl</strong>, während PDF für Gerichtsverfahren und XLSX für Datenanalyse optimal sind.</p>
+                    <div class="agent-context-block"
+                        id="agent-context-report-format"
+                        data-context-id="report-format-choice"
+                        style="display: none;">
+                        <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ===== 4) BEISPIEL: Abschnitt mit eindeutigen IDs =====
+                So sollten Ihre Abschnitte strukturiert sein: -->
+
+            <section class="content-section"
+                    id="section-step2"
+                    data-section="step2"
+                    data-title="Schritt 2: Format HTML wählen">
+
+                <div id="step2-intro" class="detail-level-1">
+                    <h3 id="step2-heading">Schritt 2: Format HTML wählen</h3>
+                    <p id="step2-intro-text">
+                        <strong>Wichtig:</strong> Wählen Sie "HTML" aus den verfügbaren Report-Formaten
+                    </p>
+                </div>
+
+                <div id="step2-details" class="detail-level-2">
+                    <p id="step2-detail-text-1">
+                        Im Dialog "Export / report format" wählen Sie <strong>HTML</strong> aus den
+                        verfügbaren Optionen (Excel, XML, HTML, PST, PDF, CSV, JSON, Load File, Portable Case).
+                    </p>
+
+                    <!-- Agent Inline Trigger -->
+                    <span class="agent-inline-trigger"
+                        data-agent-context="format-decision"
+                        data-agent-question="why-html"
+                        title="Warum HTML wählen?"
+                        role="button"
+                        tabindex="0">
+                        🐕‍🦺 <span class="agent-trigger-text">Warum HTML?</span>
+                    </span>
+
+                    <!-- Agent wird hier Kontext einblenden -->
+                    <div class="agent-context-block"
+                        id="agent-context-format-decision"
+                        data-context-id="format-decision"
+                        style="display: none;">
+                    </div>
+
+                    <ul id="step2-format-list">
+                        <li id="step2-format-html"><strong>HTML wählen:</strong> Für interaktive Darstellung, Chat-Thread Exports</li>
+                        <li id="step2-format-pdf"><strong>PDF wählen:</strong> Für Gerichtsberichte, finale Dokumentation</li>
+                        <li id="step2-format-xlsx"><strong>XLSX wählen:</strong> Für Timeline-Analysen, statistische Auswertungen</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- ===== HINWEISE ZUR ID-VERGABE ===== -->
+        <!--
+        Vergeben Sie IDs nach diesem Schema:
+
+        Sections:
+        id="section-{section-name}"
+        Beispiel: id="section-intro", id="section-step1"
+
+        Heading-Elemente:
+        id="{section-name}-heading"
+        Beispiel: id="step1-heading"
+
+        Paragraph/Div-Elemente:
+        id="{section-name}-{element-type}-{nummer}"
+        Beispiel: id="step1-intro-text", id="step2-detail-text-1"
+
+        Listen:
+        id="{section-name}-{list-type}-list"
+        Beispiel: id="step2-format-list"
+
+        Listen-Items:
+        id="{section-name}-{list-type}-{item-name}"
+        Beispiel: id="step2-format-html"
+
+        Agent Context Blocks:
+        id="agent-context-{context-id}"
+        Beispiel: id="agent-context-format-decision"
+
+        Diese konsistente Namensgebung ermöglicht:
+        1. Einfache Navigation vom Agent zu Leitfaden-Elementen
+        2. Präzise Kontext-Einblendungen
+        3. Klare Wartbarkeit und Erweiterbarkeit
+        -->
+
+        <!-- 
+        ANLEITUNG: Fügen Sie diese HTML-Snippets in die index.html an den angegebenen Stellen ein
+        -->
+
+        <!-- ===== 1) HAMBURGER-MENÜ UND LOGO - Direkt nach <body> einfügen ===== -->
+        <nav class="top-nav" role="navigation" aria-label="Hauptnavigation">
+            <div class="top-nav-left">
+                <button id="menu-toggle" class="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">
+                    <span class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+                
+                <!-- NEU: Breadcrumb Navigation -->
+                <nav class="breadcrumb" aria-label="Breadcrumb">
+                    <ol class="breadcrumb-list">
+                        <li class="breadcrumb-item">
+                            <a href="#" id="breadcrumb-home" class="breadcrumb-link">
+                                🏠 AXIOM Leitfaden
+                            </a>
+                        </li>
+                        <li class="breadcrumb-separator" aria-hidden="true">›</li>
+                        <li class="breadcrumb-item breadcrumb-current" aria-current="page">
+                            <span id="breadcrumb-current">Überblick</span>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- NEU: Detailgrad-Steuerung rechts -->
+            <div class="top-nav-right">
+                <div class="detail-control-mini">
+                    <span class="detail-label">Detailgrad:</span>
+                    <div class="detail-buttons-mini">
+                        <button 
+                            class="detail-btn-mini active" 
+                            data-level="1" 
+                            aria-pressed="true"
+                            title="Ebene 1: Basis">
+                            1
+                        </button>
+                        <button 
+                            class="detail-btn-mini" 
+                            data-level="2" 
+                            aria-pressed="false"
+                            title="Ebene 2: Standard">
+                            2
+                        </button>
+                        <button 
+                            class="detail-btn-mini" 
+                            data-level="3" 
+                            aria-pressed="false"
+                            title="Ebene 3: Vollständig">
+                            3
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Menü-Dropdown -->
+        <div id="menu-dropdown" class="menu-dropdown" role="menu" aria-hidden="true">
+            <button class="menu-item" id="show-history-btn" role="menuitem">
+                <span class="menu-icon">📜</span>
+                Verlauf anzeigen
+            </button>
+            <button class="menu-item" id="toggle-nav-sidebar-btn" role="menuitem">
+                <span class="menu-icon">🗂️</span>
+                Navigation ein/aus
+            </button>
+            <button class="menu-item" id="toggle-tips-footer-btn" role="menuitem">
+                <span class="menu-icon">💡</span>
+                Tipps ein/aus
+            </button>
+        </div>
+
+        <!-- ===== 2) NAVIGATION SIDEBAR LINKS - Nach dem Menü einfügen ===== -->
+        <aside id="nav-sidebar" class="nav-sidebar" aria-label="Navigationsmenü">
+            <div class="nav-sidebar-header">
+                <h3>Navigation</h3>
+                <button id="close-nav-sidebar" class="close-btn" aria-label="Navigation schließen">✕</button>
+            </div>
+            <div class="nav-sidebar-content">
+                <ul class="nav-tree" role="tree">
+                    <!-- Wird dynamisch generiert -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- ===== 3) VERLAUFSFENSTER - Vor dem schließenden </body> einfügen ===== -->
+        <div id="history-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title" aria-hidden="true">
+            <div class="modal-content history-modal-content">
+                <div class="modal-header">
+                    <h2 id="history-modal-title">Verlauf</h2>
+                    <div class="history-controls">
+                        <button id="time-format-toggle" class="btn-small" aria-label="Zeitformat umschalten">
+                            <span id="time-format-text">Relativ</span>
+                        </button>
+                        <button id="clear-history-btn" class="btn-small btn-danger" aria-label="Verlauf löschen">
+                            Löschen
+                        </button>
+                    </div>
+                    <button class="modal-close" id="close-history-modal" aria-label="Verlauf schließen">✕</button>
+                </div>
+                <div class="modal-body">
+                    <ul id="history-list" class="history-list">
+                        <!-- Wird dynamisch gefüllt -->
+                    </ul>
+                    <p id="history-empty" class="history-empty">Noch keine Abschnitte besucht.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 4) TIPPS-FOOTER - Vor dem schließenden </body> einfügen ===== -->
+        <div id="tips-footer" class="tips-footer" role="complementary" aria-label="Tipps und Tastenkombinationen">
+            <!-- NEU: Navigation Buttons links -->
+            <button id="tips-prev-btn" class="tips-nav-btn tips-prev-btn" aria-label="Vorheriger Tipp" title="Vorheriger Tipp">
+                ◀
+            </button>
+            
+            <div class="tips-content">
+                <span class="tips-icon">💡</span>
+                <p id="tips-text" class="tips-text">Laden...</p>
+            </div>
+            
+            <!-- NEU: Next Button -->
+            <button id="tips-next-btn" class="tips-nav-btn tips-next-btn" aria-label="Nächster Tipp" title="Nächster Tipp">
+                ▶
+            </button>
+            
+            <button id="close-tips-footer" class="tips-close-btn" aria-label="Tipps ausblenden">✕</button>
+        </div>
+        
+<!-- ===== ÄNDERUNG 3: Alte Detailgrad-Steuerung entfernen =====
+     ENTFERNEN oder AUSKOMMENTIEREN Sie die bestehende <div class="detail-control"> 
+     die sich im Container befindet, da die Steuerung jetzt in der Top-Nav ist.
+     
+     Falls Sie die ausführliche Info-Box behalten möchten, können Sie diese 
+     separat als Info-Element ohne Buttons beibehalten. -->
+
+<!-- Optional: Info-Box ohne Buttons als separates Element im Container behalten:
+<div class="detail-info-box">
+    <strong>Aktuelle Ebene:</strong> <span id="current-level-text">Basis - Grundlegende Schritte</span>
+</div>
+-->        
+
+        <!-- ===== 5) ANPASSUNG DES STATISCHEN FOOTERS ===== -->
+        <!-- Ersetzen Sie den bestehenden <footer> mit diesem erweiterten Footer: -->
+        <footer>
+            <p><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
+            <p>Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
+            <div class="footer-actions">
+                <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
+                    💡 Tipps einblenden
+                </button>
+            </div>
+        </footer>
+
+        <!-- ===== 6) WICHTIG: data-section Attribute ergänzen ===== -->
+        <!-- 
+        Stellen Sie sicher, dass JEDE <section class="content-section"> ein eindeutiges 
+        data-section Attribut und data-title Attribut hat:
+
+        Beispiel für bestehende Sections:
+        <section class="content-section" data-section="intro" data-title="Überblick">
+        <section class="content-section" data-section="step1" data-title="Schritt 1: Export starten">
+        <section class="content-section" data-section="step2" data-title="Schritt 2: Format HTML wählen">
+        <section class="content-section" data-section="step3" data-title="Schritt 3: Inhalte auswählen">
+        <section class="content-section" data-section="step4" data-title="Schritt 4: Artefakt-Kategorien">
+        <section class="content-section" data-section="step5" data-title="Schritt 5: Details konfigurieren">
+        <section class="content-section" data-section="step6" data-title="Schritt 6: Titelseite ausfüllen">
+        <section class="content-section" data-section="step7" data-title="Schritt 7: Formatierung anpassen">
+        <section class="content-section" data-section="step8" data-title="Schritt 8: Export durchführen">
+        <section class="content-section" data-section="bestpractices" data-title="Best Practices">
+        <section class="content-section" data-section="summary" data-title="Zusammenfassung">
+        -->
+    </div>
+
+    <!-- Agent Toggle Button -->
+    <button id="agent-toggle" class="agent-toggle" aria-label="Spürhund-Assistent öffnen/schließen" aria-expanded="false">
+        <span class="agent-icon">🐕‍🦺</span>
+        <span class="agent-notification-badge" id="agent-notification" style="display: none;">!</span>
+    </button>
+
+    <!-- Notizblock Toggle Button -->
+    <button id="notes-toggle" class="notes-toggle" aria-label="Notizblock öffnen/schließen" aria-expanded="false">
+        <span class="toggle-icon">📝</span>
+    </button>
+
+    <!-- Notizblock Sidebar -->
+    <aside id="notes-sidebar" class="notes-sidebar" aria-label="Notizblock">
+        <div class="notes-header">
+            <h2>Notizen</h2>
+        </div>
+        <div class="notes-content">
+            <textarea 
+                id="notes-textarea" 
+                placeholder="Hier können Sie Notizen eintragen. Diese werden automatisch gespeichert..."
+                aria-label="Notizfeld"></textarea>
+        </div>
+        <div class="notes-footer">
+            <button id="clear-notes" class="btn-secondary">Notizen löschen</button>
+            <span class="save-indicator" id="save-indicator">Automatisch gespeichert</span>
+        </div>
+    </aside>
+
+    <!-- Agent Sidebar -->
+    <aside id="agent-sidebar" class="agent-sidebar" aria-label="Spürhund-Assistent" role="complementary">
+        <div class="agent-header">
+            <div class="agent-avatar">
+                <div class="agent-dog">🐕‍🦺</div>
+                <div class="agent-status-indicator" id="agent-status"></div>
+            </div>
+            <div class="agent-title">
+                <h2>Spürhund Rex</h2>
+                <p class="agent-subtitle">Ihr forensischer Begleiter</p>
+            </div>
+            <button id="close-agent-sidebar" class="close-btn" aria-label="Assistent schließen">✕</button>
+        </div>
+
+        <div class="agent-content" id="agent-chat-container">
+            <!-- Chat-Nachrichten werden hier dynamisch eingefügt -->
+            <div class="agent-welcome-message">
+                <div class="agent-message agent-message-assistant">
+                    <div class="agent-message-avatar">🐕‍🦺</div>
+                    <div class="agent-message-bubble">
+                        <p>Wuff! 🎉 Ich bin Rex, Ihr forensischer Spürhund!</p>
+                        <p>Ich helfe Ihnen durch die AXIOM-Auswertung. Stellen Sie mir Fragen oder lassen Sie sich von mir durch den Prozess führen.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="agent-footer">
+            <div class="agent-quick-actions" id="agent-quick-actions">
+                <!-- Schnellaktionen werden hier dynamisch eingefügt -->
+            </div>
+            <div class="agent-input-container" style="display: none;" id="agent-input-container">
+                <input
+                    type="text"
+                    id="agent-input"
+                    class="agent-input"
+                    placeholder="Antwort eingeben..."
+                    aria-label="Antwort an Spürhund"
+                />
+                <button id="agent-send-btn" class="agent-send-btn" aria-label="Antwort senden">
+                    ➤
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <script src="script.js"></script>
+
+    <!-- Agent-spezifische Styles und Scripts -->
+    <link rel="stylesheet" href="agent.css">
+    <script src="agent.js"></script>
+</body>
+</html>
