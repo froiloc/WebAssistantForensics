@@ -3,3 +3,4 @@ nohup.out
 *.kate-swo
 *.swp
 *.swo
+*.log
