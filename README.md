@@ -97,10 +97,11 @@ Der **AXIOM Forensische Leitfaden** ist eine webbasierte, interaktive Anwendung 
 ## 📁 Projektstruktur
 
 ```
-axiom-forensic-guide/
+WebAssistentForensics/
 │
 ├── README.md                          # Diese Datei
 ├── LICENSE                            # Lizenzinformationen
+├── run-webserver.sh                   # Einen lokalen Webserver auf Port 9999 starten
 │
 ├── src/                               # Quellcode
 │   ├── index.html                     # Haupt-HTML-Datei
@@ -206,17 +207,19 @@ Falls Sie die Dateien über einen Webserver bereitstellen möchten:
 ```bash
 # Mit Python 3
 cd src/
-python -m http.server 8000
+python -m http.server 9999
 
 # Mit Node.js (http-server)
-npx http-server ./src -p 8000
+npx http-server ./src -p 9999
 
 # Mit PHP
 cd src/
-php -S localhost:8000
+php -S localhost:9999
 ```
 
-Dann öffnen Sie: `http://localhost:8000`
+Dann öffnen Sie: `http://localhost:9999`
+
+oder verwenden Sie das Script `run-webserver.sh`, um den Webserver mit NetCat, Node.js, Python 3, PHP, Busybox, Ruby oder WebFS zu starten.
 
 ---
 
