@@ -356,6 +356,9 @@ function processActionByType(action) {
         case 'showActions':
             handleShowActionsAction(action);
             break;
+        case 'showMedia':  // NEU
+            handleShowMediaAction(action);
+            break;
         default:
             console.warn('Unbekannter Action-Type:', action.type);
             addAgentMessage(agentDialogData?.globalSettings?.errorMessage || 
@@ -439,6 +442,43 @@ function handleHighlightAction(action) {
 function handleShowActionsAction(action) {
     if (action.actions && action.actions.length > 0) {
         showQuickActions(action.actions);
+    }
+}
+
+// ===== SHOW MEDIA ACTION =====
+function handleShowMediaAction(action) {
+    if (!action.mediaType || !action.mediaSrc) {
+        console.error('showMedia-Action ohne mediaType oder mediaSrc:', action);
+        addAgentMessage('<p>Entschuldigung, ich konnte das Medium nicht laden. 😅</p>');
+        return;
+    }
+    
+    const mediaType = action.mediaType; // 'image' oder 'video'
+    const mediaSrc = action.mediaSrc;
+    const mediaAlt = action.mediaAlt || 'Medium vom Agenten';
+    const mediaCaption = action.mediaCaption || action.label || '';
+    
+    // Bestätigung an Nutzer
+    const mediaTypeText = mediaType === 'video' ? 'Video' : 'Screenshot';
+    addAgentMessage(`<p>Wuff! 🎯 Schau dir diesen ${mediaTypeText} an!</p>`);
+    
+    // Prüfen ob mediaAPI verfügbar ist
+    if (typeof window.mediaAPI !== 'undefined' && window.mediaAPI.openModal) {
+        // Modal öffnen über media-handler.js
+        window.mediaAPI.openModal(mediaSrc, mediaAlt, mediaType, mediaCaption);
+        
+        // Mobile: Agent schließen nach Medien-Anzeige
+        if (shouldCloseOnMobile()) {
+            setTimeout(closeAgent, 1000);
+        }
+    } else {
+        console.error('mediaAPI nicht verfügbar');
+        addAgentMessage('<p>Entschuldigung, die Medien-Anzeige ist nicht verfügbar. ⚠️</p>');
+    }
+    
+    // Next Actions anbieten
+    if (action.nextActions && action.nextActions.length > 0) {
+        setTimeout(() => showQuickActions(action.nextActions), 500);
     }
 }
 

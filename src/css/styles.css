@@ -282,7 +282,7 @@ body.notes-open .notes-toggle {
     right: -370px;
     top: 60px;
     width: 350px;
-    height: 95vh;
+    height: 89vh;
     background-color: #ffffff;
     box-shadow: -3px 0 15px rgba(0,0,0,0.2);
     transition: right 0.3s ease;

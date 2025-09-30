@@ -1,0 +1,347 @@
+/* ===== MEDIA.CSS - Medien-Styling für AXIOM Leitfaden ===== */
+
+/* ===== MEDIEN-CONTAINER ===== */
+.media-figure {
+    margin: 20px 0;
+    padding: 0;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    overflow: hidden;
+}
+
+.media-figure.media-missing {
+    border-color: #ff9900;
+    background-color: #fff9e6;
+}
+
+/* ===== THUMBNAILS ===== */
+.media-thumbnail {
+    max-width: 100%;
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+.media-thumbnail:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.media-thumbnail:focus {
+    outline: 3px solid #0066cc;
+    outline-offset: 2px;
+}
+
+/* ===== VIDEOS ===== */
+.media-video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.media-video:focus {
+    outline: 3px solid #0066cc;
+    outline-offset: 2px;
+}
+
+/* ===== FIGCAPTION ===== */
+.media-figure figcaption {
+    padding: 12px 15px;
+    background-color: #f0f7ff;
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.9em;
+    color: #333;
+    text-align: left;
+}
+
+.media-figure.media-missing figcaption {
+    background-color: #fff3e6;
+    color: #cc6600;
+}
+
+/* ===== INLINE MEDIEN-HILFE (LUPENSYMBOL) ===== */
+.menu-path {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.media-help-trigger {
+    background: linear-gradient(135deg, #0066cc 0%, #004999 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.media-help-trigger:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 8px rgba(0,102,204,0.4);
+}
+
+.media-help-trigger:focus {
+    outline: 3px solid #ff9900;
+    outline-offset: 2px;
+}
+
+.media-help-trigger:active {
+    transform: scale(0.95);
+}
+
+/* ===== MODAL FÜR MEDIEN ===== */
+.media-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+}
+
+.media-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.media-modal-content {
+    position: relative;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.5);
+    max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    animation: mediaModalSlideIn 0.3s ease;
+}
+
+@keyframes mediaModalSlideIn {
+    from {
+        transform: translateY(-50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.media-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 2px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 10px 10px 0 0;
+}
+
+.media-modal-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #0066cc;
+}
+
+.media-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+}
+
+.media-modal-close:hover {
+    color: #dc3545;
+}
+
+.media-modal-close:focus {
+    outline: 2px solid #ff9900;
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+.media-modal-body {
+    flex: 1;
+    overflow: auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-modal-body img {
+    max-width: 100%;
+    max-height: 70vh;
+    height: auto;
+    border-radius: 5px;
+}
+
+.media-modal-body video {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 5px;
+}
+
+.media-modal-caption {
+    padding: 15px 20px;
+    background-color: #f0f7ff;
+    border-top: 2px solid #e0e0e0;
+    font-size: 0.95em;
+    color: #333;
+    border-radius: 0 0 10px 10px;
+}
+
+/* ===== MEDIEN-LAYER MODI ===== */
+/* Minimal: Nur Text, keine Medien */
+body.media-minimal .media-thumbnail,
+body.media-minimal .media-video,
+body.media-minimal .media-help-trigger,
+body.media-minimal .media-figure {
+    display: none !important;
+}
+
+/* Standard: Thumbnails und Videos (Default) */
+body.media-standard .media-thumbnail,
+body.media-standard .media-video,
+body.media-standard .media-help-trigger,
+body.media-standard .media-figure {
+    display: block;
+}
+
+body.media-standard .media-help-trigger {
+    display: inline-flex;
+}
+
+/* Voll: Alle Medien (für zukünftige Erweiterung) */
+body.media-full .media-thumbnail,
+body.media-full .media-video,
+body.media-full .media-help-trigger,
+body.media-full .media-figure {
+    display: block;
+}
+
+body.media-full .media-help-trigger {
+    display: inline-flex;
+}
+
+/* ===== BARRIEREFREIHEIT ===== */
+/* High Contrast Modus für Screenshots */
+.media-thumbnail.high-contrast,
+.media-modal-body img.high-contrast {
+    filter: contrast(1.3) brightness(1.1);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .media-figure {
+        background-color: #2a2a2a;
+        border-color: #444;
+    }
+    
+    .media-figure figcaption {
+        background-color: #1a1a1a;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+    
+    .media-modal-content {
+        background-color: #2a2a2a;
+    }
+    
+    .media-modal-header {
+        background-color: #1a1a1a;
+        border-color: #444;
+    }
+    
+    .media-modal-caption {
+        background-color: #1a1a1a;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .media-modal-content {
+        max-width: 95%;
+        max-height: 95vh;
+    }
+    
+    .media-modal-body {
+        padding: 10px;
+    }
+    
+    .media-modal-body img,
+    .media-modal-body video {
+        max-height: 60vh;
+    }
+    
+    .media-help-trigger {
+        width: 24px;
+        height: 24px;
+        font-size: 0.9em;
+    }
+}
+
+/* ===== LOADING STATE ===== */
+.media-loading {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0066cc;
+    border-radius: 50%;
+    animation: mediaLoading 1s linear infinite;
+}
+
+@keyframes mediaLoading {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    .media-thumbnail,
+    .media-help-trigger,
+    .media-modal {
+        transition: none;
+        animation: none;
+    }
+    
+    .media-modal.show {
+        animation: none;
+    }
+}

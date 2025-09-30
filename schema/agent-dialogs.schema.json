@@ -128,7 +128,7 @@
         },
         "type": {
           "type": "string",
-          "enum": ["navigate", "showInfo", "askQuestion", "showActions", "highlightElements"],
+          "enum": ["navigate", "showInfo", "askQuestion", "showActions", "highlightElements", "showMedia"],
           "description": "Typ der Aktion"
         },
         "icon": {
@@ -185,6 +185,23 @@
             "$ref": "#/$defs/Action"
           },
           "description": "Unter-Aktionen für verschachtelte Dialoge"
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["image", "video"],
+          "description": "Typ des Mediums (nur für showMedia)"
+        },
+        "mediaSrc": {
+          "type": "string",
+          "description": "Pfad zur Mediendatei (nur für showMedia)"
+        },
+        "mediaAlt": {
+          "type": "string",
+          "description": "Alt-Text für das Medium (nur für showMedia)"
+        },
+        "mediaCaption": {
+          "type": "string",
+          "description": "Bildunterschrift für das Medium (nur für showMedia)"
         }
       },
       "allOf": [
@@ -222,6 +239,18 @@
           },
           "then": {
             "required": ["question"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "showMedia"
+              }
+            }
+          },
+          "then": {
+            "required": ["mediaType", "mediaSrc", "mediaAlt"]
           }
         }
       ]

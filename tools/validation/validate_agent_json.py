@@ -10,7 +10,7 @@ Validiert:
 - Section-Trigger-Referenzen
 
 Autor: AXIOM Guide Development
-Version: 1.0
+Version: 1.1 (mit --root-tag Support)
 """
 
 import argparse
@@ -20,7 +20,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Set, Optional, Any, Tuple
 from dataclasses import dataclass
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 # Importiere jsonschema falls verfügbar, ansonsten skip Schema-Validation
 try:
@@ -61,14 +61,17 @@ class ValidationSummary:
 class AgentJSONValidator:
     """Haupt-Validator für Agent-JSON-Konfiguration"""
     
-    def __init__(self, json_file: Path, html_file: Path, schema_file: Optional[Path] = None, verbose: bool = False):
+    def __init__(self, json_file: Path, html_file: Path, schema_file: Optional[Path] = None, 
+                 verbose: bool = False, root_selector: Optional[str] = None):
         self.json_file = json_file
         self.html_file = html_file
         self.schema_file = schema_file
         self.verbose = verbose
+        self.root_selector = root_selector
         
         self.json_data: Optional[Dict] = None
         self.html_soup: Optional[BeautifulSoup] = None
+        self.html_scope: Optional[Tag] = None  # Scope für HTML-Validierung
         self.schema: Optional[Dict] = None
         self.results: List[ValidationResult] = []
         
@@ -109,6 +112,15 @@ class AgentJSONValidator:
             if self.verbose:
                 print(f"✓ HTML-Datei geladen: {self.html_file}")
                 print(f"  Gefundene Elemente: {len(self.html_soup.find_all())}")
+            
+            # Root-Element extrahieren
+            if not self._extract_root_element():
+                success = False
+            else:
+                if self.verbose and self.root_selector:
+                    print(f"🎯 HTML-Validierungs-Scope eingeschränkt auf: {self.root_selector}")
+                elif self.verbose:
+                    print(f"🎯 HTML-Validierungs-Scope: Gesamtes Dokument")
                 
         except FileNotFoundError:
             self._add_result(False, f"HTML-Datei nicht gefunden: {self.html_file}")
@@ -134,6 +146,59 @@ class AgentJSONValidator:
                 )
         
         return success
+    
+    def _extract_root_element(self) -> bool:
+        """
+        Extrahiert das Wurzelelement basierend auf CSS-Selector.
+        
+        Returns:
+            True wenn erfolgreich oder kein Root-Selector angegeben, False bei Fehler
+        """
+        if not self.root_selector:
+            self.html_scope = self.html_soup
+            return True
+        
+        try:
+            elements = self.html_soup.select(self.root_selector)
+            
+            if len(elements) == 0:
+                self._add_result(
+                    False,
+                    f"Root-Tag Selector '{self.root_selector}' findet kein Element im HTML",
+                    severity="error"
+                )
+                return False
+            
+            if len(elements) > 1:
+                self._add_result(
+                    False,
+                    f"Root-Tag Selector '{self.root_selector}' findet {len(elements)} Elemente. "
+                    f"Verwende das erste Element.",
+                    severity="warning"
+                )
+            
+            self.html_scope = elements[0]
+            
+            if self.verbose:
+                element_info = f"<{self.html_scope.name}"
+                if self.html_scope.get('id'):
+                    element_info += f" id='{self.html_scope.get('id')}'"
+                if self.html_scope.get('class'):
+                    element_info += f" class='{' '.join(self.html_scope.get('class'))}'"
+                element_info += ">"
+                
+                print(f"✓ Root-Element gefunden: {element_info}")
+                print(f"  Elemente im HTML-Scope: {len(self.html_scope.find_all())}")
+            
+            return True
+            
+        except Exception as e:
+            self._add_result(
+                False,
+                f"Fehler beim Verarbeiten des Root-Tag Selectors '{self.root_selector}': {e}",
+                severity="error"
+            )
+            return False
     
     def validate_all(self) -> ValidationSummary:
         """Führt alle Validierungen durch"""
@@ -199,7 +264,7 @@ class AgentJSONValidator:
             if self._test_selector(selector):
                 self.found_selectors.add(selector)
                 if self.verbose:
-                    elements = self.html_soup.select(selector)
+                    elements = self.html_scope.select(selector)
                     print(f"  ✓ '{selector}' -> {len(elements)} Element(e)")
             else:
                 self.missing_selectors.add(selector)
@@ -410,7 +475,7 @@ class AgentJSONValidator:
             print("\n🔍 Validiere Context-Blocks...")
         
         # Context-Blocks in HTML finden
-        html_context_blocks = self.html_soup.find_all(class_='agent-context-block')
+        html_context_blocks = self.html_scope.find_all(class_='agent-context-block')
         html_block_ids = set()
         
         for block in html_context_blocks:
@@ -485,7 +550,7 @@ class AgentJSONValidator:
     def _test_selector(self, selector: str) -> bool:
         """Testet ob CSS-Selector in HTML existiert"""
         try:
-            elements = self.html_soup.select(selector)
+            elements = self.html_scope.select(selector)
             return len(elements) > 0
         except Exception as e:
             # Ungültiger Selector
@@ -508,7 +573,7 @@ class AgentJSONValidator:
                 
                 # Nach ähnlichen data-ref Werten suchen
                 all_data_refs = [
-                    el.get('data-ref') for el in self.html_soup.find_all(attrs={'data-ref': True})
+                    el.get('data-ref') for el in self.html_scope.find_all(attrs={'data-ref': True})
                 ]
                 
                 for existing_ref in all_data_refs:
@@ -524,7 +589,7 @@ class AgentJSONValidator:
         if missing_selector.startswith('#'):
             missing_id = missing_selector.split()[0][1:]  # Erstes Wort ohne #
             
-            all_ids = [el.get('id') for el in self.html_soup.find_all(id=True)]
+            all_ids = [el.get('id') for el in self.html_scope.find_all(id=True)]
             
             for existing_id in all_ids:
                 if existing_id and self._similar_strings(missing_id, existing_id):
@@ -577,35 +642,36 @@ class AgentJSONValidator:
         )
         
         # HTML-Element-Statistiken
-        if self.html_soup:
-            context_blocks = len(self.html_soup.find_all(class_='agent-context-block'))
-            inline_triggers = len(self.html_soup.find_all(class_='agent-inline-trigger'))
-            sections = len(self.html_soup.find_all('section', class_='content-section'))
+        if self.html_scope:
+            context_blocks = len(self.html_scope.find_all(class_='agent-context-block'))
+            inline_triggers = len(self.html_scope.find_all(class_='agent-inline-trigger'))
+            sections = len(self.html_scope.find_all('section', class_='content-section'))
+            
+            scope_info = f" (Scope: {self.root_selector})" if self.root_selector else ""
             
             self._add_result(
                 True,
-                f"HTML-Agent-Elemente: {context_blocks} Context-Blocks, {inline_triggers} Inline-Triggers, {sections} Sections",
+                f"HTML-Agent-Elemente{scope_info}: {context_blocks} Context-Blocks, "
+                f"{inline_triggers} Inline-Triggers, {sections} Sections",
                 severity="info"
             )
     
     def _count_total_actions(self) -> int:
         """Zählt die Gesamtzahl aller Actions"""
-        count = 0
-        self._count_actions_recursive(self.json_data, count)
-        return count
-    
-    def _count_actions_recursive(self, data: Any, count: int) -> None:
-        """Zählt Actions rekursiv"""
-        if isinstance(data, dict):
-            if 'actions' in data and isinstance(data['actions'], list):
-                count += len(data['actions'])
-            
-            for value in data.values():
-                self._count_actions_recursive(value, count)
+        count = [0]  # Verwende Liste für Mutability in nested function
         
-        elif isinstance(data, list):
-            for item in data:
-                self._count_actions_recursive(item, count)
+        def count_recursive(data: Any) -> None:
+            if isinstance(data, dict):
+                if 'actions' in data and isinstance(data['actions'], list):
+                    count[0] += len(data['actions'])
+                for value in data.values():
+                    count_recursive(value)
+            elif isinstance(data, list):
+                for item in data:
+                    count_recursive(item)
+        
+        count_recursive(self.json_data)
+        return count[0]
     
     def _add_result(self, is_valid: bool, message: str, context: str = None, selector: str = None, severity: str = "error", suggestion: str = None) -> None:
         """Fügt ein Validierungsergebnis hinzu"""
@@ -638,12 +704,14 @@ class AgentJSONValidator:
         )
 
 
-def print_results(summary: ValidationSummary, verbose: bool = False) -> None:
+def print_results(summary: ValidationSummary, verbose: bool = False, root_selector: Optional[str] = None) -> None:
     """Gibt Validierungsergebnisse formatiert aus"""
     
     # Header
     print("\n" + "="*80)
     print("🔍 AGENT JSON VALIDATION RESULTS")
+    if root_selector:
+        print(f"🎯 HTML-Validierungs-Scope: {root_selector}")
     print("="*80)
     
     # Zusammenfassung
@@ -729,6 +797,7 @@ def main():
 Beispiele:
   python validate_agent_json.py agent-dialogs.json index.html
   python validate_agent_json.py agent-dialogs.json index.html --schema schema.json
+  python validate_agent_json.py agent-dialogs.json index.html --root-tag "main"
   python validate_agent_json.py agent-dialogs.json index.html --verbose --exit-on-error
         """
     )
@@ -760,6 +829,13 @@ Beispiele:
         help='Skript mit Exit-Code != 0 beenden bei Errors'
     )
     
+    parser.add_argument(
+        '--root-tag',
+        type=str,
+        default=None,
+        help='CSS-Selector für Wurzelelement (optional). HTML-Validierung erfolgt nur innerhalb dieses Elements.'
+    )
+    
     args = parser.parse_args()
     
     # Dateipfade
@@ -788,11 +864,17 @@ Beispiele:
     print(f"\n🔍 Validiere: {json_file.name} gegen {html_file.name}")
     
     # Validierung durchführen
-    validator = AgentJSONValidator(json_file, html_file, schema_file, verbose=args.verbose)
+    validator = AgentJSONValidator(
+        json_file, 
+        html_file, 
+        schema_file, 
+        verbose=args.verbose,
+        root_selector=args.root_tag
+    )
     summary = validator.validate_all()
     
     # Ergebnisse ausgeben
-    print_results(summary, verbose=args.verbose)
+    print_results(summary, verbose=args.verbose, root_selector=args.root_tag)
     
     # Exit-Code setzen
     if args.exit_on_error and not summary.is_valid:

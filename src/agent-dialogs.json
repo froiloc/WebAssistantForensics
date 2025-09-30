@@ -34,9 +34,28 @@
               "scrollBehavior": "smooth",
               "highlightDuration": 2000,
               "contextBlock": {
-                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "targetSelectors": ["#section-step2 [data-ref='agent-context']"],
                 "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' Expertentipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>Rex' Expertentipp:</strong> Bei Chat-Daten aus WhatsApp, Telegram oder Signal ist HTML unschlagbar, weil die Threading-Struktur erhalten bleibt und Emojis korrekt dargestellt werden.</p></div>"
               }
+            },
+            {
+              "id": "show-format-screenshot",
+              "type": "showMedia",
+              "icon": "🖼️",
+              "label": "Screenshot der Format-Auswahl ansehen",
+              "mediaType": "image",
+              "mediaSrc": "media/screenshots/format-dialog.png",
+              "mediaAlt": "AXIOM Export-Dialog mit Format-Auswahl, HTML ist markiert",
+              "mediaCaption": "Export-Dialog: HTML-Format wählen",
+              "nextActions": [
+                {
+                  "id": "continue-export",
+                  "type": "showInfo",
+                  "icon": "▶️",
+                  "label": "Weiter mit Export",
+                  "content": "<p>Gut! Nachdem Sie HTML ausgewählt haben, klicken Sie auf 'Weiter'.</p>"
+                }
+              ]
             }
           ]
         },
@@ -54,7 +73,7 @@
               "label": "Mehr über PDF-Export erfahren",
               "targetSelectors": ["#section-step2 [data-ref='format-pdf']"],
               "contextBlock": {
-                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "targetSelectors": ["#section-step2 [data-ref='agent-context']"],
                 "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' PDF-Tipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>PDF für Gerichte:</strong> PDF-Reports sind unveränderbar und damit gerichtsfest. Sie eignen sich perfekt für finale Dokumentation und offizielle Berichte.</p></div>"
               }
             }
@@ -74,7 +93,7 @@
               "label": "Zu Excel-Export Details",
               "targetSelectors": ["#section-step2 [data-ref='format-xlsx']"],
               "contextBlock": {
-                "targetSelector": "#section-step2 [data-ref='agent-context']",
+                "targetSelectors": ["#section-step2 [data-ref='agent-context']"],
                 "content": "<div class='agent-context-header'><span class='agent-context-icon'>🐕‍🦺</span><h4 class='agent-context-title'>Rex' Excel-Tipp</h4><button class='agent-context-close' onclick='hideContextBlock(\"#section-step2 [data-ref=\\\"agent-context\\\"]\")' aria-label='Tipp schließen'>✕</button></div><div class='agent-context-content'><p><strong>XLSX für Analysen:</strong> Excel-Exports sind ideal für Timeline-Analysen und statistische Auswertungen. Sie können die Daten filtern, sortieren und grafisch darstellen.</p></div>"
               }
             }
@@ -137,7 +156,7 @@
               "type": "navigate",
               "icon": "🔍",
               "label": "Mehr Details anzeigen",
-                              "targetSelectors": ["#section-workflow [data-ref='step1-menu-path']"]
+              "targetSelectors": ["#section-workflow [data-ref='step1-menu-path']"]
             }
           ]
         },
@@ -153,7 +172,7 @@
               "type": "navigate",
               "icon": "🔍", 
               "label": "Mehr Details anzeigen",
-                              "targetSelectors": ["#section-workflow [data-ref='step1-context-path']"]
+              "targetSelectors": ["#section-workflow [data-ref='step1-context-path']"]
             }
           ]
         },
@@ -169,7 +188,7 @@
               "type": "navigate",
               "icon": "💡",
               "label": "Tip-Details anzeigen", 
-                              "targetSelectors": ["#section-workflow [data-ref='step1-tip']"]
+              "targetSelectors": ["#section-workflow [data-ref='step1-tip']"]
             }
           ]
         }
@@ -215,7 +234,7 @@
               "type": "navigate",
               "icon": "🎯",
               "label": "Zur Format-Auswahl springen",
-                              "targetSelectors": ["#section-step2"]
+              "targetSelectors": ["#section-step2"]
             }
           ]
         },
@@ -231,7 +250,7 @@
               "type": "navigate", 
               "icon": "📊",
               "label": "Detailvergleich ansehen",
-                              "targetSelectors": ["#section-step2 [data-ref='format-comparison']"]
+              "targetSelectors": ["#section-step2 [data-ref='format-comparison']"]
             }
           ]
         }
@@ -252,7 +271,7 @@
           "type": "showInfo",
           "icon": "⚡",
           "label": "Warum Templates verwenden?",
-          "content": "<p><strong>Templates sparen massiv Zeit:</strong></p><ul><li>🔄 <strong>Wiederkehrende Reports</strong> - Einmal konfigurieren, oft nutzen</li><li>⚡ <strong>Konsistente Ergebnisse</strong> - Gleiche Qualität bei jedem Export</li><li>👥 <strong>Team-Standards</strong> - Alle nutzen gleiche Vorlagen</li><li>🎯 <strong>Spezialisierte Setups</strong> - Chat-Template, Forensik-Template, etc.</li></ul>",
+          "content": "<p><strong>Templates sparen massiv Zeit:</strong></p><ul><li>📄 <strong>Wiederkehrende Reports</strong> - Einmal konfigurieren, oft nutzen</li><li>⚡ <strong>Konsistente Ergebnisse</strong> - Gleiche Qualität bei jedem Export</li><li>👥 <strong>Team-Standards</strong> - Alle nutzen gleiche Vorlagen</li><li>🎯 <strong>Spezialisierte Setups</strong> - Chat-Template, Forensik-Template, etc.</li></ul>",
           "nextActions": [
             {
               "id": "template-creation",
@@ -327,7 +346,8 @@
         "followUpActions": [
           {
             "id": "navigate-to-html-details",
-            "type": "navigate", 
+            "type": "navigate",
+            "icon": "🎯",
             "label": "Zu HTML-Details",
             "targetSelectors": ["#section-step2 [data-ref='format-html']"]
           }
@@ -341,6 +361,7 @@
           {
             "id": "navigate-to-pdf-details",
             "type": "navigate",
+            "icon": "📚",
             "label": "Zu PDF-Details", 
             "targetSelectors": ["#section-step2 [data-ref='format-pdf']"]
           }
@@ -354,22 +375,22 @@
           {
             "id": "show-format-actions",
             "type": "showActions",
+            "icon": "🎯",
+            "label": "Format-Hilfe anzeigen",
             "actions": [
               {
                 "id": "explain-html-format",
                 "icon": "🌐",
                 "label": "HTML-Format erklären",
                 "type": "showInfo",
-                "content": "<p>HTML ist ideal für interaktive Reports!</p>",
-                "contextId": "format-decision"
+                "content": "<p>HTML ist ideal für interaktive Reports!</p>"
               },
               {
                 "id": "start-export-help",
                 "icon": "🚀", 
                 "label": "Export starten",
                 "type": "showInfo",
-                "content": "<p>Ich helfe beim Export-Start!</p>",
-                "contextId": "export-start-help"
+                "content": "<p>Ich helfe beim Export-Start!</p>"
               }
             ]
           }

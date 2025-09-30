@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AXIOM HTML-Report Leitfaden</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/agent.css">
+    <link rel="stylesheet" href="css/media.css">
 </head>
 <body>
     <!-- Top Navigation -->
@@ -76,6 +78,18 @@
         <button class="menu-item" id="toggle-tips-footer-btn" role="menuitem">
             <span class="menu-icon">💡</span>
             Tipps ein/aus
+        </button>
+        
+        <hr style="margin: 5px 0; border: none; border-top: 1px solid #e0e0e0;">
+        
+        <button class="menu-item" id="toggle-media-layer" role="menuitem">
+            <span class="menu-icon">🖼️</span>
+            Medien: <span id="media-layer-status">Standard</span>
+        </button>
+        
+        <button class="menu-item" id="toggle-contrast" role="menuitem">
+            <span class="menu-icon">🌗</span>
+            Bild-Kontrast erhöhen
         </button>
     </div>
 
@@ -168,7 +182,18 @@
                 <!-- Schritt 1 -->
                 <div class="detail-level-1" data-ref="step1-basic">
                     <h3 data-ref="step1-heading">Schritt 1: Export starten</h3>
-                    <p data-ref="step1-menu"><strong>Menü:</strong> Datei → Bericht/Export erstellen</p>
+                    <p data-ref="step1-menu">
+                        <span class="menu-path">
+                            <strong>Menü:</strong> Datei → Bericht/Export erstellen
+                            <button class="media-help-trigger"
+                                    data-media-src="media/screenshots/menu-datei-bericht.png"
+                                    data-media-alt="Screenshot: Menü Datei mit ausgewähltem Eintrag Bericht/Export erstellen"
+                                    aria-label="Screenshot der Menüführung anzeigen"
+                                    title="Screenshot anzeigen">
+                                🔍
+                            </button>
+                        </span>
+                    </p>
                     <p data-ref="step1-context"><strong>Oder:</strong> Rechtsklick auf markierte Beweise → "Bericht/Export erstellen"</p>
                 </div>
 
@@ -200,6 +225,15 @@
                         <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
                     </div>
 
+                    <figure class="media-figure" data-media-type="image">
+                        <img src="media/annotated/axiom-menu-marked-thumb.png"
+                             data-fullsize="media/annotated/axiom-menu-marked.png"
+                             alt="AXIOM Hauptmenü mit nummerierten Schritten: 1. Datei-Menü, 2. Bericht/Export erstellen"
+                             class="media-thumbnail"
+                             loading="lazy">
+                        <figcaption>Schrittweise Anleitung: Export starten (mit Markierungen)</figcaption>
+                    </figure>
+
                     <p data-ref="step1-context-path">
                         <strong>Kontextmenü-Pfad:</strong> Im Artifacts Explorer können Sie eine oder mehrere Beweisgruppen markieren (mit gedrückter Strg-Taste für Mehrfachauswahl), dann Rechtsklick und "Bericht/Export erstellen" wählen. Diese Methode ist besonders zeitsparend bei fokussierten Exporten.
                     </p>
@@ -209,6 +243,19 @@
                          style="display: none;">
                         <!-- Wird dynamisch vom Agent mit Inhalten gefüllt -->
                     </div>
+
+                    <h4>Video-Tutorial: Kompletter Export-Prozess</h4>
+                    <figure class="media-figure" data-media-type="video">
+                        <video class="media-video" 
+                               controls 
+                               preload="metadata"
+                               poster="media/videos/export-workflow-poster.jpg">
+                            <source src="media/videos/export-workflow.mp4" type="video/mp4">
+                            <!-- Track wird automatisch hinzugefügt falls .vtt existiert -->
+                            Ihr Browser unterstützt keine Videos.
+                        </video>
+                        <figcaption>Video: Kompletter Export-Workflow (2:34 Min)</figcaption>
+                    </figure>
 
                     <span class="agent-inline-trigger"
                           data-ref="inline-trigger-help"
@@ -251,6 +298,15 @@
                           tabindex="0">
                         🐕‍🦺 <span class="agent-trigger-text">Warum HTML?</span>
                     </span>
+
+                    <figure class="media-figure" data-media-type="image">
+                        <img src="media/screenshots/format-selection-thumb.png" 
+                             data-fullsize="media/screenshots/format-selection.png"
+                             alt="AXIOM Export-Dialog mit Format-Auswahl, HTML ist hervorgehoben"
+                             class="media-thumbnail"
+                             loading="lazy">
+                        <figcaption>Export-Dialog: HTML-Format wählen</figcaption>
+                    </figure>
 
                     <!-- Agent Context Block -->
                     <div class="agent-context-block"
@@ -476,10 +532,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="script.js"></script>
-    <script src="agent.js"></script>
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="agent.css">
+    <script src="js/script.js"></script>
+    <script src="js/agent.js"></script>
+    <script src="js/media-handler.js"></script>
 </body>
 </html>

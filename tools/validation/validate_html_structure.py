@@ -10,7 +10,7 @@ Validiert:
 - Agent-spezifische Element-Struktur
 
 Autor: AXIOM Guide Development
-Version: 1.0
+Version: 1.1 (mit --root-tag Support)
 """
 
 import argparse
@@ -68,12 +68,14 @@ class HTMLValidator:
         'span.agent-inline-trigger'
     }
     
-    def __init__(self, html_file: Path, verbose: bool = False):
+    def __init__(self, html_file: Path, verbose: bool = False, root_selector: Optional[str] = None):
         self.html_file = html_file
         self.verbose = verbose
+        self.root_selector = root_selector
         self.soup: Optional[BeautifulSoup] = None
+        self.validation_scope: Optional[Tag] = None  # Scope für Validierung
         self.results: List[ValidationResult] = []
-        
+    
     def load_html(self) -> bool:
         """HTML-Datei laden und parsen"""
         try:
@@ -86,6 +88,20 @@ class HTMLValidator:
                 print(f"✓ HTML-Datei erfolgreich geladen: {self.html_file}")
                 print(f"  Gefundene Elemente: {len(self.soup.find_all())}")
             
+            # Root-Element extrahieren falls angegeben
+            if self.root_selector:
+                root_element = self._extract_root_element(self.root_selector)
+                if root_element is None:
+                    return False  # Fehler beim Extrahieren
+                self.validation_scope = root_element
+                
+                if self.verbose:
+                    print(f"🎯 Validierungs-Scope eingeschränkt auf: {self.root_selector}")
+            else:
+                self.validation_scope = self.soup
+                if self.verbose:
+                    print(f"🎯 Validierungs-Scope: Gesamtes Dokument")
+            
             return True
             
         except FileNotFoundError:
@@ -94,6 +110,51 @@ class HTMLValidator:
         except Exception as e:
             self._add_result(False, f"Fehler beim Laden der HTML-Datei: {e}", severity="error")
             return False
+    
+    def _extract_root_element(self, root_selector: str) -> Optional[Tag]:
+        """
+        Extrahiert das Wurzelelement basierend auf CSS-Selector.
+        
+        Returns:
+            Tag-Objekt des Wurzelelements oder None bei Fehler
+        """
+        if not root_selector:
+            return None
+        
+        try:
+            elements = self.soup.select(root_selector)
+            
+            if len(elements) == 0:
+                self._add_result(
+                    False,
+                    f"Root-Tag Selector '{root_selector}' findet kein Element im Dokument",
+                    severity="error"
+                )
+                return None
+            
+            if len(elements) > 1:
+                self._add_result(
+                    False,
+                    f"Root-Tag Selector '{root_selector}' findet {len(elements)} Elemente. "
+                    f"Verwende das erste Element. Nutzen Sie nth-child für spezifischere Auswahl.",
+                    severity="warning"
+                )
+            
+            root_element = elements[0]
+            
+            if self.verbose:
+                print(f"✓ Root-Element gefunden: {self._get_element_info(root_element)}")
+                print(f"  Elemente im Teilbaum: {len(root_element.find_all())}")
+            
+            return root_element
+            
+        except Exception as e:
+            self._add_result(
+                False,
+                f"Fehler beim Verarbeiten des Root-Tag Selectors '{root_selector}': {e}",
+                severity="error"
+            )
+            return None
     
     def validate_all(self) -> ValidationSummary:
         """Führt alle Validierungen durch"""
@@ -107,14 +168,16 @@ class HTMLValidator:
         self._validate_css_selector_compatibility()
         self._validate_agent_elements()
         self._validate_section_structure()
+        self._validate_media_accessibility()
         
         return self._create_summary()
     
     def _validate_id_uniqueness(self) -> None:
-        """Validiert Eindeutigkeit aller ID-Attribute"""
+        """Validiert Eindeutigkeit aller ID-Attribute (GLOBAL)"""
         if self.verbose:
-            print("\n🔍 Validiere ID-Eindeutigkeit...")
+            print("\n🔍 Validiere ID-Eindeutigkeit (global)...")
         
+        # WICHTIG: Immer im gesamten Dokument prüfen, nicht nur im Scope
         id_elements = self.soup.find_all(id=True)
         id_counter = Counter(element.get('id') for element in id_elements)
         
@@ -135,7 +198,7 @@ class HTMLValidator:
                 print(f"  ✓ Alle {len(id_counter)} IDs sind eindeutig")
             self._add_result(
                 True, 
-                f"Alle {len(id_counter)} IDs sind eindeutig", 
+                f"Alle {len(id_counter)} IDs sind eindeutig (global)", 
                 severity="info"
             )
     
@@ -149,9 +212,9 @@ class HTMLValidator:
         for element_selector in self.STANDARD_ELEMENTS:
             if '.' in element_selector:
                 tag, class_name = element_selector.split('.', 1)
-                elements = self.soup.find_all(tag, class_=class_name)
+                elements = self.validation_scope.find_all(tag, class_=class_name)
             else:
-                elements = self.soup.find_all(element_selector)
+                elements = self.validation_scope.find_all(element_selector)
             
             for element in elements:
                 if not element.get('data-ref') and not element.get('id'):
@@ -182,7 +245,7 @@ class HTMLValidator:
         if self.verbose:
             print("\n🔍 Validiere Orphan-Elemente...")
         
-        all_elements = self.soup.find_all()
+        all_elements = self.validation_scope.find_all()
         orphans = []
         
         for element in all_elements:
@@ -245,17 +308,17 @@ class HTMLValidator:
         problems = []
         
         # Prüfe data-ref Attribute auf gültige CSS-Selector-Zeichen
-        data_ref_elements = self.soup.find_all(attrs={'data-ref': True})
+        data_ref_elements = self.validation_scope.find_all(attrs={'data-ref': True})
         
         for element in data_ref_elements:
             data_ref = element.get('data-ref')
             
             # CSS-Selector-kompatible Zeichen: a-zA-Z0-9_-
             if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', data_ref):
-                problems.append((element, f"data-ref='{data-ref}' enthält ungültige Zeichen"))
+                problems.append((element, f"data-ref='{data_ref}' enthält ungültige Zeichen"))
         
         # Prüfe ID-Attribute
-        id_elements = self.soup.find_all(id=True)
+        id_elements = self.validation_scope.find_all(id=True)
         
         for element in id_elements:
             element_id = element.get('id')
@@ -283,8 +346,8 @@ class HTMLValidator:
             print("\n🔍 Validiere Agent-Elemente...")
         
         # Context-Blöcke prüfen
-        context_blocks = self.soup.find_all(class_='agent-context-block')
-        inline_triggers = self.soup.find_all(class_='agent-inline-trigger')
+        context_blocks = self.validation_scope.find_all(class_='agent-context-block')
+        inline_triggers = self.validation_scope.find_all(class_='agent-inline-trigger')
         
         problems = []
         
@@ -322,7 +385,7 @@ class HTMLValidator:
         if self.verbose:
             print("\n🔍 Validiere Section-Struktur...")
         
-        sections = self.soup.find_all('section', class_='content-section')
+        sections = self.validation_scope.find_all('section', class_='content-section')
         problems = []
         
         for section in sections:
@@ -350,7 +413,76 @@ class HTMLValidator:
             if self.verbose:
                 print(f"  ✓ Alle {len(sections)} Sections korrekt strukturiert")
             self._add_result(True, f"Alle {len(sections)} Sections korrekt", severity="info")
-    
+   
+    def _validate_media_accessibility(self) -> None:
+        """Validiert Barrierefreiheit von Medien-Elementen"""
+        if self.verbose:
+            print("\n🔍 Validiere Medien-Barrierefreiheit...")
+        
+        problems = []
+        
+        # Alle img-Tags prüfen
+        images = self.validation_scope.find_all('img')
+        for img in images:
+            # Alt-Attribut muss vorhanden sein
+            if not img.get('alt'):
+                problems.append((img, "img ohne alt-Attribut (Pflichtfeld)"))
+            # Alt-Text sollte aussagekräftig sein (mind. 10 Zeichen)
+            elif len(img.get('alt', '').strip()) < 10:
+                problems.append((img, f"img mit zu kurzem alt-Text: '{img.get('alt')}' (mind. 10 Zeichen empfohlen)"))
+        
+        # Video-Tags prüfen
+        videos = self.validation_scope.find_all('video')
+        for video in videos:
+            has_subtitles = video.find('track', kind='subtitles')
+            has_captions = video.find('track', kind='captions')
+            
+            if not has_subtitles and not has_captions:
+                problems.append((video, "video ohne Untertitel-Track (erforderlich für Barrierefreiheit)"))
+            
+            # Prüfen ob Video eine source hat
+            if not video.find('source'):
+                problems.append((video, "video ohne source-Element"))
+        
+        # Media-Figure prüfen (sollten figcaption haben)
+        media_figures = self.validation_scope.find_all('figure', class_='media-figure')
+        for figure in media_figures:
+            if not figure.find('figcaption'):
+                problems.append((figure, "media-figure ohne figcaption (empfohlen für Kontext)"))
+        
+        # Media-Help-Trigger prüfen (Lupensymbol)
+        help_triggers = self.validation_scope.find_all(class_='media-help-trigger')
+        for trigger in help_triggers:
+            if not trigger.get('data-media-src'):
+                problems.append((trigger, "media-help-trigger ohne data-media-src"))
+            
+            if not trigger.get('data-media-alt'):
+                problems.append((trigger, "media-help-trigger ohne data-media-alt (erforderlich)"))
+            
+            if not trigger.get('aria-label'):
+                problems.append((trigger, "media-help-trigger ohne aria-label (Barrierefreiheit)"))
+        
+        # Ergebnisse verarbeiten
+        if problems:
+            for element, problem in problems:
+                severity = "error" if "Pflichtfeld" in problem or "erforderlich" in problem else "warning"
+                self._add_result(
+                    False,
+                    f"Medien-Barrierefreiheits-Problem: {problem}",
+                    element_info=self._get_element_info(element),
+                    severity=severity
+                )
+        else:
+            total_media = len(images) + len(videos) + len(media_figures) + len(help_triggers)
+            if self.verbose:
+                print(f"  ✓ Alle {total_media} Medien-Elemente sind barrierefrei")
+            if total_media > 0:
+                self._add_result(
+                    True, 
+                    f"Alle {total_media} Medien-Elemente erfüllen Barrierefreiheits-Standards", 
+                    severity="info"
+                )
+
     def _get_element_info(self, element: Tag) -> str:
         """Erstellt eine beschreibende Info über ein Element"""
         info_parts = [f"<{element.name}"]
@@ -391,7 +523,7 @@ class HTMLValidator:
         warnings = sum(1 for r in self.results if r.severity == "warning" and not r.is_valid)
         info = sum(1 for r in self.results if r.severity == "info")
         
-        total_elements = len(self.soup.find_all()) if self.soup else 0
+        total_elements = len(self.validation_scope.find_all()) if self.validation_scope else 0
         
         return ValidationSummary(
             total_elements=total_elements,
@@ -402,12 +534,14 @@ class HTMLValidator:
         )
 
 
-def print_results(summary: ValidationSummary, verbose: bool = False) -> None:
+def print_results(summary: ValidationSummary, verbose: bool = False, root_selector: Optional[str] = None) -> None:
     """Gibt Validierungsergebnisse formatiert aus"""
     
     # Header
     print("\n" + "="*80)
     print("🔍 HTML STRUCTURE VALIDATION RESULTS")
+    if root_selector:
+        print(f"🎯 Validierungs-Scope: {root_selector}")
     print("="*80)
     
     # Zusammenfassung
@@ -467,6 +601,7 @@ def main():
 Beispiele:
   python validate_html_structure.py index.html
   python validate_html_structure.py index.html --verbose
+  python validate_html_structure.py index.html --root-tag "main"
   python validate_html_structure.py *.html --verbose --exit-on-error
         """
     )
@@ -489,6 +624,13 @@ Beispiele:
         help='Skript mit Exit-Code != 0 beenden bei Errors'
     )
     
+    parser.add_argument(
+        '--root-tag',
+        type=str,
+        default=None,
+        help='CSS-Selector für Wurzelelement (optional). Validierung erfolgt nur innerhalb dieses Elements.'
+    )
+    
     args = parser.parse_args()
     
     total_errors = 0
@@ -503,10 +645,14 @@ Beispiele:
         
         print(f"\n🔍 Validiere: {html_file}")
         
-        validator = HTMLValidator(file_path, verbose=args.verbose)
+        validator = HTMLValidator(
+            file_path, 
+            verbose=args.verbose,
+            root_selector=args.root_tag
+        )
         summary = validator.validate_all()
         
-        print_results(summary, verbose=args.verbose)
+        print_results(summary, verbose=args.verbose, root_selector=args.root_tag)
         
         total_errors += summary.total_errors
         total_warnings += summary.total_warnings
