@@ -387,6 +387,23 @@ body.notes-open .notes-sidebar {
     border-width: 0;
 }
 
+/* Scroll-Highlight für Navigation-Ziele */
+.scroll-highlight {
+    animation: scrollHighlight 2s ease;
+}
+
+@keyframes scrollHighlight {
+    0%, 100% { 
+        box-shadow: none;
+    }
+    25%, 75% { 
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 0 5px rgba(0, 102, 204, 0.5);
+    }
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
     body.notes-open .container {

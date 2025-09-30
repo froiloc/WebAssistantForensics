@@ -396,24 +396,36 @@ function buildNavigationTree() {
             <span class="nav-item-icon">▶</span>
             <span class="nav-item-text">${sectionTitle}</span>
         `;
-        
-        // Einzelklick: Toggle (für zukünftige Unterelemente)
+
+        let clickTimer = null;
+        const CLICK_DELAY = 250; // Millisekunden
+
         navItem.addEventListener('click', function(e) {
-            if (e.detail === 1) {
-                // Einzelklick - für spätere Erweiterung mit Untermenüs
-                this.classList.toggle('expanded');
+            const self = this;
+            const targetSectionId = sectionId;
+            
+            // Wenn bereits ein Timer läuft, ist es ein Doppelklick
+            if (clickTimer !== null) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                
+                // Doppelklick-Aktion: Zu Section springen
+                scrollToSection(targetSectionId);
+                
+                // Mobile: Sidebar schließen nach Navigation
+                if (window.innerWidth <= 1024) {
+                    closeNavSidebar();
+                }
+            } else {
+                // Neuer Timer für Einzelklick
+                clickTimer = setTimeout(function() {
+                    // Einzelklick-Aktion: Toggle für zukünftige Untermenüs
+                    self.classList.toggle('expanded');
+                    clickTimer = null;
+                }, CLICK_DELAY);
             }
         });
-        
-        // Doppelklick: Zu Section springen
-        navItem.addEventListener('dblclick', function() {
-            scrollToSection(sectionId);
-            // Mobile: Sidebar schließen nach Navigation
-            if (window.innerWidth <= 1024) {
-                closeNavSidebar();
-            }
-        });
-        
+
         li.appendChild(navItem);
         navTree.appendChild(li);
     });
@@ -453,11 +465,42 @@ function closeNavSidebar() {
     saveUserPreferences();
 }
 
+/**
+ * Scrollt zur angegebenen Section im Hauptinhalt.
+ * 
+ * @param {string} sectionId - Die data-section ID der Ziel-Section
+ * 
+ * Design-Entscheid: Verwendet 'main > [data-section]' Selector um nur
+ * direkte Kinder des <main>-Elements zu finden. Dies verhindert Konflikte
+ * mit Navigation-Items, die ebenfalls data-section haben.
+ * Einschränkung auf <main> ist beabsichtigt, da alle anderen Bereiche
+ * (Navigation, Sidebars, Footer) fixed-positioned sind.
+ */
 function scrollToSection(sectionId) {
-    const section = document.querySelector(`[data-section="${sectionId}"]`);
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const section = document.querySelector(`main > [data-section="${sectionId}"]`);
+    
+    if (!section) {
+        console.warn(`Section mit ID "${sectionId}" nicht gefunden`);
+        return;
     }
+    
+    // Offset für Fixed-Header berechnen
+    const topNavHeight = 60;
+    const additionalOffset = 20;
+    
+    const elementPosition = section.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.scrollY - topNavHeight - additionalOffset;
+    
+    window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+    });
+    
+    // Visuelles Feedback
+    section.classList.add('scroll-highlight');
+    setTimeout(() => {
+        section.classList.remove('scroll-highlight');
+    }, 2000);
 }
 
 // ===== VERLAUFSFENSTER =====
