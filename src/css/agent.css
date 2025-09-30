@@ -69,12 +69,13 @@ body.agent-open .agent-toggle {
 }
 
 /* ===== AGENT SIDEBAR ===== */
+/* Agent Sidebar - Dynamische Höhe */
 .agent-sidebar {
     position: fixed;
     right: -420px;
-    top: 60px; /* Unterhalb der Top-Nav */
+    top: var(--sidebar-top, 60px);  /* Fallback falls Variable nicht definiert */
     width: 400px;
-    height: calc(100vh - 60px - 80px); /* Top-Nav und Tipps-Footer berücksichtigen */
+    height: calc(100vh - var(--sidebar-top, 60px) - var(--tips-footer-height, 80px));
     background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
     box-shadow: -3px 0 15px rgba(0,0,0,0.2);
     transition: right 0.3s ease;

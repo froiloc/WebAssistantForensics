@@ -277,12 +277,25 @@ body.notes-open .notes-toggle {
 }
 
 /* ===== NOTIZBLOCK SIDEBAR ===== */
+/* CSS Custom Properties für dynamische Höhen */
+:root {
+    --top-nav-height: 60px;
+    --tips-footer-height: 80px;
+    --sidebar-top: var(--top-nav-height);
+}
+
+/* Wenn Tipps ausgeblendet sind */
+body.tips-hidden {
+    --tips-footer-height: 0px;
+}
+
+/* Notizblock Sidebar - Dynamische Höhe */
 .notes-sidebar {
     position: fixed;
     right: -370px;
-    top: 60px;
+    top: var(--sidebar-top);
     width: 350px;
-    height: 89vh;
+    height: calc(100vh - var(--sidebar-top) - var(--tips-footer-height));
     background-color: #ffffff;
     box-shadow: -3px 0 15px rgba(0,0,0,0.2);
     transition: right 0.3s ease;
