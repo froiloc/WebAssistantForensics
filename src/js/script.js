@@ -3,17 +3,59 @@ let currentLevel = 1;
 let notesOpen = false;
 let saveTimeout = null;
 
+// Neue Variablen für Navigation und Tracking
+let menuOpen = false;
+let navSidebarOpen = false;
+let historyModalOpen = false;
+let tipsVisible = true;
+let currentTipIndex = 0;
+let tipInterval = null;
+let sectionHistory = [];
+let timeFormatRelative = true;
+let currentActiveSection = null;
+
+// Neue Variablen für Scroll-Awareness und Navigation-Priorisierung
+let lastScrollY = window.scrollY;
+let lastScrollDirection = 'down';
+let lastNavigatedSection = null;
+let lastNavigationTime = 0;
+const NAVIGATION_PRIORITY_DURATION = 5000;
+
+// Variablen für Section-Focus-Timer
+let sectionFocusTimer = null;
+let sectionFocusStartTime = null;
+
+// ===== TIPPS-ARRAY =====
+const tips = [
+    "💡 Tipp: Nutzen Sie Alt+1, Alt+2, Alt+3, um schnell zwischen Detailebenen zu wechseln",
+    "⌨️ Tastenkombination: ESC schließt den Notizblock, den Agenten und geöffnete Fenster",
+    "📝 Ihre Notizen werden automatisch gespeichert und bleiben auch nach dem Schließen erhalten",
+    "🔍 Klicken Sie doppelt auf Navigationseinträge, um direkt zum Abschnitt zu springen",
+    "📜 Der Verlauf zeigt alle besuchten Abschnitte - öffnen Sie ihn über das Menü oben links",
+    "🎯 Fokussierte Abschnitte werden hervorgehoben - andere erscheinen transparent",
+    "⚡ Templates sparen Zeit: Speichern Sie häufig genutzte Export-Konfigurationen",
+    "📖 Taggen Sie wichtige Beweise vor dem Export für fokussierte Reports",
+    "🌐 HTML-Reports eignen sich besonders für Chat-Analysen und mehrsprachige Inhalte",
+    "💾 Alle Ihre Einstellungen werden lokal im Browser gespeichert"
+];
+
 // ===== INITIALISIERUNG =====
 document.addEventListener('DOMContentLoaded', function() {
     initDetailLevelControls();
     initNotesFeature();
     initFocusObserver();
     loadNotesFromStorage();
+    initMenu();
+    initNavSidebar();
+    initHistoryModal();
+    initTipsFooter();
+    initBreadcrumb();
+    loadUserPreferences();
 });
 
 // ===== DETAILGRAD-STEUERUNG =====
 function initDetailLevelControls() {
-    const buttons = document.querySelectorAll('.detail-btn');
+    const buttons = document.querySelectorAll('.detail-btn, .detail-btn-mini');
     
     buttons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -22,7 +64,6 @@ function initDetailLevelControls() {
         });
     });
     
-    // Tastatursteuerung: Alt + 1, 2, 3
     document.addEventListener('keydown', function(e) {
         if (e.altKey && e.key >= '1' && e.key <= '3') {
             e.preventDefault();
@@ -30,52 +71,40 @@ function initDetailLevelControls() {
         }
     });
     
-    // Initial: Level 1 setzen
     updateDetailVisibility();
 }
 
 function setDetailLevel(level) {
     currentLevel = level;
     
-    // Alle Buttons zurücksetzen
-    const buttons = document.querySelectorAll('.detail-btn');
-    buttons.forEach(btn => {
+    const allButtons = document.querySelectorAll('.detail-btn, .detail-btn-mini');
+    allButtons.forEach(btn => {
         btn.classList.remove('active');
         btn.setAttribute('aria-pressed', 'false');
     });
     
-    // Aktiven Button markieren
-    const activeButton = document.querySelector(`.detail-btn[data-level="${level}"]`);
-    if (activeButton) {
-        activeButton.classList.add('active');
-        activeButton.setAttribute('aria-pressed', 'true');
-    }
+    const activeButtons = document.querySelectorAll(
+        `.detail-btn[data-level="${level}"], .detail-btn-mini[data-level="${level}"]`
+    );
+    activeButtons.forEach(btn => {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+    });
     
-    // Detailebenen ein-/ausblenden
     updateDetailVisibility();
-    
-    // Info-Text aktualisieren
     updateInfoText(level);
-    
-    // Smooth scroll zum Anfang des Inhalts
-    const mainElement = document.querySelector('main');
-    if (mainElement) {
-        mainElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    saveUserPreferences();
 }
 
 function updateDetailVisibility() {
-    // Level 1 immer sichtbar
     const level1Elements = document.querySelectorAll('.detail-level-1');
     level1Elements.forEach(el => el.style.display = 'block');
     
-    // Level 2 abhängig von currentLevel
     const level2Elements = document.querySelectorAll('.detail-level-2');
     level2Elements.forEach(el => {
         el.style.display = currentLevel >= 2 ? 'block' : 'none';
     });
     
-    // Level 3 abhängig von currentLevel
     const level3Elements = document.querySelectorAll('.detail-level-3');
     level3Elements.forEach(el => {
         el.style.display = currentLevel >= 3 ? 'block' : 'none';
@@ -101,24 +130,20 @@ function initNotesFeature() {
     const clearBtn = document.getElementById('clear-notes');
     const textarea = document.getElementById('notes-textarea');
     
-    // Toggle Button
     if (toggleBtn) {
         toggleBtn.addEventListener('click', toggleNotes);
     }
     
-    // Clear Button
     if (clearBtn) {
         clearBtn.addEventListener('click', clearNotes);
     }
     
-    // Auto-Save bei Texteingabe
     if (textarea) {
         textarea.addEventListener('input', function() {
             autoSaveNotes();
         });
     }
     
-    // ESC-Taste schließt Notizblock
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && notesOpen) {
             toggleNotes();
@@ -154,7 +179,6 @@ function clearNotes() {
 }
 
 function autoSaveNotes() {
-    // Debounce: Warte 1 Sekunde nach letzter Eingabe
     if (saveTimeout) {
         clearTimeout(saveTimeout);
     }
@@ -203,17 +227,14 @@ function showSaveIndicator() {
 
 // ===== FOKUS-OBSERVER FÜR SECTIONS =====
 function initFocusObserver() {
-    // Intersection Observer Konfiguration
     const observerOptions = {
-        root: null, // Viewport als Root
-        rootMargin: '-25% 0px -25% 0px', // Mittlerer 50% Bereich des Viewports
-        threshold: [0, 0.1, 0.5, 0.9, 1.0]
+        root: null,
+        rootMargin: '-20% 0px -20% 0px',
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0]
     };
     
-    // Observer erstellen
     const observer = new IntersectionObserver(handleIntersection, observerOptions);
     
-    // Alle content-sections beobachten
     const sections = document.querySelectorAll('.content-section');
     sections.forEach(section => {
         observer.observe(section);
@@ -221,89 +242,119 @@ function initFocusObserver() {
 }
 
 function handleIntersection(entries) {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY !== lastScrollY) {
+        lastScrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+        lastScrollY = currentScrollY;
+    }
+    
+    const timeSinceNavigation = Date.now() - lastNavigationTime;
+    const navigationPriorityActive = timeSinceNavigation < NAVIGATION_PRIORITY_DURATION;
+    
+    const visibleSections = [];
+    
     entries.forEach(entry => {
-        // Section ist im Fokusbereich (mittlere 60% des Viewports)
         if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
             entry.target.classList.remove('out-of-focus');
+            
+            const sectionId = entry.target.dataset.section;
+            const sectionTitle = entry.target.dataset.title || 
+                               entry.target.querySelector('h2')?.textContent || 
+                               'Unbenannt';
+            
+            if (sectionId) {
+                const rect = entry.target.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const sectionTop = rect.top;
+                const viewportPosition = sectionTop / viewportHeight;
+                
+                visibleSections.push({
+                    id: sectionId,
+                    title: sectionTitle,
+                    ratio: entry.intersectionRatio,
+                    element: entry.target,
+                    viewportPosition: viewportPosition,
+                    isNavigationTarget: sectionId === lastNavigatedSection && navigationPriorityActive
+                });
+            }
         } else {
             entry.target.classList.add('out-of-focus');
+            
+            const sectionId = entry.target.dataset.section;
+            if (sectionId === currentActiveSection && sectionFocusTimer) {
+                clearTimeout(sectionFocusTimer);
+                sectionFocusTimer = null;
+            }
         }
     });
-}
-
-// ===== HILFSFUNKTIONEN =====
-
-// Scroll zu einem bestimmten Element
-function scrollToElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
+    
+    if (visibleSections.length > 0) {
+        const calculateScore = (section) => {
+            let score = 0;
+            
+            score += section.ratio * 100;
+            
+            if (section.isNavigationTarget) {
+                score += 200;
+            }
+            
+            if (lastScrollDirection === 'up' && section.viewportPosition < 0.5) {
+                score += 30;
+            } else if (lastScrollDirection === 'down' && section.viewportPosition > 0.3) {
+                score += 30;
+            }
+            
+            const distanceFromCenter = Math.abs(0.4 - section.viewportPosition);
+            const centralityBonus = Math.max(0, 20 - (distanceFromCenter * 40));
+            score += centralityBonus;
+            
+            return score;
+        };
+        
+        visibleSections.forEach(section => {
+            section.score = calculateScore(section);
         });
+        
+        visibleSections.sort((a, b) => b.score - a.score);
+        
+        const bestSection = visibleSections[0];
+        
+        if (bestSection.id !== currentActiveSection) {
+            if (sectionFocusTimer) {
+                clearTimeout(sectionFocusTimer);
+                sectionFocusTimer = null;
+            }
+            
+            currentActiveSection = bestSection.id;
+            sectionFocusStartTime = Date.now();
+            
+            updateActiveNavItem();
+            updateBreadcrumb(bestSection.title);
+            
+            if (bestSection.ratio > 0.5 || bestSection.isNavigationTarget) {
+                sectionFocusTimer = setTimeout(function() {
+                    addToHistory(bestSection.id, bestSection.title);
+                    sectionFocusTimer = null;
+                }, 3000);
+            }
+        }
+    }
+    
+    if (navigationPriorityActive && timeSinceNavigation >= NAVIGATION_PRIORITY_DURATION) {
+        lastNavigatedSection = null;
     }
 }
-
-// Exportiere Funktionen für externe Nutzung (falls benötigt)
-window.axiomGuide = {
-    setDetailLevel: setDetailLevel,
-    toggleNotes: toggleNotes,
-    scrollToElement: scrollToElement
-};
-
-/* 
-ANLEITUNG: Fügen Sie diesen JavaScript-Code am Ende der script.js Datei ein
-(nach den bestehenden Funktionen, vor window.axiomGuide = {...})
-*/
-
-// ===== GLOBALE VARIABLEN FÜR NEUE FEATURES =====
-let menuOpen = false;
-let navSidebarOpen = false;
-let historyModalOpen = false;
-let tipsVisible = true;
-let currentTipIndex = 0;
-let tipInterval = null;
-let sectionHistory = [];
-let timeFormatRelative = true;
-let currentActiveSection = null;
-
-// ===== TIPPS-ARRAY =====
-const tips = [
-    "💡 Tipp: Nutzen Sie Alt+1, Alt+2, Alt+3, um schnell zwischen Detailebenen zu wechseln",
-    "⌨️ Tastenkombination: ESC schließt den Notizblock, den Agenten und geöffnete Fenster",
-    "📝 Ihre Notizen werden automatisch gespeichert und bleiben auch nach dem Schließen erhalten",
-    "🔍 Klicken Sie doppelt auf Navigationseinträge, um direkt zum Abschnitt zu springen",
-    "📜 Der Verlauf zeigt alle besuchten Abschnitte - öffnen Sie ihn über das Menü oben links",
-    "🎯 Fokussierte Abschnitte werden hervorgehoben - andere erscheinen transparent",
-    "⚡ Templates sparen Zeit: Speichern Sie häufig genutzte Export-Konfigurationen",
-    "🔖 Taggen Sie wichtige Beweise vor dem Export für fokussierte Reports",
-    "🌐 HTML-Reports eignen sich besonders für Chat-Analysen und mehrsprachige Inhalte",
-    "💾 Alle Ihre Einstellungen werden lokal im Browser gespeichert"
-];
-
-// ===== INITIALISIERUNG NEUE FEATURES =====
-document.addEventListener('DOMContentLoaded', function() {
-    // Nach den bestehenden Init-Aufrufen einfügen:
-    initMenu();
-    initNavSidebar();
-    initHistoryModal();
-    initTipsFooter();
-    loadUserPreferences();
-});
 
 // ===== MENÜ-FUNKTIONALITÄT =====
 function initMenu() {
     const menuToggle = document.getElementById('menu-toggle');
-    const menuDropdown = document.getElementById('menu-dropdown');
+    const showHistoryBtn = document.getElementById('show-history-btn');
+    const toggleNavBtn = document.getElementById('toggle-nav-sidebar-btn');
+    const toggleTipsBtn = document.getElementById('toggle-tips-footer-btn');
     
     if (menuToggle) {
         menuToggle.addEventListener('click', toggleMenu);
     }
-    
-    // Menü-Items
-    const showHistoryBtn = document.getElementById('show-history-btn');
-    const toggleNavBtn = document.getElementById('toggle-nav-sidebar-btn');
-    const toggleTipsBtn = document.getElementById('toggle-tips-footer-btn');
     
     if (showHistoryBtn) {
         showHistoryBtn.addEventListener('click', function() {
@@ -326,7 +377,6 @@ function initMenu() {
         });
     }
     
-    // Klick außerhalb schließt Menü
     document.addEventListener('click', function(e) {
         if (menuOpen && !e.target.closest('.top-nav') && !e.target.closest('.menu-dropdown')) {
             closeMenu();
@@ -372,7 +422,6 @@ function initNavSidebar() {
         closeBtn.addEventListener('click', closeNavSidebar);
     }
     
-    // Update aktive Section bei Scroll
     updateActiveNavItem();
 }
 
@@ -398,28 +447,23 @@ function buildNavigationTree() {
         `;
 
         let clickTimer = null;
-        const CLICK_DELAY = 250; // Millisekunden
+        const CLICK_DELAY = 250;
 
         navItem.addEventListener('click', function(e) {
             const self = this;
             const targetSectionId = sectionId;
             
-            // Wenn bereits ein Timer läuft, ist es ein Doppelklick
             if (clickTimer !== null) {
                 clearTimeout(clickTimer);
                 clickTimer = null;
                 
-                // Doppelklick-Aktion: Zu Section springen
                 scrollToSection(targetSectionId);
                 
-                // Mobile: Sidebar schließen nach Navigation
                 if (window.innerWidth <= 1024) {
                     closeNavSidebar();
                 }
             } else {
-                // Neuer Timer für Einzelklick
                 clickTimer = setTimeout(function() {
-                    // Einzelklick-Aktion: Toggle für zukünftige Untermenüs
                     self.classList.toggle('expanded');
                     clickTimer = null;
                 }, CLICK_DELAY);
@@ -432,7 +476,6 @@ function buildNavigationTree() {
 }
 
 function updateActiveNavItem() {
-    // Wird vom Intersection Observer aufgerufen
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         if (currentActiveSection && item.dataset.section === currentActiveSection) {
@@ -465,17 +508,6 @@ function closeNavSidebar() {
     saveUserPreferences();
 }
 
-/**
- * Scrollt zur angegebenen Section im Hauptinhalt.
- * 
- * @param {string} sectionId - Die data-section ID der Ziel-Section
- * 
- * Design-Entscheid: Verwendet 'main > [data-section]' Selector um nur
- * direkte Kinder des <main>-Elements zu finden. Dies verhindert Konflikte
- * mit Navigation-Items, die ebenfalls data-section haben.
- * Einschränkung auf <main> ist beabsichtigt, da alle anderen Bereiche
- * (Navigation, Sidebars, Footer) fixed-positioned sind.
- */
 function scrollToSection(sectionId) {
     const section = document.querySelector(`main > [data-section="${sectionId}"]`);
     
@@ -484,7 +516,9 @@ function scrollToSection(sectionId) {
         return;
     }
     
-    // Offset für Fixed-Header berechnen
+    lastNavigatedSection = sectionId;
+    lastNavigationTime = Date.now();
+    
     const topNavHeight = 60;
     const additionalOffset = 20;
     
@@ -496,11 +530,17 @@ function scrollToSection(sectionId) {
         behavior: 'smooth'
     });
     
-    // Visuelles Feedback
     section.classList.add('scroll-highlight');
     setTimeout(() => {
         section.classList.remove('scroll-highlight');
     }, 2000);
+    
+    const sectionTitle = section.dataset.title || 
+                        section.querySelector('h2')?.textContent || 
+                        'Unbenannt';
+    currentActiveSection = sectionId;
+    updateActiveNavItem();
+    updateBreadcrumb(sectionTitle);
 }
 
 // ===== VERLAUFSFENSTER =====
@@ -522,14 +562,12 @@ function initHistoryModal() {
         clearHistoryBtn.addEventListener('click', clearHistory);
     }
     
-    // ESC schließt Modal
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && historyModalOpen) {
             closeHistoryModal();
         }
     });
     
-    // Klick auf Overlay schließt Modal
     if (modal) {
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
@@ -538,7 +576,6 @@ function initHistoryModal() {
         });
     }
     
-    // Verlauf aus localStorage laden
     loadHistoryFromStorage();
 }
 
@@ -564,7 +601,6 @@ function closeHistoryModal() {
 }
 
 function addToHistory(sectionId, sectionTitle) {
-    // Verhindere doppelte aufeinanderfolgende Einträge
     if (sectionHistory.length > 0) {
         const lastEntry = sectionHistory[sectionHistory.length - 1];
         if (lastEntry.sectionId === sectionId) {
@@ -580,7 +616,6 @@ function addToHistory(sectionId, sectionTitle) {
     
     sectionHistory.push(entry);
     
-    // Maximal 50 Einträge behalten
     if (sectionHistory.length > 50) {
         sectionHistory.shift();
     }
@@ -605,7 +640,6 @@ function updateHistoryDisplay() {
     historyEmpty.style.display = 'none';
     historyList.innerHTML = '';
     
-    // Rückwärts durchlaufen (neueste zuerst)
     for (let i = sectionHistory.length - 1; i >= 0; i--) {
         const entry = sectionHistory[i];
         const li = document.createElement('li');
@@ -632,7 +666,6 @@ function updateHistoryDisplay() {
 
 function toggleTimeFormat() {
     timeFormatRelative = !timeFormatRelative;
-    const toggleBtn = document.getElementById('time-format-toggle');
     const toggleText = document.getElementById('time-format-text');
     
     if (toggleText) {
@@ -706,6 +739,8 @@ function loadHistoryFromStorage() {
 function initTipsFooter() {
     const closeBtn = document.getElementById('close-tips-footer');
     const showBtn = document.getElementById('show-tips-footer-btn');
+    const prevBtn = document.getElementById('tips-prev-btn');
+    const nextBtn = document.getElementById('tips-next-btn');
     
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
@@ -719,7 +754,14 @@ function initTipsFooter() {
         });
     }
     
-    // Ersten Tipp anzeigen und Timer starten
+    if (prevBtn) {
+        prevBtn.addEventListener('click', showPreviousTip);
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', showNextTipManual);
+    }
+    
     showNextTip();
     startTipRotation();
 }
@@ -733,8 +775,31 @@ function showNextTip() {
     }
 }
 
+function showPreviousTip() {
+    currentTipIndex = (currentTipIndex - 1 + tips.length) % tips.length;
+    showCurrentTip();
+    resetTipRotation();
+}
+
+function showNextTipManual() {
+    showNextTip();
+    resetTipRotation();
+}
+
+function showCurrentTip() {
+    const tipsText = document.getElementById('tips-text');
+    
+    if (tipsText && tips.length > 0) {
+        tipsText.textContent = tips[currentTipIndex];
+    }
+}
+
+function resetTipRotation() {
+    stopTipRotation();
+    startTipRotation();
+}
+
 function startTipRotation() {
-    // Alle 15 Sekunden neuen Tipp anzeigen
     tipInterval = setInterval(showNextTip, 15000);
 }
 
@@ -789,47 +854,24 @@ function toggleTipsFooter() {
     }
 }
 
-// ===== VERBESSERTER FOKUS-OBSERVER =====
-// Diese Funktion ersetzt/erweitert die bestehende initFocusObserver Funktion
-function initFocusObserver() {
-    const observerOptions = {
-        root: null,
-        rootMargin: '-20% 0px -20% 0px',
-        threshold: [0, 0.1, 0.5, 0.9, 1.0]
-    };
+// ===== BREADCRUMB-FUNKTIONALITÄT =====
+function updateBreadcrumb(sectionTitle) {
+    const breadcrumbCurrent = document.getElementById('breadcrumb-current');
     
-    const observer = new IntersectionObserver(handleIntersection, observerOptions);
-    
-    const sections = document.querySelectorAll('.content-section');
-    sections.forEach(section => {
-        observer.observe(section);
-    });
+    if (breadcrumbCurrent && sectionTitle) {
+        breadcrumbCurrent.textContent = sectionTitle;
+    }
 }
 
-function handleIntersection(entries) {
-    entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-            entry.target.classList.remove('out-of-focus');
-            
-            // Aktive Section tracken
-            const sectionId = entry.target.dataset.section;
-            const sectionTitle = entry.target.dataset.title || 
-                               entry.target.querySelector('h2')?.textContent || 
-                               'Unbenannt';
-            
-            if (sectionId && sectionId !== currentActiveSection) {
-                currentActiveSection = sectionId;
-                updateActiveNavItem();
-                
-                // Zum Verlauf hinzufügen wenn Section mindestens 50% sichtbar
-                if (entry.intersectionRatio > 0.5) {
-                    addToHistory(sectionId, sectionTitle);
-                }
-            }
-        } else {
-            entry.target.classList.add('out-of-focus');
-        }
-    });
+function initBreadcrumb() {
+    const breadcrumbHome = document.getElementById('breadcrumb-home');
+    
+    if (breadcrumbHome) {
+        breadcrumbHome.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 }
 
 // ===== BENUTZER-PRÄFERENZEN SPEICHERN/LADEN =====
@@ -854,17 +896,14 @@ function loadUserPreferences() {
         if (saved) {
             const preferences = JSON.parse(saved);
             
-            // Navigation Sidebar Status wiederherstellen
             if (preferences.navSidebarOpen) {
                 toggleNavSidebar();
             }
             
-            // Tipps Footer Status wiederherstellen
             if (preferences.tipsVisible === false) {
                 hideTipsFooter();
             }
             
-            // Zeitformat wiederherstellen
             if (preferences.timeFormatRelative !== undefined) {
                 timeFormatRelative = preferences.timeFormatRelative;
                 const toggleText = document.getElementById('time-format-text');
@@ -873,7 +912,6 @@ function loadUserPreferences() {
                 }
             }
             
-            // Detailgrad wiederherstellen
             if (preferences.detailLevel) {
                 setDetailLevel(preferences.detailLevel);
             }
@@ -883,248 +921,25 @@ function loadUserPreferences() {
     }
 }
 
-// ===== AKTUALISIERTE EXPORT-FUNKTIONEN =====
-// Erweitere das bestehende window.axiomGuide Objekt
-if (window.axiomGuide) {
-    Object.assign(window.axiomGuide, {
-        toggleMenu: toggleMenu,
-        toggleNavSidebar: toggleNavSidebar,
-        openHistoryModal: openHistoryModal,
-        toggleTipsFooter: toggleTipsFooter,
-        scrollToSection: scrollToSection
-    });
-} else {
-    window.axiomGuide = {
-        setDetailLevel: setDetailLevel,
-        toggleNotes: toggleNotes,
-        scrollToElement: scrollToElement,
-        toggleMenu: toggleMenu,
-        toggleNavSidebar: toggleNavSidebar,
-        openHistoryModal: openHistoryModal,
-        toggleTipsFooter: toggleTipsFooter,
-        scrollToSection: scrollToSection
-    };
-}
-
-// ===== ÄNDERUNG 1: 3-Sekunden Timer für Verlauf =====
-// Ersetzen Sie die bestehenden Variablen am Anfang der Datei:
-
-let sectionFocusTimer = null; // NEU: Timer für 3-Sekunden-Regel
-let sectionFocusStartTime = null; // NEU: Zeitpunkt des Focus-Starts
-
-// ===== ÄNDERUNG 2: Erweiterte handleIntersection Funktion =====
-// Ersetzen Sie die bestehende handleIntersection Funktion komplett:
-
-function handleIntersection(entries) {
-    entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-            entry.target.classList.remove('out-of-focus');
-            
-            // Aktive Section tracken
-            const sectionId = entry.target.dataset.section;
-            const sectionTitle = entry.target.dataset.title || 
-                               entry.target.querySelector('h2')?.textContent || 
-                               'Unbenannt';
-            
-            if (sectionId && sectionId !== currentActiveSection) {
-                // Vorherigen Timer abbrechen
-                if (sectionFocusTimer) {
-                    clearTimeout(sectionFocusTimer);
-                    sectionFocusTimer = null;
-                }
-                
-                currentActiveSection = sectionId;
-                sectionFocusStartTime = Date.now();
-                updateActiveNavItem();
-                updateBreadcrumb(sectionTitle); // NEU: Breadcrumb aktualisieren
-                
-                // Timer starten: Nach 3 Sekunden zum Verlauf hinzufügen
-                if (entry.intersectionRatio > 0.5) {
-                    sectionFocusTimer = setTimeout(function() {
-                        addToHistory(sectionId, sectionTitle);
-                        sectionFocusTimer = null;
-                    }, 3000); // 3 Sekunden
-                }
-            }
-        } else {
-            entry.target.classList.add('out-of-focus');
-            
-            // Wenn Section den Fokus verliert, Timer abbrechen
-            const sectionId = entry.target.dataset.section;
-            if (sectionId === currentActiveSection && sectionFocusTimer) {
-                clearTimeout(sectionFocusTimer);
-                sectionFocusTimer = null;
-            }
-        }
-    });
-}
-
-// ===== ÄNDERUNG 3: Tipp-Navigation Buttons =====
-// Fügen Sie diese Funktionen nach den bestehenden Tips-Funktionen ein:
-
-function showPreviousTip() {
-    // Index zurück (mit Wrap-Around)
-    currentTipIndex = (currentTipIndex - 1 + tips.length) % tips.length;
-    showCurrentTip();
-    
-    // Timer neu starten
-    resetTipRotation();
-}
-
-function showNextTipManual() {
-    // Nutzt die bestehende showNextTip Funktion
-    showNextTip();
-    
-    // Timer neu starten
-    resetTipRotation();
-}
-
-function showCurrentTip() {
-    const tipsText = document.getElementById('tips-text');
-    
-    if (tipsText && tips.length > 0) {
-        tipsText.textContent = tips[currentTipIndex];
-    }
-}
-
-function resetTipRotation() {
-    // Timer stoppen und neu starten
-    stopTipRotation();
-    startTipRotation();
-}
-
-// ===== ÄNDERUNG 4: Erweiterte initTipsFooter Funktion =====
-// Ersetzen Sie die bestehende initTipsFooter Funktion:
-
-function initTipsFooter() {
-    const closeBtn = document.getElementById('close-tips-footer');
-    const showBtn = document.getElementById('show-tips-footer-btn');
-    const prevBtn = document.getElementById('tips-prev-btn'); // NEU
-    const nextBtn = document.getElementById('tips-next-btn'); // NEU
-    
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            hideTipsFooter();
-        });
-    }
-    
-    if (showBtn) {
-        showBtn.addEventListener('click', function() {
-            showTipsFooter();
-        });
-    }
-    
-    // NEU: Previous Button
-    if (prevBtn) {
-        prevBtn.addEventListener('click', showPreviousTip);
-    }
-    
-    // NEU: Next Button
-    if (nextBtn) {
-        nextBtn.addEventListener('click', showNextTipManual);
-    }
-    
-    // Ersten Tipp anzeigen und Timer starten
-    showNextTip();
-    startTipRotation();
-}
-
-// ===== ÄNDERUNG 5: Breadcrumb-Funktionalität =====
-// Fügen Sie diese neue Funktion hinzu:
-
-function updateBreadcrumb(sectionTitle) {
-    const breadcrumbCurrent = document.getElementById('breadcrumb-current');
-    
-    if (breadcrumbCurrent && sectionTitle) {
-        breadcrumbCurrent.textContent = sectionTitle;
-    }
-}
-
-function initBreadcrumb() {
-    const breadcrumbHome = document.getElementById('breadcrumb-home');
-    
-    if (breadcrumbHome) {
-        breadcrumbHome.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+// ===== HILFSFUNKTIONEN =====
+function scrollToElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
         });
     }
 }
 
-// ===== ÄNDERUNG 6: Erweiterte DOMContentLoaded =====
-// Ergänzen Sie in Ihrer bestehenden DOMContentLoaded Funktion:
-
-document.addEventListener('DOMContentLoaded', function() {
-    // ... bestehende Init-Aufrufe ...
-    initBreadcrumb(); // NEU hinzufügen
-});
-
-// ===== ÄNDERUNG: Erweiterte initDetailLevelControls Funktion =====
-// ERSETZEN Sie die bestehende initDetailLevelControls Funktion komplett:
-
-function initDetailLevelControls() {
-    // Beide Button-Sets unterstützen (alte große + neue mini in Top-Nav)
-    const buttons = document.querySelectorAll('.detail-btn, .detail-btn-mini');
-    
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const level = parseInt(this.dataset.level);
-            setDetailLevel(level);
-        });
-    });
-    
-    // Tastatursteuerung: Alt + 1, 2, 3
-    document.addEventListener('keydown', function(e) {
-        if (e.altKey && e.key >= '1' && e.key <= '3') {
-            e.preventDefault();
-            setDetailLevel(parseInt(e.key));
-        }
-    });
-    
-    // Initial: Level 1 setzen
-    updateDetailVisibility();
-}
-
-// ===== ÄNDERUNG: Erweiterte setDetailLevel Funktion =====
-// ERSETZEN Sie die bestehende setDetailLevel Funktion komplett:
-
-function setDetailLevel(level) {
-    currentLevel = level;
-    
-    // BEIDE Button-Sets aktualisieren (alte + neue mini)
-    const allButtons = document.querySelectorAll('.detail-btn, .detail-btn-mini');
-    allButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-pressed', 'false');
-    });
-    
-    // Aktive Buttons in BEIDEN Sets markieren
-    const activeButtons = document.querySelectorAll(
-        `.detail-btn[data-level="${level}"], .detail-btn-mini[data-level="${level}"]`
-    );
-    activeButtons.forEach(btn => {
-        btn.classList.add('active');
-        btn.setAttribute('aria-pressed', 'true');
-    });
-    
-    // Detailebenen ein-/ausblenden
-    updateDetailVisibility();
-    
-    // Info-Text aktualisieren (falls vorhanden)
-    updateInfoText(level);
-    
-    // Einstellungen speichern
-    saveUserPreferences();
-    
-    // Optional: Smooth scroll zum Anfang des Inhalts
-    // (Auskommentieren falls störend beim Wechsel)
-    /*
-    const mainElement = document.querySelector('main');
-    if (mainElement) {
-        mainElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    */
-}
-
-// Die updateInfoText Funktion bleibt unverändert, funktioniert aber nur 
-// wenn Sie die optionale detail-info-box im HTML behalten haben
+// ===== EXPORT FÜR EXTERNE VERWENDUNG =====
+window.axiomGuide = {
+    setDetailLevel: setDetailLevel,
+    toggleNotes: toggleNotes,
+    scrollToElement: scrollToElement,
+    toggleMenu: toggleMenu,
+    toggleNavSidebar: toggleNavSidebar,
+    openHistoryModal: openHistoryModal,
+    toggleTipsFooter: toggleTipsFooter,
+    scrollToSection: scrollToSection
+};
