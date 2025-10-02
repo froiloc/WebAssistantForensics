@@ -2,8 +2,7 @@
 nohup.out
 *.kate-swp
 *.kate-swo
-*.swp
-*.swo
+*.sw?
 *.log
 
 # Environments
