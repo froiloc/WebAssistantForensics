@@ -1,0 +1,8 @@
+- Detailebene "Don't tell; just show" -> nur annotierter Screenshot. Dieser wird bei "Standard" Medienansicht ausgeblendet.
+- Tagmodus, Nachtmodus, Kontrast-Modi für Barrierefreiheit
+- Verlauf als linke Seitenleiste anzeigen
+- Favoriten als linke Seitenleiste anzeigen
+- linke Seitenleiste so darstellen, dass die drei Leisten (Navigation, Verlauf, Favoriten) sich den Platz teilen. Durch Klick auf den jeweiligen Header wird der Body des angeklickten Elements vollständig angezeigt und die Bodies der anderern linken Seitenleisten werden ausgeblendet.
+- im Agenten die FAQ einbetten. Es soll eine Eingabezeile beim Agenten geben. Die Eingabe soll mit dem Inhalt einer faq.json abgeglichen werden. Wenn es eine Übereinstimmung bei Tag oder Volltext gibt, dann wird durch den Agenten die jeweilige Information ausgegeben.
+- im Agenten eine Feedback/Ideen-Funktion verankern. Diese öffnet eine Mail über mailto Link mit Subject header und komponiertem Body im E-Mail-Programm
+- eine Glossar.json Datei erstellen. Auf der Basis der dortigen Einträge soll ein Popover angezeigt werden für die jeweiligen Begriffe, wenn sie im Text gefunden werden. Auf solche Weise gefunde Textpassagen im Text werden mit der Klasse .has-glossar versehen und optisch fein unterstrichen. Der Glossareintrag soll maximal 200 Zeichen beinhalten und maximal eine Darstellung der Größe 300x200 Pixel, sowie einen weiterführenden Link (beispielsweise zu Wikipedia).
