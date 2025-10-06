@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-CORE.JS - Version 063
+// SCRIPT-CORE.JS - Version 067
 // Basis-Funktionen, globale Variablen und Logging-System
 // ============================================================================
 
@@ -8,7 +8,7 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '063',
+    version: '067',
     buildDate: '2025-10-06', // 4. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };
@@ -225,7 +225,6 @@ window.LOG.groupEnd = function() {
 window.APP_STATE = {
     // Section Management (direkt auf Root für Kompatibilität)
     currentActiveSection: 'intro',
-    allSections: [],
     lastNavigationTime: 0,
     lastNavigatedSection: null,
     lastSectionChangeTime: 0,

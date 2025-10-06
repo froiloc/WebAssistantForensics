@@ -27,7 +27,17 @@
 
         nav.innerHTML = '';
 
-        STATE.allSections.forEach(section => {
+        // Sections über SectionManagement API abrufen
+        const allSections = window.SectionManagement
+            ? window.SectionManagement.getAllSections()
+            : [];
+
+        if (allSections.length === 0) {
+            LOG.warn(MODULE, 'No sections available for navigation tree');
+            return;
+        }
+
+        allSections.forEach(section => {
             const sectionId = section.dataset.section;
             const sectionTitle = section.dataset.title ||
             section.querySelector('h2')?.textContent?.trim() ||
@@ -51,8 +61,8 @@
 
             // Initial aktive Section aus StateManager holen
             const currentActive = window.StateManager
-            ? window.StateManager.get('sections.currentActive')
-            : STATE.currentActiveSection;
+                ? window.StateManager.get('sections.currentActive')
+                : STATE.currentActiveSection;
 
             if (sectionId === currentActive) {
                 navItem.classList.add('active');
@@ -72,7 +82,7 @@
             nav.appendChild(li);
         });
 
-        LOG.success(MODULE, `Navigation tree built with ${STATE.allSections.length} items`);
+        LOG.success(MODULE, `Navigation tree built with ${allSections.length} items`);
     }
 
     function updateActiveNavItem() {
@@ -83,8 +93,8 @@
 
         // Aktive Section aus StateManager holen (KORRIGIERT!)
         const currentActive = window.StateManager
-        ? window.StateManager.get('sections.currentActive')
-        : STATE.currentActiveSection;
+            ? window.StateManager.get('sections.currentActive')
+            : STATE.currentActiveSection;
 
         // Entsprechendes nav-item aktivieren
         const activeItem = document.querySelector(`.nav-item[data-section="${currentActive}"]`);
@@ -228,18 +238,23 @@
         LOG.debug(MODULE, 'Breadcrumb element found:', !!breadcrumbCurrent);
 
         if (breadcrumbCurrent) {
-            const firstSection = STATE.allSections[0];
+            // Sections über SectionManagement API abrufen
+            const allSections = window.SectionManagement
+                ? window.SectionManagement.getAllSections()
+                : [];
+
+            const firstSection = allSections[0];
             if (firstSection) {
                 const title = firstSection.dataset.title ||
-                firstSection.querySelector('h2')?.textContent?.trim() ||
-                firstSection.querySelector('h3')?.textContent?.trim() ||
-                firstSection.querySelector('h4')?.textContent?.trim() ||
-                firstSection.querySelector('h5')?.textContent?.trim() ||
-                firstSection.querySelector('h6')?.textContent?.trim() ||
-                'Überblick';
+                    firstSection.querySelector('h2')?.textContent?.trim() ||
+                    firstSection.querySelector('h3')?.textContent?.trim() ||
+                    firstSection.querySelector('h4')?.textContent?.trim() ||
+                    firstSection.querySelector('h5')?.textContent?.trim() ||
+                    firstSection.querySelector('h6')?.textContent?.trim() ||
+                    'Überblick';
 
-        updateBreadcrumb(title);
-        LOG.debug(MODULE, `Initial breadcrumb set to: ${title}`);
+                updateBreadcrumb(title);
+                LOG.debug(MODULE, `Initial breadcrumb set to: ${title}`);
             }
         } else {
             LOG.warn(MODULE, 'Breadcrumb element (#breadcrumb-current) not found');
@@ -275,15 +290,15 @@
             const section = document.querySelector(`main [data-section="${sectionId}"]`);
             if (section) {
                 const title = section.dataset.title?.trim() ||
-                section.querySelector('h2')?.textContent?.trim() ||
-                section.querySelector('h3')?.textContent?.trim() ||
-                section.querySelector('h4')?.textContent?.trim() ||
-                section.querySelector('h5')?.textContent?.trim() ||
-                section.querySelector('h6')?.textContent?.trim() ||
-                'Unbenannt';
+                    section.querySelector('h2')?.textContent?.trim() ||
+                    section.querySelector('h3')?.textContent?.trim() ||
+                    section.querySelector('h4')?.textContent?.trim() ||
+                    section.querySelector('h5')?.textContent?.trim() ||
+                    section.querySelector('h6')?.textContent?.trim() ||
+                    'Unbenannt';
 
-        LOG.debug(MODULE, `Breadcrumb title: "${title}" for section: ${sectionId}`);
-        updateBreadcrumb(title);
+                LOG.debug(MODULE, `Breadcrumb title: "${title}" for section: ${sectionId}`);
+                updateBreadcrumb(title);
             } else {
                 LOG.warn(MODULE, `Section not found: ${sectionId}`);
             }
@@ -314,10 +329,10 @@
 
     window.Navigation = {
         init: initNavigation,
- updateActiveNavItem: updateActiveNavItem,
- updateBreadcrumb: updateBreadcrumb,
- toggleMenu: toggleMenu,
- closeMenu: closeMenu
+        updateActiveNavItem: updateActiveNavItem,
+        updateBreadcrumb: updateBreadcrumb,
+        toggleMenu: toggleMenu,
+        closeMenu: closeMenu
     };
 
     LOG(MODULE, 'Navigation module loaded');

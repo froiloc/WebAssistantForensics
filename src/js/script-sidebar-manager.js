@@ -53,11 +53,21 @@
 
         container.classList.add('open');
 
-        STATE.activeSidebarTab = sidebarName;
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('ui.activeSidebarTab', sidebarName);
 
-        // ✅ NEU: Füge zu sidebarsOpen hinzu, wenn nicht vorhanden
-        if (!STATE.sidebarsOpen.includes(sidebarName)) {
-            STATE.sidebarsOpen.push(sidebarName);
+            // Sidebar zur Liste hinzufügen, wenn nicht vorhanden
+            const currentOpen = window.StateManager.get('ui.sidebarsOpen') || [];
+            if (!currentOpen.includes(sidebarName)) {
+                currentOpen.push(sidebarName);
+                window.StateManager.set('ui.sidebarsOpen', currentOpen);
+            }
+        } else {
+            STATE.activeSidebarTab = sidebarName;
+            if (!STATE.sidebarsOpen.includes(sidebarName)) {
+                STATE.sidebarsOpen.push(sidebarName);
+            }
         }
 
         saveSidebarPreferences();
@@ -83,19 +93,36 @@
             sidebar.classList.remove('closing');
         }, 300); // Nach Animation verstecken
 
-        STATE.sidebarsOpen = STATE.sidebarsOpen.filter(s => s !== sidebarName);
+        // StateManager verwenden
+        let sidebarsOpen;
+        if (window.StateManager) {
+            sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
+            sidebarsOpen = sidebarsOpen.filter(s => s !== sidebarName);
+            window.StateManager.set('ui.sidebarsOpen', sidebarsOpen);
+        } else {
+            STATE.sidebarsOpen = STATE.sidebarsOpen.filter(s => s !== sidebarName);
+            sidebarsOpen = STATE.sidebarsOpen;
+        }
 
-        if (STATE.sidebarsOpen.length === 0) {
+        if (sidebarsOpen.length === 0) {
             container.classList.remove('open');
-            STATE.activeSidebarTab = null;
+            if (window.StateManager) {
+                window.StateManager.set('ui.activeSidebarTab', null);
+            } else {
+                STATE.activeSidebarTab = null;
+            }
             LOG(MODULE, 'All sidebars closed, container hidden');
         } else {
-            const firstRemaining = STATE.sidebarsOpen[0];
+            const firstRemaining = sidebarsOpen[0];
             const firstSidebar = document.getElementById(`sidebar-${firstRemaining}`);
             if (firstSidebar) {
                 firstSidebar.classList.add('active');
-                firstSidebar.style.display = 'flex'; // ✅ Zeige verbleibende Sidebar
-                STATE.activeSidebarTab = firstRemaining;
+                firstSidebar.style.display = 'flex';
+                if (window.StateManager) {
+                    window.StateManager.set('ui.activeSidebarTab', firstRemaining);
+                } else {
+                    STATE.activeSidebarTab = firstRemaining;
+                }
                 LOG(MODULE, `Auto-activated remaining sidebar: ${firstRemaining}`);
             }
         }
@@ -118,8 +145,15 @@
         }
 
         deactivateAllSidebars();
-        STATE.sidebarsOpen = [];
-        STATE.activeSidebarTab = null;
+
+        if (window.StateManager) {
+            window.StateManager.set('ui.sidebarsOpen', []);
+            window.StateManager.set('ui.activeSidebarTab', null);
+        } else {
+            STATE.sidebarsOpen = [];
+            STATE.activeSidebarTab = null;
+        }
+
         saveSidebarPreferences();
 
         LOG.success(MODULE, 'Sidebar container closed');
@@ -134,7 +168,10 @@
         if (!sidebar) return;
 
         const isActive = sidebar.classList.contains('active');
-        const isInContainer = STATE.sidebarsOpen.includes(sidebarName);
+        const sidebarsOpen = window.StateManager
+            ? window.StateManager.get('ui.sidebarsOpen') || []
+            : STATE.sidebarsOpen;
+        const isInContainer = sidebarsOpen.includes(sidebarName);
 
         if (isActive) {
             LOG(MODULE, `Shortcut toggle: Deactivating ${sidebarName}`);
@@ -149,19 +186,26 @@
     }
 
     function activateNextSidebar() {
-        // ✅ KORRIGIERT: Detailliertes Logging VOR der Prüfung
-        LOG.debug(MODULE, `🔍 activateNextSidebar called:`);
-        LOG.debug(MODULE, `  - sidebarsOpen: [${STATE.sidebarsOpen.join(', ')}] (length: ${STATE.sidebarsOpen.length})`);
-        LOG.debug(MODULE, `  - activeSidebarTab: ${STATE.activeSidebarTab}`);
+        // StateManager für Lesezugriffe verwenden
+        const sidebarsOpen = window.StateManager
+            ? window.StateManager.get('ui.sidebarsOpen') || []
+            : STATE.sidebarsOpen;
+        const activeSidebarTab = window.StateManager
+            ? window.StateManager.get('ui.activeSidebarTab')
+            : STATE.activeSidebarTab;
 
-        if (STATE.sidebarsOpen.length <= 1) {
-            LOG.debug(MODULE, `❌ Cannot switch: only ${STATE.sidebarsOpen.length} sidebar(s) open`);
+        LOG.debug(MODULE, `🔍 activateNextSidebar called:`);
+        LOG.debug(MODULE, `  - sidebarsOpen: [${sidebarsOpen.join(', ')}] (length: ${sidebarsOpen.length})`);
+        LOG.debug(MODULE, `  - activeSidebarTab: ${activeSidebarTab}`);
+
+        if (sidebarsOpen.length <= 1) {
+            LOG.debug(MODULE, `❌ Cannot switch: only ${sidebarsOpen.length} sidebar(s) open`);
             return;
         }
 
-        const currentIndex = STATE.sidebarsOpen.indexOf(STATE.activeSidebarTab);
-        const nextIndex = (currentIndex + 1) % STATE.sidebarsOpen.length;
-        const nextSidebar = STATE.sidebarsOpen[nextIndex];
+        const currentIndex = sidebarsOpen.indexOf(activeSidebarTab);
+        const nextIndex = (currentIndex + 1) % sidebarsOpen.length;
+        const nextSidebar = sidebarsOpen[nextIndex];
 
         activateSidebar(nextSidebar);
         LOG(MODULE, `✓ Switched to next sidebar: ${nextSidebar}`);
@@ -209,11 +253,15 @@
             return;
         }
 
-        // In den StateManager schreiben
-        window.StateManager.set('preferences.sidebarsOpen', STATE.sidebarsOpen);
-        window.StateManager.set('preferences.activeSidebarTab', STATE.activeSidebarTab);
+        // Werte aus ui-State lesen und in preferences speichern
+        const sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
+        const activeSidebarTab = window.StateManager.get('ui.activeSidebarTab');
 
-        LOG.debug(MODULE, `🔍 Saved preferences: open=[${STATE.sidebarsOpen}], active=${STATE.activeSidebarTab}`);
+        // In den StateManager schreiben
+        window.StateManager.set('preferences.sidebarsOpen', sidebarsOpen);
+        window.StateManager.set('preferences.activeSidebarTab', activeSidebarTab);
+
+        LOG.debug(MODULE, `🔍 Saved preferences: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
     }
 
     function loadSidebarStates() {
@@ -221,27 +269,37 @@
 
         // Preferences aus StateManager holen (oder Fallback auf STATE)
         const sidebarsOpen = window.StateManager
-        ? window.StateManager.get('preferences.sidebarsOpen')
-        : (STATE.preferences?.sidebarsOpen || []);
+            ? window.StateManager.get('preferences.sidebarsOpen')
+            : (STATE.preferences?.sidebarsOpen || []);
 
         const activeSidebarTab = window.StateManager
-        ? window.StateManager.get('preferences.activeSidebarTab')
-        : (STATE.preferences?.activeSidebarTab || null);
+            ? window.StateManager.get('preferences.activeSidebarTab')
+            : (STATE.preferences?.activeSidebarTab || null);
 
         LOG.debug(MODULE, `Loading: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
 
         if (window.innerWidth > 1024) {
-            // Schritt 1: Alle Sidebars in STATE.sidebarsOpen registrieren
-            // WICHTIG: Initialisieren falls undefined
-            if (!STATE.sidebarsOpen) {
-                STATE.sidebarsOpen = [];
-            }
+            // Schritt 1: Alle Sidebars in ui.sidebarsOpen registrieren
+            if (window.StateManager) {
+                const currentOpen = window.StateManager.get('ui.sidebarsOpen') || [];
 
-            sidebarsOpen.forEach(sidebarName => {
-                if (!STATE.sidebarsOpen.includes(sidebarName)) {
-                    STATE.sidebarsOpen.push(sidebarName);
+                sidebarsOpen.forEach(sidebarName => {
+                    if (!currentOpen.includes(sidebarName)) {
+                        currentOpen.push(sidebarName);
+                    }
+                });
+
+                window.StateManager.set('ui.sidebarsOpen', currentOpen);
+            } else {
+                if (!STATE.sidebarsOpen) {
+                    STATE.sidebarsOpen = [];
                 }
-            });
+                sidebarsOpen.forEach(sidebarName => {
+                    if (!STATE.sidebarsOpen.includes(sidebarName)) {
+                        STATE.sidebarsOpen.push(sidebarName);
+                    }
+                });
+            }
 
             // Schritt 2: Nur die aktive Sidebar aktivieren (mit deactivateAllSidebars)
             if (activeSidebarTab && sidebarsOpen.includes(activeSidebarTab)) {
@@ -251,7 +309,11 @@
 
             // Schritt 3: Container öffnen
             const container = document.getElementById('sidebar-container');
-            if (STATE.sidebarsOpen.length > 0) {
+            const currentSidebarsOpen = window.StateManager
+                ? window.StateManager.get('ui.sidebarsOpen') || []
+                : (STATE.sidebarsOpen || []);
+
+            if (currentSidebarsOpen.length > 0) {
                 container.classList.add('open');
             }
         }
