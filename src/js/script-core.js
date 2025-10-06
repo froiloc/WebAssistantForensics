@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-CORE.JS - Version 040
+// SCRIPT-CORE.JS - Version 059
 // Basis-Funktionen, globale Variablen und Logging-System
 // ============================================================================
 
@@ -8,8 +8,8 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '053',
-    buildDate: '2025-10-04', // 4. Oktober 2025
+    version: '059',
+    buildDate: '2025-10-06', // 4. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };
 
@@ -219,15 +219,19 @@ window.LOG.groupEnd = function() {
 
 // ============================================================================
 // GLOBALE VARIABLEN - Shared State
+// WIRD VOM STATE MANAGER GEPROXIED - Struktur muss kompatibel sein!
 // ============================================================================
 
 window.APP_STATE = {
+    // Section Management (direkt auf Root für Kompatibilität)
     currentActiveSection: 'intro',
     allSections: [],
     lastNavigationTime: 0,
     lastNavigatedSection: null,
     lastSectionChangeTime: 0,
     lastChangedToSection: null,
+
+    // Scroll State (direkt auf Root für Kompatibilität)
     lastScrollY: 0,
     lastDirection: 'down',
     userIsScrolling: false,
@@ -237,8 +241,12 @@ window.APP_STATE = {
     lastScrollIntentionTime: 0,
     focusObserver: null,
     scrollCallCounter: 0,
+
+    // UI State (direkt auf Root für Legacy-Kompatibilität)
     sidebarsOpen: [],  // Array: ['navigation', 'history']
     activeSidebarTab: null,  // 'navigation' | 'history' | 'favorites'
+
+    // Preferences (verschachtelt - wird vom StateManager verwaltet)
     preferences: {
         detailLevel: 'bestpractice',
         timeFormat: 'relative',
@@ -247,6 +255,8 @@ window.APP_STATE = {
         sidebarsOpen: ['navigation'],  // Default: Navigation offen
         activeSidebarTab: 'navigation'
     },
+
+    // History & Notes (direkt auf Root für Kompatibilität)
     history: [],
     notesContent: '',
     notesSaveTimer: null
@@ -351,7 +361,10 @@ window.showSaveIndicator = function(message = 'Gespeichert!', duration = 2000) {
 
 function setTheme(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);
-    localStorage.setItem('theme-preference', themeName);
+    // State Manager übernimmt Persistierung
+    if (window.StateManager) {
+        window.StateManager.set('preferences.theme', themeName);
+    }
     updateMetaThemeColor(themeName);
 }
 
@@ -380,9 +393,19 @@ function updateMetaThemeColor(theme) {
 
 // FOUC (Flash of Unstyled Content) vermeiden
 (function() {
-    const saved = localStorage.getItem('theme-preference');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (prefersDark ? 'dark' : 'light');
+    // Temporäre Lösung bis StateManager geladen ist
+    const saved = localStorage.getItem('userPreferences');
+    let theme = 'light';
+    if (saved) {
+        try {
+            const prefs = JSON.parse(saved);
+            theme = prefs.theme || 'light';
+        } catch(e) {}
+    }
+    if (!saved) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+    }
     document.documentElement.setAttribute('data-theme', theme);
 })();
 

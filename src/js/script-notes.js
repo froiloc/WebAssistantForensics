@@ -1,6 +1,6 @@
 // ============================================================================
-// SCRIPT-NOTES.JS - Version 040 (body.notes-open korrigiert)
-// Notizen-Feature: Persistente Notizen mit Auto-Save
+// SCRIPT-NOTES.JS - Version 058 (StateManager Migration)
+// Notizen-Feature: Persistente Notizen mit Auto-Save und StateManager
 // ============================================================================
 
 (function() {
@@ -15,11 +15,16 @@
     // ========================================================================
 
     function autoSaveNotes() {
-        if (STATE.notesSaveTimer) {
-            clearTimeout(STATE.notesSaveTimer);
+        // Timer aus StateManager holen (oder Fallback)
+        const saveTimer = window.StateManager
+        ? window.StateManager.get('notes.saveTimer')
+        : STATE.notesSaveTimer;
+
+        if (saveTimer) {
+            clearTimeout(saveTimer);
         }
 
-        STATE.notesSaveTimer = setTimeout(() => {
+        const newTimer = setTimeout(() => {
             const textarea = document.getElementById('notes-textarea');
             if (textarea) {
                 saveNotesToStorage(textarea.value);
@@ -27,55 +32,83 @@
                 LOG.debug(MODULE, 'Auto-saved notes');
             }
         }, CONST.NOTES_AUTOSAVE_DELAY);
+
+        // Timer in StateManager speichern (oder Fallback)
+        if (window.StateManager) {
+            window.StateManager.set('notes.saveTimer', newTimer);
+        } else {
+            STATE.notesSaveTimer = newTimer;
+        }
     }
 
     function saveNotesToStorage(content) {
-        STATE.notesContent = content;
-
-        try {
-            localStorage.setItem(CONST.STORAGE_KEYS.NOTES, content);
-            LOG.debug(MODULE, `Saved ${content.length} characters to storage`);
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to save notes', e);
+        // In StateManager speichern (oder Legacy-Fallback)
+        if (window.StateManager) {
+            window.StateManager.set('notes.content', content);
+            window.StateManager.set('notes.lastSaved', Date.now());
+            LOG.debug(MODULE, `Saved ${content.length} characters via StateManager`);
+        } else {
+            // Legacy-Fallback
+            STATE.notesContent = content;
+            try {
+                localStorage.setItem(CONST.STORAGE_KEYS.NOTES, content);
+                LOG.debug(MODULE, `Saved ${content.length} characters to storage (legacy)`);
+            } catch (e) {
+                LOG.error(MODULE, 'Failed to save notes', e);
+            }
         }
     }
 
     function loadNotesFromStorage() {
-        try {
-            const stored = localStorage.getItem(CONST.STORAGE_KEYS.NOTES);
-            if (stored) {
-                STATE.notesContent = stored;
-                LOG.success(MODULE, `Loaded ${stored.length} characters from storage`);
+        LOG(MODULE, 'Loading notes...');
 
-                const textarea = document.getElementById('notes-textarea');
-                if (textarea) {
-                    textarea.value = stored;
-                }
-            } else {
-                LOG.debug(MODULE, 'No stored notes found');
+        // Aus StateManager laden (oder Legacy-Fallback)
+        const stored = window.StateManager
+        ? window.StateManager.get('notes.content')
+        : localStorage.getItem(CONST.STORAGE_KEYS.NOTES);
+
+        if (stored) {
+            if (!window.StateManager) {
+                // Nur bei Legacy direkt in STATE schreiben
+                STATE.notesContent = stored;
             }
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to load notes', e);
+
+            LOG.success(MODULE, `Loaded ${stored.length} characters`);
+
+            const textarea = document.getElementById('notes-textarea');
+            if (textarea) {
+                textarea.value = stored;
+            }
+        } else {
+            LOG.debug(MODULE, 'No stored notes found');
         }
     }
 
     function clearNotes() {
-        if (confirm('Notizen wirklich löschen?')) {
-            STATE.notesContent = '';
-
-            const textarea = document.getElementById('notes-textarea');
-            if (textarea) {
-                textarea.value = '';
-            }
-
-            saveNotesToStorage('');
-            window.showSaveIndicator('Notizen gelöscht');
-            LOG(MODULE, 'Notes cleared');
+        if (!confirm('Notizen wirklich löschen?')) {
+            return;
         }
+
+        const textarea = document.getElementById('notes-textarea');
+        if (textarea) {
+            textarea.value = '';
+        }
+
+        // Über StateManager löschen (oder Legacy)
+        if (window.StateManager) {
+            window.StateManager.set('notes.content', '');
+            window.StateManager.set('notes.lastSaved', Date.now());
+        } else {
+            STATE.notesContent = '';
+            saveNotesToStorage('');
+        }
+
+        LOG(MODULE, 'Notes cleared');
+        window.showSaveIndicator('Notizen gelöscht');
     }
 
     // ========================================================================
-    // UI - PANEL
+    // NOTES SIDEBAR
     // ========================================================================
 
     function initNotesFeature() {
@@ -83,7 +116,7 @@
 
         const toggleBtn = document.getElementById('notes-toggle');
         const sidebar = document.getElementById('notes-sidebar');
-        const clearBtn = document.getElementById('clear-notes');
+        const clearBtn = document.getElementById('clear-notes-btn');
         const textarea = document.getElementById('notes-textarea');
 
         LOG.debug(MODULE, 'Notes elements:', {
@@ -93,56 +126,129 @@
             textarea: !!textarea
         });
 
+        // Load saved notes
+        loadNotesFromStorage();
+
+        // Toggle-Button
         if (toggleBtn) {
-            toggleBtn.addEventListener('click', toggleNotes);
+            toggleBtn.addEventListener('click', toggleNotesSidebar);
         }
 
+        // Clear-Button
         if (clearBtn) {
             clearBtn.addEventListener('click', clearNotes);
         }
 
+        // Auto-Save bei Eingabe
         if (textarea) {
-            textarea.addEventListener('input', autoSaveNotes);
-            loadNotesFromStorage();
+            // Preferences aus StateManager holen
+            const autoSave = window.StateManager
+            ? window.StateManager.get('preferences.autoSaveNotes')
+            : STATE.preferences.autoSaveNotes;
+
+            if (autoSave) {
+                textarea.addEventListener('input', autoSaveNotes);
+                LOG.debug(MODULE, 'Auto-save enabled');
+            }
         }
 
         LOG.success(MODULE, 'Notes feature initialized');
     }
 
-    function toggleNotes(forceState) {
+    function toggleNotesSidebar() {
         const sidebar = document.getElementById('notes-sidebar');
-        const toggleBtn = document.getElementById('notes-toggle');
+        if (!sidebar) return;
 
-        if (sidebar) {
-            if (typeof forceState === 'boolean') {
-                // Force specific state
-                if (forceState) {
-                    sidebar.style.right = '0';
-                    document.body.classList.add('notes-open');
-                } else {
-                    sidebar.style.right = '-370px';
-                    document.body.classList.remove('notes-open');
-                }
+        const isOpen = sidebar.classList.contains('open');
+
+        if (isOpen) {
+            sidebar.classList.remove('open');
+            document.body.classList.remove('notes-open');
+
+            // Status in StateManager speichern (oder Fallback)
+            if (window.StateManager) {
+                window.StateManager.set('ui.notesOpen', false);
             } else {
-                // Toggle
-                const isOpen = document.body.classList.contains('notes-open');
-
-                if (isOpen) {
-                    sidebar.style.right = '-370px';
-                    document.body.classList.remove('notes-open');
-                    LOG(MODULE, 'Notes panel closed');
-                } else {
-                    sidebar.style.right = '0';
-                    document.body.classList.add('notes-open');
-                    LOG(MODULE, 'Notes panel opened');
-                }
+                STATE.notesOpen = false;
             }
 
-            if (toggleBtn) {
-                const isOpen = document.body.classList.contains('notes-open');
-                toggleBtn.setAttribute('aria-expanded', isOpen);
+            LOG(MODULE, 'Notes sidebar closed');
+        } else {
+            sidebar.classList.add('open');
+            document.body.classList.add('notes-open');
+
+            // Status in StateManager speichern (oder Fallback)
+            if (window.StateManager) {
+                window.StateManager.set('ui.notesOpen', true);
+            } else {
+                STATE.notesOpen = true;
+            }
+
+            LOG(MODULE, 'Notes sidebar opened');
+
+            // Fokus auf Textarea
+            const textarea = document.getElementById('notes-textarea');
+            if (textarea) {
+                textarea.focus();
             }
         }
+    }
+
+    // ========================================================================
+    // EXPORT / IMPORT
+    // ========================================================================
+
+    function exportNotes() {
+        // Notizen aus StateManager holen
+        const content = window.StateManager
+        ? window.StateManager.get('notes.content')
+        : STATE.notesContent;
+
+        if (!content || content.trim() === '') {
+            alert('Keine Notizen zum Exportieren vorhanden');
+            return;
+        }
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `axiom-notizen-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        LOG(MODULE, 'Notes exported');
+    }
+
+    function importNotes() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.txt';
+
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+
+                const textarea = document.getElementById('notes-textarea');
+                if (textarea) {
+                    textarea.value = content;
+                }
+
+                saveNotesToStorage(content);
+                LOG(MODULE, 'Notes imported');
+                window.showSaveIndicator('Notizen importiert');
+            };
+
+            reader.readAsText(file);
+        });
+
+        input.click();
     }
 
     // ========================================================================
@@ -163,10 +269,11 @@
 
     window.Notes = {
         init: initNotes,
- toggle: toggleNotes,
- clear: clearNotes,
- save: saveNotesToStorage,
- load: loadNotesFromStorage
+        toggle: toggleNotesSidebar,
+        clear: clearNotes,
+        export: exportNotes,
+        import: importNotes,
+        save: saveNotesToStorage
     };
 
     LOG(MODULE, 'Notes module loaded');

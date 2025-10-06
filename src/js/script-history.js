@@ -1,6 +1,6 @@
 // ============================================================================
-// SCRIPT-HISTORY.JS - Version 040
-// Section-History: Tracking und Anzeige besuchter Sections
+// SCRIPT-HISTORY.JS - Version 058 (StateManager Migration)
+// Section-History Tracking mit StateManager-Integration
 // ============================================================================
 
 (function() {
@@ -14,32 +14,40 @@
     // HISTORY MANAGEMENT
     // ========================================================================
 
-    function addToHistory(sectionId, sectionTitle) {
+    function addToHistory(sectionId) {
         const timestamp = Date.now();
 
+        // History aus StateManager holen (oder Fallback)
+        const history = window.StateManager
+        ? window.StateManager.get('history.entries')
+        : STATE.history;
+
         const entry = {
-            id: sectionId,
-            title: sectionTitle,
-            timestamp: timestamp
+            sectionId: sectionId,
+ timestamp: timestamp
         };
 
-        if (STATE.history.length > 0) {
-            const lastEntry = STATE.history[STATE.history.length - 1];
-            if (lastEntry.id === sectionId) {
-                LOG.debug(MODULE, 'Skipping duplicate entry');
-                return;
-            }
+        history.push(entry);
+
+        // Max-Length einhalten
+        const maxLength = window.StateManager
+        ? window.StateManager.get('history.maxLength')
+        : 50;
+
+        if (history.length > maxLength) {
+            history.shift();
         }
 
-        STATE.history.push(entry);
-        LOG(MODULE, `Added: ${sectionId}`);
-
-        if (STATE.history.length > 50) {
-            STATE.history.shift();
-            LOG.debug(MODULE, 'History trimmed to 50 entries');
+        // Zurück in StateManager schreiben (oder Fallback)
+        if (window.StateManager) {
+            window.StateManager.set('history.entries', history);
+        } else {
+            STATE.history = history;
+            saveHistoryToStorage();
         }
 
-        saveHistoryToStorage();
+        LOG.debug(MODULE, `Added to history: ${sectionId} (${history.length} entries)`);
+
         updateHistoryDisplay();
     }
 
@@ -48,40 +56,67 @@
             return;
         }
 
-        STATE.history = [];
-        saveHistoryToStorage();
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('history.entries', []);
+        } else {
+            STATE.history = [];
+            saveHistoryToStorage();
+        }
+
         updateHistoryDisplay();
         LOG(MODULE, 'History cleared');
     }
 
     // ========================================================================
-    // STORAGE
+    // STORAGE (Legacy-Fallback für Nicht-StateManager-Umgebungen)
     // ========================================================================
 
     function saveHistoryToStorage() {
+        // Nur noch Fallback - StateManager übernimmt normalerweise
+        if (window.StateManager) {
+            LOG.debug(MODULE, 'StateManager handles saving automatically');
+            return;
+        }
+
         try {
             localStorage.setItem(
                 CONST.STORAGE_KEYS.HISTORY,
                 JSON.stringify(STATE.history)
             );
-            LOG.debug(MODULE, `Saved ${STATE.history.length} entries to storage`);
+            LOG.debug(MODULE, `Saved ${STATE.history.length} entries to storage (legacy)`);
         } catch (e) {
             LOG.error(MODULE, 'Failed to save to localStorage', e);
         }
     }
 
     function loadHistoryFromStorage() {
-        try {
-            const stored = localStorage.getItem(CONST.STORAGE_KEYS.HISTORY);
-            if (stored) {
-                STATE.history = JSON.parse(stored);
-                LOG.success(MODULE, `Loaded ${STATE.history.length} entries from storage`);
-            } else {
-                LOG.debug(MODULE, 'No stored history found');
+        LOG(MODULE, 'Loading history...');
+
+        // Aus StateManager laden (oder Legacy-Fallback)
+        const stored = window.StateManager
+        ? window.StateManager.get('history.entries')
+        : (function() {
+            try {
+                const s = localStorage.getItem(CONST.STORAGE_KEYS.HISTORY);
+                return s ? JSON.parse(s) : null;
+            } catch (e) {
+                LOG.error(MODULE, 'Failed to load from localStorage', e);
+                return null;
             }
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to load from localStorage', e);
-            STATE.history = [];
+        })();
+
+        if (stored && Array.isArray(stored)) {
+            if (!window.StateManager) {
+                // Nur bei Fallback direkt in STATE schreiben
+                STATE.history = stored;
+            }
+            LOG.success(MODULE, `Loaded ${stored.length} entries`);
+        } else {
+            LOG.debug(MODULE, 'No stored history found');
+            if (!window.StateManager) {
+                STATE.history = [];
+            }
         }
     }
 
@@ -124,100 +159,117 @@
     }
 
     function toggleTimeFormat() {
-        STATE.preferences.timeFormat = STATE.preferences.timeFormat === 'relative'
-        ? 'absolute'
-        : 'relative';
+        // Preferences aus StateManager holen
+        const currentFormat = window.StateManager
+        ? window.StateManager.get('preferences.timeFormat')
+        : STATE.preferences.timeFormat;
 
-        LOG(MODULE, `Time format switched to: ${STATE.preferences.timeFormat}`);
+        const newFormat = currentFormat === 'relative' ? 'absolute' : 'relative';
 
-        // Button-Text aktualisieren
-        const btn = document.getElementById('time-format-toggle');
-        if (btn) {
-            btn.innerHTML = STATE.preferences.timeFormat === 'relative'
-            ? '🕐 Zeit: Relativ'
-            : '📅 Zeit: Absolut';
+        // In StateManager speichern (oder Fallback)
+        if (window.StateManager) {
+            window.StateManager.set('preferences.timeFormat', newFormat);
+        } else {
+            STATE.preferences.timeFormat = newFormat;
+            if (window.Preferences) {
+                window.Preferences.save();
+            }
         }
 
         updateHistoryDisplay();
 
-        if (window.Preferences) {
-            window.Preferences.save();
-        }
+        LOG(MODULE, `Time format toggled: ${currentFormat} → ${newFormat}`);
     }
 
     function updateHistoryDisplay() {
-        const container = document.getElementById('history-list');
-        const emptyMsg = document.getElementById('history-empty');
-
-        if (!container) {
-            LOG.warn(MODULE, 'History list container not found');
+        const historyList = document.getElementById('history-list');
+        if (!historyList) {
+            LOG.warn(MODULE, 'History list element not found');
             return;
         }
 
-        container.innerHTML = '';
+        // History aus StateManager holen
+        const history = window.StateManager
+        ? window.StateManager.get('history.entries')
+        : STATE.history;
 
-        if (STATE.history.length === 0) {
-            if (container) container.style.display = 'none';
-            if (emptyMsg) emptyMsg.style.display = 'block';
+        const timeFormat = window.StateManager
+        ? window.StateManager.get('preferences.timeFormat')
+        : STATE.preferences.timeFormat;
+
+        if (!history || history.length === 0) {
+            historyList.innerHTML = '<li class="history-empty">Noch kein Verlauf vorhanden</li>';
             return;
         }
 
-        if (container) container.style.display = 'block';
-        if (emptyMsg) emptyMsg.style.display = 'none';
+        const reversed = [...history].reverse();
 
-        const reversedHistory = [...STATE.history].reverse();
-
-        reversedHistory.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-
-            const timeStr = STATE.preferences.timeFormat === 'relative'
+        historyList.innerHTML = reversed.map(entry => {
+            const timeStr = timeFormat === 'relative'
             ? window.getRelativeTime(entry.timestamp)
             : window.getAbsoluteTime(entry.timestamp);
 
-            item.innerHTML = `
-            <div class="history-item-title">${entry.title}</div>
-            <div class="history-item-time">${timeStr}</div>
+            const sectionTitle = getSectionTitle(entry.sectionId);
+
+            return `
+            <li class="history-item" data-section="${entry.sectionId}">
+            <button class="history-link" data-section="${entry.sectionId}">
+            <span class="history-title">${sectionTitle}</span>
+            <span class="history-time">${timeStr}</span>
+            </button>
+            </li>
             `;
+        }).join('');
 
-            item.addEventListener('click', () => {
+        // Event-Listener für History-Items
+        historyList.querySelectorAll('.history-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const sectionId = link.dataset.section;
                 if (window.SectionManagement) {
-                    window.SectionManagement.scrollToSection(entry.id);
-
-                    LOG(MODULE, `Navigating to: ${entry.id}`);
+                    window.SectionManagement.scrollToSection(sectionId);
                 }
             });
-
-            container.appendChild(item);
         });
 
-        LOG.debug(MODULE, `Display updated with ${STATE.history.length} entries`);
+        LOG.debug(MODULE, `History display updated (${history.length} entries, ${timeFormat} format)`);
+    }
+
+    function getSectionTitle(sectionId) {
+        const section = document.querySelector(`[data-section="${sectionId}"]`);
+        if (!section) return sectionId;
+
+        const heading = section.querySelector('h2, h3');
+        return heading ? heading.textContent : sectionId;
     }
 
     // ========================================================================
     // EVENT LISTENERS
     // ========================================================================
 
-    function initHistoryListeners() {
+    function initEventListeners() {
         LOG(MODULE, 'Initializing event listeners...');
 
+        // Section-Wechsel tracken
         window.addEventListener('sectionActivated', (e) => {
-            const { sectionId } = e.detail;
+            const sectionId = e.detail.sectionId;
 
-            // KRITISCH: main-Scope verwenden!
-            const section = document.querySelector(`main [data-section="${sectionId}"]`);
-            if (section) {
-                const title = section.dataset.title ||
-                    section.querySelector('h2')?.textContent?.trim() ||
-                    section.querySelector('h3')?.textContent?.trim() ||
-                    section.querySelector('h4')?.textContent?.trim() ||
-                    section.querySelector('h5')?.textContent?.trim() ||
-                    section.querySelector('h6')?.textContent?.trim() ||
-                    'Unbenannt';
+            // History aus StateManager holen
+            const history = window.StateManager
+            ? window.StateManager.get('history.entries')
+            : STATE.history;
 
-                LOG.debug(MODULE, `Section title extracted: "${title}" for ${sectionId}`);
-                addToHistory(sectionId, title);
+            // Nicht hinzufügen wenn es die gleiche Section wie zuletzt ist
+            if (history.length > 0 && history[history.length - 1].sectionId === sectionId) {
+                LOG.debug(MODULE, `Skipping duplicate entry: ${sectionId}`);
+                return;
             }
+
+            addToHistory(sectionId);
+        });
+
+        // Time-Format-Präferenz ändern → Display aktualisieren
+        window.addEventListener('preferencesLoaded', () => {
+            updateHistoryDisplay();
         });
 
         LOG.success(MODULE, 'Event listeners initialized');
@@ -232,7 +284,7 @@
 
         loadHistoryFromStorage();
         initHistorySidebar();
-        initHistoryListeners();
+        initEventListeners();
         updateHistoryDisplay();
 
         LOG.success(MODULE, 'History module initialized');
@@ -245,7 +297,8 @@
     window.History = {
         init: initHistory,
         add: addToHistory,
-        clear: clearHistory
+        clear: clearHistory,
+        updateDisplay: updateHistoryDisplay
     };
 
     LOG(MODULE, 'History module loaded');

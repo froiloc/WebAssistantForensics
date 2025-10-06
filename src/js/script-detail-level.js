@@ -48,8 +48,11 @@
         updateInfoText(normalizedLevel);
         updateActiveButton(normalizedLevel);
 
-        if (window.Preferences) {
-            window.Preferences.save();
+        if (window.StateManager) {
+            window.StateManager.set('preferences.detailLevel', level);
+        } else {
+            STATE.preferences.detailLevel = level;
+            window.Preferences?.save();
         }
     }
 

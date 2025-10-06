@@ -17,64 +17,71 @@
     document.addEventListener('DOMContentLoaded', () => {
         LOG(MODULE, 'DOM ready, initializing modules...');
 
+        // 0. StateManager initialisieren (VOR allem anderen!)
+        if (!window.StateManager) {
+            LOG.error(MODULE, '❌ StateManager module not available! Check script loading order.');
+        } else {
+            LOG.success(MODULE, '✅ StateManager is ready');
+        }
+
         // 1. Preferences laden (als erstes)
         if (window.Preferences) {
             window.Preferences.init();
         } else {
-            LOG.error(MODULE, 'Preferences module not loaded!');
+            LOG.error(MODULE, '❌ Preferences module not loaded!');
         }
 
         // 2. Section Management (Kern-Funktionalität)
         if (window.SectionManagement) {
             window.SectionManagement.init();
         } else {
-            LOG.error(MODULE, 'SectionManagement module not loaded!');
+            LOG.error(MODULE, '❌ SectionManagement module not loaded!');
         }
 
         // 3. Sidebar Manager (VOR Navigation/History!)
         if (window.SidebarManager) {
             window.SidebarManager.init();
         } else {
-            LOG.error(MODULE, 'SidebarManager module not loaded!');
+            LOG.error(MODULE, '❌ SidebarManager module not loaded!');
         }
 
         // 4. Navigation (benötigt Section Management)
         if (window.Navigation) {
             window.Navigation.init();
         } else {
-            LOG.error(MODULE, 'Navigation module not loaded!');
+            LOG.error(MODULE, '❌ Navigation module not loaded!');
         }
 
         // 5. History
         if (window.History) {
             window.History.init();
         } else {
-            LOG.warn(MODULE, 'History module not loaded');
+            LOG.warn(MODULE, '❌ History module not loaded');
         }
 
         // 6. Notes
         if (window.Notes) {
             window.Notes.init();
         } else {
-            LOG.warn(MODULE, 'Notes module not loaded');
+            LOG.warn(MODULE, '❌ Notes module not loaded');
         }
 
         // 7. Detail Level
         if (window.DetailLevel) {
             window.DetailLevel.init();
         } else {
-            LOG.warn(MODULE, 'DetailLevel module not loaded');
+            LOG.warn(MODULE, '❌ DetailLevel module not loaded');
         }
 
         // 8. Tips
         if (window.Tips) {
             window.Tips.init();
         } else {
-            LOG.warn(MODULE, 'Tips module not loaded');
+            LOG.warn(MODULE, '❌ Tips module not loaded');
         }
 
-        LOG.separator(MODULE, 'INITIALIZATION COMPLETE');
-        LOG.success(MODULE, `✓ Application initialization complete! Build ${window.BUILD_INFO.version}`);
+        LOG.separator(MODULE, '✅ INITIALIZATION COMPLETE');
+        LOG.success(MODULE, `✅ Application initialization complete! Build ${window.BUILD_INFO.version}`);
 
         // Trigger Event für externe Listener
         window.dispatchEvent(new CustomEvent('appInitialized'));

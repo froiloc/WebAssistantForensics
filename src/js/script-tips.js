@@ -164,7 +164,6 @@
 
         if (footer) {
             footer.classList.remove('hidden');
-            STATE.preferences.showTips = true;
 
             document.documentElement.style.setProperty('--tips-footer-height', '80px');
 
@@ -177,8 +176,11 @@
 
             LOG(MODULE, 'Tips footer shown');
 
-            if (window.Preferences) {
-                window.Preferences.save();
+            if (window.StateManager) {
+                window.StateManager.set('preferences.showTips', true);
+            } else {
+                STATE.preferences.showTips = true;
+                window.Preferences?.save();
             }
         }
     }
@@ -189,7 +191,6 @@
 
         if (footer) {
             footer.classList.add('hidden');
-            STATE.preferences.showTips = false;
 
             document.documentElement.style.setProperty('--tips-footer-height', '0px');
 
@@ -201,8 +202,11 @@
 
             LOG(MODULE, 'Tips footer hidden');
 
-            if (window.Preferences) {
-                window.Preferences.save();
+            if (window.StateManager) {
+                window.StateManager.set('preferences.showTips', false);
+            } else {
+                STATE.preferences.showTips = false;
+                window.Preferences?.save();
             }
         }
     }

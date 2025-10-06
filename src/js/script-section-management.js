@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-SECTION-MANAGEMENT.JS - Version 039
+// SCRIPT-SECTION-MANAGEMENT.JS - Version 058 (StateManager Migration)
 // Section-Management: Scroll-basierte Section-Auswahl
 // ============================================================================
 
@@ -17,14 +17,25 @@
     function initSectionManagement() {
         LOG(MODULE, 'Initializing section management...');
 
+        // DOM-Elemente können NICHT im StateManager gespeichert werden
+        // Sie bleiben in STATE (nicht serialisierbar)
         STATE.allSections = Array.from(document.querySelectorAll('main > [data-section]'));
+
         LOG(MODULE, `Found ${STATE.allSections.length} sections:`,
             STATE.allSections.map(s => s.dataset.section));
 
         if (STATE.allSections.length > 0) {
-            STATE.currentActiveSection = STATE.allSections[0].dataset.section;
+            const initialSection = STATE.allSections[0].dataset.section;
+
+            // Nur den Section-Namen (String) im StateManager speichern
+            if (window.StateManager) {
+                window.StateManager.set('sections.currentActive', initialSection);
+            } else {
+                STATE.currentActiveSection = initialSection;
+            }
+
             STATE.allSections[0].classList.add('active');
-            LOG.success(MODULE, `Initial active section: ${STATE.currentActiveSection}`);
+            LOG.success(MODULE, `Initial active section: ${initialSection}`);
         }
 
         initScrollHandling();
@@ -88,10 +99,21 @@
             }, 200);
 
             if (!STATE.isProcessingScroll) {
-                STATE.isProcessingScroll = true;
+                // StateManager verwenden
+                if (window.StateManager) {
+                    window.StateManager.set('scroll.isProcessingScroll', true);
+                } else {
+                    STATE.isProcessingScroll = true;
+                }
+
                 updateActiveSectionFromScroll();
+
                 setTimeout(() => {
-                    STATE.isProcessingScroll = false;
+                    if (window.StateManager) {
+                        window.StateManager.set('scroll.isProcessingScroll', false);
+                    } else {
+                        STATE.isProcessingScroll = false;
+                    }
                 }, 50);
             }
         }, { passive: true });
@@ -128,17 +150,24 @@
     }
 
     function handleEndScroll(direction) {
-        const currentActiveIndex = STATE.allSections.findIndex(
-            s => s.dataset.section === STATE.currentActiveSection
+        // DOM-Elemente sind in STATE, nicht im StateManager
+        const allSections = STATE.allSections;
+
+        const currentActive = window.StateManager
+        ? window.StateManager.get('sections.currentActive')
+        : STATE.currentActiveSection;
+
+        const currentActiveIndex = allSections.findIndex(
+            s => s.dataset.section === currentActive
         );
 
-        if (direction === 'down' && currentActiveIndex < STATE.allSections.length - 1) {
-            const nextSection = STATE.allSections[currentActiveIndex + 1];
+        if (direction === 'down' && currentActiveIndex < allSections.length - 1) {
+            const nextSection = allSections[currentActiveIndex + 1];
             LOG(MODULE, `End-scroll DOWN: Activating next → ${nextSection.dataset.section}`);
             activateSection(nextSection.dataset.section);
 
         } else if (direction === 'up' && currentActiveIndex > 0) {
-            const prevSection = STATE.allSections[currentActiveIndex - 1];
+            const prevSection = allSections[currentActiveIndex - 1];
             LOG(MODULE, `End-scroll UP: Activating previous → ${prevSection.dataset.section}`);
             activateSection(prevSection.dataset.section);
         }
@@ -155,41 +184,40 @@
         const candidates = collectVisibleSections();
         const winner = determineWinner(candidates);
 
-        if (winner && winner.id !== STATE.currentActiveSection) {
+        if (winner && winner.id !== getCurrentActiveSection()) {
             const timestamp = Date.now();
             const timeSinceLastChange = timestamp - STATE.lastSectionChangeTime;
 
             if (timeSinceLastChange < CONST.SECTION_CHANGE_COOLDOWN) {
-                LOG.warn(MODULE, `Cooldown active: ${timeSinceLastChange}ms < ${CONST.SECTION_CHANGE_COOLDOWN}ms`);
+                LOG.debug(MODULE, `Cooldown active (${timeSinceLastChange}ms < ${CONST.SECTION_CHANGE_COOLDOWN}ms)`);
                 return;
             }
 
-            LOG(MODULE, `Section change: ${STATE.currentActiveSection} → ${winner.id}`);
+            LOG(MODULE, `Section change: ${getCurrentActiveSection()} → ${winner.id}`);
             activateSection(winner.id);
-
         } else if (winner) {
             LOG.debug(MODULE, `No change: Winner already active (${winner.id})`);
         } else {
-            LOG.warn(MODULE, 'No winner determined');
+            LOG.debug(MODULE, 'No winner determined');
         }
     }
 
     function collectVisibleSections() {
-        const visibleSections = [];
-        const viewportHeight = window.innerHeight;
         const scrollY = window.scrollY;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        const isAtBottom = scrollY + viewportHeight >= documentHeight - 5;
+        const viewportHeight = window.innerHeight;
+        const isAtBottom = scrollY + viewportHeight >= document.documentElement.scrollHeight - 5;
         const isAtTop = scrollY <= 5;
 
         LOG.debug(MODULE, `Collect: scrollY=${scrollY}, isAtBottom=${isAtBottom}, isAtTop=${isAtTop}`);
 
-        // REGEL 1 & 2
-        STATE.allSections.forEach((section, index) => {
+        // DOM-Elemente sind in STATE
+        const allSections = STATE.allSections;
+
+        const visibleSections = [];
+
+        allSections.forEach((section, idx) => {
             const rect = section.getBoundingClientRect();
             const sectionHeight = rect.height;
-
             const viewportTop = 0;
             const viewportBottom = viewportHeight;
             const sectionTop = rect.top;
@@ -207,26 +235,21 @@
             ? (sectionHeightInViewport / viewportHeight)
             : 0;
 
-            const rule1 = sectionInViewportRatio >= 0.8;
-            const rule2 = viewportOccupancyRatio >= 0.4;
+            const rule1 = sectionInViewportRatio >= 0.4;
+            const rule2 = viewportOccupancyRatio >= 0.5;
 
-            const sectionId = section.dataset.section;
-
-            LOG.debug(MODULE, `${sectionId} (idx:${index}): ` +
-            `sectionInViewportRatio=${(sectionInViewportRatio*100).toFixed(1)}%, ` +
-            `viewportOccupancyRatio=${(viewportOccupancyRatio*100).toFixed(1)}%, ` +
+            LOG.debug(MODULE, `${section.dataset.section} (idx:${idx}): ` +
+            `sectionInViewportRatio=${(sectionInViewportRatio * 100).toFixed(1)}%, ` +
+            `viewportOccupancyRatio=${(viewportOccupancyRatio * 100).toFixed(1)}%, ` +
             `rule1=${rule1}, rule2=${rule2}`);
 
             if (rule1 || rule2) {
                 visibleSections.push({
-                    id: sectionId,
-                    index: index,
-                    sectionHeightInViewport: Math.round(sectionHeightInViewport),
-                                     sectionHeight: Math.round(sectionHeight),
-                                     sectionInViewportRatio: Math.round(sectionInViewportRatio * 1000) / 10,
-                                     viewportOccupancyRatio: Math.round(viewportOccupancyRatio * 1000) / 10,
-                                     element: section,
-                                     addedByRule: rule1 && rule2 ? 'rule1+2' : (rule1 ? 'rule1' : 'rule2')
+                    id: section.dataset.section,
+                    element: section,
+                    sectionInViewportRatio: sectionInViewportRatio,
+                    viewportOccupancyRatio: viewportOccupancyRatio,
+                    reason: rule1 && rule2 ? 'rule1+2' : (rule1 ? 'rule1' : 'rule2')
                 });
             }
         });
@@ -235,13 +258,14 @@
         `IDs=[${visibleSections.map(s => s.id).join(', ')}]`);
 
         // HYSTERESE
+        const currentActive = getCurrentActiveSection();
         const currentActiveIndex = STATE.allSections.findIndex(
-            s => s.dataset.section === STATE.currentActiveSection
+            s => s.dataset.section === currentActive
         );
 
         if (currentActiveIndex !== -1) {
             const activeSection = STATE.allSections[currentActiveIndex];
-            const alreadyCandidate = visibleSections.find(s => s.id === STATE.currentActiveSection);
+            const alreadyCandidate = visibleSections.find(s => s.id === currentActive);
 
             if (!alreadyCandidate) {
                 const rect = activeSection.getBoundingClientRect();
@@ -260,197 +284,100 @@
                 ? (sectionHeightInViewport / viewportHeight)
                 : 0;
 
-                if (sectionInViewportRatio >= 0.15 || viewportOccupancyRatio >= 0.15) {
-                    LOG.debug(MODULE, `HYSTERESE: Adding active section ${STATE.currentActiveSection} ` +
+                if (sectionInViewportRatio >= 0.2 || viewportOccupancyRatio >= 0.15) {
+                    LOG.debug(MODULE, `HYSTERESE: Adding active section ${currentActive} ` +
                     `(sectionRatio=${(sectionInViewportRatio*100).toFixed(1)}%, ` +
                     `viewportRatio=${(viewportOccupancyRatio*100).toFixed(1)}%)`);
 
                     visibleSections.push({
-                        id: STATE.currentActiveSection,
-                        index: currentActiveIndex,
-                        sectionHeightInViewport: Math.round(sectionHeightInViewport),
-                                         sectionHeight: Math.round(sectionHeight),
-                                         sectionInViewportRatio: Math.round(sectionInViewportRatio * 1000) / 10,
-                                         viewportOccupancyRatio: Math.round(viewportOccupancyRatio * 1000) / 10,
-                                         element: activeSection,
-                                         addedByRule: 'hysterese'
+                        id: currentActive,
+                        element: activeSection,
+                        sectionInViewportRatio: sectionInViewportRatio,
+                        viewportOccupancyRatio: viewportOccupancyRatio,
+                        reason: 'hysteresis'
                     });
                 }
             }
         }
-
-        // REGEL 3
-        if (isAtBottom && visibleSections.length > 0) {
-            const maxIndex = Math.max(...visibleSections.map(s => s.index));
-            LOG.debug(MODULE, `RULE3: isAtBottom=true, maxIndex=${maxIndex}`);
-
-            STATE.allSections.forEach((section, index) => {
-                if (index > maxIndex) {
-                    const rect = section.getBoundingClientRect();
-                    const sectionHeight = rect.height;
-                    const viewportTop = 0;
-                    const viewportBottom = viewportHeight;
-                    const sectionTop = rect.top;
-                    const sectionBottom = rect.bottom;
-                    const visibleTop = Math.max(sectionTop, viewportTop);
-                    const visibleBottom = Math.min(sectionBottom, viewportBottom);
-                    const sectionHeightInViewport = Math.max(0, visibleBottom - visibleTop);
-                    const sectionInViewportRatio = sectionHeight > 0
-                    ? (sectionHeightInViewport / sectionHeight)
-                    : 0;
-                    const viewportOccupancyRatio = viewportHeight > 0
-                    ? (sectionHeightInViewport / viewportHeight)
-                    : 0;
-
-                    const sectionId = section.dataset.section;
-
-                    LOG.debug(MODULE, `RULE3: Adding ${sectionId} (idx=${index})`);
-
-                    visibleSections.push({
-                        id: sectionId,
-                        index: index,
-                        sectionHeightInViewport: Math.round(sectionHeightInViewport),
-                                         sectionHeight: Math.round(sectionHeight),
-                                         sectionInViewportRatio: Math.round(sectionInViewportRatio * 1000) / 10,
-                                         viewportOccupancyRatio: Math.round(viewportOccupancyRatio * 1000) / 10,
-                                         element: section,
-                                         addedByRule: 'rule3-atBottom'
-                    });
-                }
-            });
-        }
-
-        // REGEL 4
-        if (isAtTop && visibleSections.length > 0) {
-            const minIndex = Math.min(...visibleSections.map(s => s.index));
-            LOG.debug(MODULE, `RULE4: isAtTop=true, minIndex=${minIndex}`);
-
-            STATE.allSections.forEach((section, index) => {
-                if (index < minIndex) {
-                    const rect = section.getBoundingClientRect();
-                    const sectionHeight = rect.height;
-                    const viewportTop = 0;
-                    const viewportBottom = viewportHeight;
-                    const sectionTop = rect.top;
-                    const sectionBottom = rect.bottom;
-                    const visibleTop = Math.max(sectionTop, viewportTop);
-                    const visibleBottom = Math.min(sectionBottom, viewportBottom);
-                    const sectionHeightInViewport = Math.max(0, visibleBottom - visibleTop);
-                    const sectionInViewportRatio = sectionHeight > 0
-                    ? (sectionHeightInViewport / sectionHeight)
-                    : 0;
-                    const viewportOccupancyRatio = viewportHeight > 0
-                    ? (sectionHeightInViewport / viewportHeight)
-                    : 0;
-
-                    const sectionId = section.dataset.section;
-
-                    LOG.debug(MODULE, `RULE4: Adding ${sectionId} (idx=${index})`);
-
-                    visibleSections.push({
-                        id: sectionId,
-                        index: index,
-                        sectionHeightInViewport: Math.round(sectionHeightInViewport),
-                                         sectionHeight: Math.round(sectionHeight),
-                                         sectionInViewportRatio: Math.round(sectionInViewportRatio * 1000) / 10,
-                                         viewportOccupancyRatio: Math.round(viewportOccupancyRatio * 1000) / 10,
-                                         element: section,
-                                         addedByRule: 'rule4-atTop'
-                    });
-                }
-            });
-        }
-
-        // FALLBACK
-        if (visibleSections.length === 0) {
-            LOG.warn(MODULE, `FALLBACK: No candidates found, keeping current: ${STATE.currentActiveSection}`);
-
-            const currentActiveIndex = STATE.allSections.findIndex(
-                s => s.dataset.section === STATE.currentActiveSection
-            );
-
-            if (currentActiveIndex !== -1) {
-                const activeSection = STATE.allSections[currentActiveIndex];
-                const rect = activeSection.getBoundingClientRect();
-
-                visibleSections.push({
-                    id: STATE.currentActiveSection,
-                    index: currentActiveIndex,
-                    sectionHeightInViewport: 0,
-                    sectionHeight: Math.round(rect.height),
-                                     sectionInViewportRatio: 0,
-                                     viewportOccupancyRatio: 0,
-                                     element: activeSection,
-                                     addedByRule: 'fallback'
-                });
-            }
-        }
-
-        LOG.debug(MODULE, `Final candidates: Count=${visibleSections.length}`);
 
         return visibleSections;
     }
 
     function determineWinner(candidates) {
         if (candidates.length === 0) {
-            LOG.warn(MODULE, 'No candidates for winner selection');
+            LOG.debug(MODULE, 'No candidates');
             return null;
         }
 
-        if (candidates.length === 1) {
-            LOG.debug(MODULE, `Only one candidate: ${candidates[0].id}`);
-            return candidates[0];
-        }
+        LOG.debug(MODULE, `Final candidates: Count=${candidates.length}`);
 
-        // DIRECTION LOCK
         const scrollY = window.scrollY;
-        const scrollDelta = scrollY - STATE.lastScrollY;
-        const direction = scrollDelta > 0 ? 'down' : (scrollDelta < 0 ? 'up' : 'none');
+        const lastScrollY = STATE.lastScrollY;
+        const direction = scrollY > lastScrollY ? 'down' : 'up';
 
-        const currentActiveIndex = STATE.allSections.findIndex(
-            s => s.dataset.section === STATE.currentActiveSection
-        );
+        STATE.lastScrollY = scrollY;
+        STATE.lastDirection = direction;
 
-        let filteredCandidates = candidates;
+        const currentActive = getCurrentActiveSection();
+        const navigationPriorityActive = Date.now() - STATE.lastNavigationTime < CONST.NAVIGATION_PRIORITY_DURATION;
 
-        if (direction === 'up' && currentActiveIndex !== -1) {
-            const filtered = candidates.filter(c => c.index <= currentActiveIndex);
-            if (filtered.length > 0) {
-                LOG.debug(MODULE, `Direction lock UP: Filtered from ${candidates.length} to ${filtered.length}`);
-                filteredCandidates = filtered;
-            }
-        } else if (direction === 'down' && currentActiveIndex !== -1) {
-            const filtered = candidates.filter(c => c.index >= currentActiveIndex);
-            if (filtered.length > 0) {
-                LOG.debug(MODULE, `Direction lock DOWN: Filtered from ${candidates.length} to ${filtered.length}`);
-                filteredCandidates = filtered;
+        if (navigationPriorityActive && STATE.lastNavigatedSection) {
+            const navTarget = candidates.find(c => c.id === STATE.lastNavigatedSection);
+            if (navTarget) {
+                LOG.debug(MODULE, `Navigation priority: Forcing ${STATE.lastNavigatedSection}`);
+                return navTarget;
             }
         }
 
-        // SCORING
-        const scored = filteredCandidates.map(c => {
-            let score = c.viewportOccupancyRatio * 10;
+        let filteredCandidates = [...candidates];
 
-            if (c.id === STATE.currentActiveSection && c.viewportOccupancyRatio >= 20) {
+        if (filteredCandidates.length > 1) {
+            const hasActiveSectionInCandidates = filteredCandidates.some(c => c.id === currentActive);
+
+            if (hasActiveSectionInCandidates) {
+                // DOM-Elemente sind in STATE
+                const allSections = STATE.allSections;
+
+                const activeIndex = allSections.findIndex(s => s.dataset.section === currentActive);
+
+                filteredCandidates = filteredCandidates.filter(c => {
+                    const candIndex = allSections.findIndex(s => s.dataset.section === c.id);
+
+                    if (direction === 'down') {
+                        return candIndex >= activeIndex;
+                    } else {
+                        return candIndex <= activeIndex;
+                    }
+                });
+
+                LOG.debug(MODULE, `Direction lock ${direction.toUpperCase()}: Filtered from ${candidates.length} to ${filteredCandidates.length}`);
+            }
+        }
+
+        if (filteredCandidates.length === 0) {
+            filteredCandidates = candidates;
+        }
+
+        LOG.group(MODULE, 'Scoring Results');
+        const scored = filteredCandidates.map(c => {
+            let score = 0;
+
+            score += c.viewportOccupancyRatio * 300;
+
+            if (c.id === currentActive) {
                 score += 50;
             }
 
-            return {
-                ...c,
-                score: Math.round(score * 10) / 10
-            };
-        });
+            LOG(MODULE, `${c.id}: score=${Math.round(score)} (viewportRatio=${(c.viewportOccupancyRatio*100).toFixed(1)}%, active=${c.id === currentActive})`);
 
-        scored.sort((a, b) => b.score - a.score);
-
-        LOG.group(MODULE, 'Scoring Results');
-        scored.forEach(s => {
-            LOG(MODULE, `${s.id}: score=${s.score} (viewportRatio=${s.viewportOccupancyRatio}%, active=${s.id === STATE.currentActiveSection})`);
+            return { ...c, score };
         });
         LOG.groupEnd();
 
+        scored.sort((a, b) => b.score - a.score);
+
         const winner = scored[0];
-        LOG.success(MODULE, `Winner: ${winner.id} (score=${winner.score})`);
+        LOG.success(MODULE, `Winner: ${winner.id} (score=${Math.round(winner.score)})`);
 
         return winner;
     }
@@ -466,15 +393,24 @@
             return;
         }
 
-        LOG(MODULE, `Activating: ${STATE.currentActiveSection} → ${sectionId}`);
+        LOG(MODULE, `Activating: ${getCurrentActiveSection()} → ${sectionId}`);
 
+        // DOM-Elemente sind in STATE
         STATE.allSections.forEach(s => s.classList.remove('active'));
         section.classList.add('active');
 
         const timestamp = Date.now();
-        STATE.currentActiveSection = sectionId;
-        STATE.lastSectionChangeTime = timestamp;
-        STATE.lastChangedToSection = sectionId;
+
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('sections.currentActive', sectionId);
+            window.StateManager.set('sections.lastSectionChangeTime', timestamp);
+            window.StateManager.set('sections.lastChangedToSection', sectionId);
+        } else {
+            STATE.currentActiveSection = sectionId;
+            STATE.lastSectionChangeTime = timestamp;
+            STATE.lastChangedToSection = sectionId;
+        }
 
         window.dispatchEvent(new CustomEvent('sectionActivated', {
             detail: { sectionId: sectionId, timestamp: timestamp }
@@ -482,32 +418,38 @@
     }
 
     function scrollToSection(sectionId) {
-        LOG(MODULE, `🎯 scrollToSection() called with: ${sectionId}`);  // NEU
+        LOG(MODULE, `🎯 scrollToSection() called with: ${sectionId}`);
 
         const targetSection = document.querySelector(`main [data-section="${sectionId}"]`);
 
         if (!targetSection) {
-            LOG.error(MODULE, `❌ Section not found: ${sectionId}`);  // NEU
+            LOG.error(MODULE, `❌ Section not found: ${sectionId}`);
             return;
         }
 
-        LOG.debug(MODULE, `✅ Target section found: ${sectionId}, offsetTop=${targetSection.offsetTop}`);  // NEU
+        LOG.debug(MODULE, `✅ Target section found: ${sectionId}, offsetTop=${targetSection.offsetTop}`);
 
-        STATE.lastNavigatedSection = sectionId;
-        STATE.lastNavigationTime = Date.now();
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('sections.lastNavigatedSection', sectionId);
+            window.StateManager.set('sections.lastNavigationTime', Date.now());
+        } else {
+            STATE.lastNavigatedSection = sectionId;
+            STATE.lastNavigationTime = Date.now();
+        }
 
         const rect = targetSection.getBoundingClientRect();
         const scrollY = window.scrollY;
         const targetPosition = scrollY + rect.top - CONST.NAVIGATION_PRIORITY_OFFSET;
 
-        LOG.debug(MODULE, `📍 Scroll calculation: currentY=${scrollY}, targetY=${targetPosition}`);  // NEU
+        LOG.debug(MODULE, `🔍 Scroll calculation: currentY=${scrollY}, targetY=${targetPosition}`);
 
         window.scrollTo({
             top: targetPosition,
             behavior: 'smooth'
         });
 
-        LOG.success(MODULE, `✅ Scrolling to: ${sectionId}`);  // BEHALTEN
+        LOG.success(MODULE, `✅ Scrolling to: ${sectionId}`);
 
         activateSection(sectionId);
     }
@@ -521,14 +463,19 @@
 
         const observerOptions = {
             root: null,
-            rootMargin: '0px',
-            threshold: [0, 0.1, 0.5, 1.0]
+ rootMargin: '0px',
+ threshold: [0, 0.1, 0.5, 1.0]
         };
 
-        STATE.focusObserver = new IntersectionObserver(handleIntersection, observerOptions);
+        const observer = new IntersectionObserver(handleIntersection, observerOptions);
 
+        // IntersectionObserver kann NICHT serialisiert werden
+        // Bleibt in STATE, nicht im StateManager
+        STATE.focusObserver = observer;
+
+        // DOM-Elemente sind in STATE
         STATE.allSections.forEach(section => {
-            STATE.focusObserver.observe(section);
+            observer.observe(section);
         });
 
         LOG.success(MODULE, `Intersection Observer initialized for ${STATE.allSections.length} sections`);
@@ -541,7 +488,12 @@
             return;
         }
 
-        STATE.isProcessingIntersection = true;
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('scroll.isProcessingIntersection', true);
+        } else {
+            STATE.isProcessingIntersection = true;
+        }
 
         try {
             const scrollY = window.scrollY;
@@ -557,36 +509,33 @@
             entries.forEach(entry => {
                 const sectionId = entry.target.dataset.section;
                 const isNavigationTarget = sectionId === STATE.lastNavigatedSection && navigationPriorityActive;
-                const isCurrentlyActive = sectionId === STATE.currentActiveSection;
 
-                if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
-                    entry.target.classList.remove('out-of-focus');
-                } else {
-                    const rect = entry.target.getBoundingClientRect();
-                    const isSectionVisible = rect.bottom > 0 && rect.top < viewportHeight;
-                    const isFullyVisible = rect.top >= 0 && rect.bottom <= viewportHeight;
-
-                    const isFirstSection = entry.target === document.querySelector('main > [data-section]:first-of-type');
-                    const isLastSection = entry.target === document.querySelector('main > [data-section]:last-of-type');
-                    const atBoundary = (isFirstSection && isAtTop) || (isLastSection && isAtBottom);
-
-                    const shouldBeVisible = isNavigationTarget ||
-                    isCurrentlyActive ||
-                    !canScroll ||
-                    atBoundary ||
-                    (isSectionVisible && isFullyVisible);
-
-                    if (!shouldBeVisible) {
-                        entry.target.classList.add('out-of-focus');
-                    } else {
-                        entry.target.classList.remove('out-of-focus');
-                    }
+                if (isNavigationTarget && entry.isIntersecting) {
+                    LOG.debug(MODULE, `Navigation target intersecting: ${sectionId}`);
+                    activateSection(sectionId);
+                    return;
                 }
             });
 
         } finally {
-            STATE.isProcessingIntersection = false;
+            setTimeout(() => {
+                if (window.StateManager) {
+                    window.StateManager.set('scroll.isProcessingIntersection', false);
+                } else {
+                    STATE.isProcessingIntersection = false;
+                }
+            }, 100);
         }
+    }
+
+    // ========================================================================
+    // HELPER FUNCTIONS
+    // ========================================================================
+
+    function getCurrentActiveSection() {
+        return window.StateManager
+        ? window.StateManager.get('sections.currentActive')
+        : STATE.currentActiveSection;
     }
 
     // ========================================================================
@@ -595,8 +544,9 @@
 
     window.SectionManagement = {
         init: initSectionManagement,
+        scrollToSection: scrollToSection,
         activateSection: activateSection,
-        scrollToSection: scrollToSection
+        getCurrentActive: getCurrentActiveSection
     };
 
     LOG(MODULE, 'Section management module loaded');

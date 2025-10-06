@@ -10,18 +10,18 @@
     // ===== THEME KONSTANTEN =====
     const THEMES = {
         SYSTEM: 'system',
- LIGHT: 'light',
- DARK: 'dark',
- CONTRAST_HIGH: 'contrast-high',
- CONTRAST_INVERSE: 'contrast-inverse'
+        LIGHT: 'light',
+        DARK: 'dark',
+        CONTRAST_HIGH: 'contrast-high',
+        CONTRAST_INVERSE: 'contrast-inverse'
     };
 
     const THEME_NAMES = {
         'system': 'System',
- 'light': 'Tag',
- 'dark': 'Nacht',
- 'contrast-high': 'Kontrast+',
- 'contrast-inverse': 'Kontrast-'
+        'light': 'Tag',
+        'dark': 'Nacht',
+        'contrast-high': 'Kontrast+',
+        'contrast-inverse': 'Kontrast-'
     };
 
     const THEME_ORDER = [
@@ -134,10 +134,10 @@
 
         const colors = {
             'system': '#FAFAFA',    // Tag als Fallback
- 'light': '#FAFAFA',
- 'dark': '#121212',
- 'contrast-high': '#FFFFFF',
- 'contrast-inverse': '#000000'
+            'light': '#FAFAFA',
+            'dark': '#121212',
+            'contrast-high': '#FFFFFF',
+            'contrast-inverse': '#000000'
         };
 
         // Bei System: Aktuelle System-Präferenz prüfen
@@ -163,12 +163,11 @@
     }
 
     // ===== THEME SPEICHERN =====
-    function saveThemePreference() {
-        try {
-            localStorage.setItem('axiom-guide-theme', currentTheme);
-            LOG.debug(MODULE, `Theme preference saved: ${currentTheme}`);
-        } catch (e) {
-            LOG.error(MODULE, 'Error saving theme preference:', e);
+    function saveThemePreference(theme) {
+        if (window.StateManager) {
+            window.StateManager.set('preferences.theme', theme);
+        } else {
+            localStorage.setItem('theme-preference', theme);
         }
     }
 
@@ -185,23 +184,23 @@
     // ===== ÖFFENTLICHE API =====
     window.themeAPI = {
         init: initTheme,
- setTheme: function(theme) {
-     if (Object.values(THEMES).includes(theme)) {
-         currentTheme = theme;
-         applyTheme(theme);
-         saveThemePreference();
-         updateThemeDisplay();
-         return true;
-     }
-     return false;
- },
- getTheme: function() {
-     return currentTheme;
- },
- getAvailableThemes: function() {
-     return { ...THEMES };
- },
- cycleTheme: cycleTheme
+        setTheme: function(theme) {
+            if (Object.values(THEMES).includes(theme)) {
+                currentTheme = theme;
+                applyTheme(theme);
+                saveThemePreference(theme);
+                updateThemeDisplay();
+                return true;
+            }
+            return false;
+        },
+        getTheme: function() {
+            return currentTheme;
+        },
+        getAvailableThemes: function() {
+            return { ...THEMES };
+        },
+        cycleTheme: cycleTheme
     };
 
     // ===== AUTO-INIT BEI DOM READY =====

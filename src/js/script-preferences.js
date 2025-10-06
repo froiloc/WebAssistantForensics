@@ -19,63 +19,20 @@
     // ============================================================================
 
     function loadUserPreferences() {
-        LOG(MODULE, 'Loading user preferences...');
+        LOG(MODULE, 'Loading user preferences from StateManager...');
 
-        try {
-            const stored = localStorage.getItem(CONST.STORAGE_KEYS.PREFERENCES);
-
-            if (stored) {
-                const prefs = JSON.parse(stored);
-
-                // MIGRATION 1: Alte Level-Namen (bestehend)
-                if (prefs.detailLevel === 'beginner') {
-                    prefs.detailLevel = 'basic';
-                    LOG(MODULE, 'Migrated detailLevel: beginner → basic');
-                }
-                if (prefs.detailLevel === 'intermediate') {
-                    prefs.detailLevel = 'bestpractice';
-                    LOG(MODULE, 'Migrated detailLevel: intermediate → bestpractice');
-                }
-
-                // NEU: MIGRATION 2: Alte sidebarOpen (Boolean) → sidebarsOpen (Array)
-                if (typeof prefs.sidebarOpen === 'boolean') {
-                    prefs.sidebarsOpen = prefs.sidebarOpen ? ['navigation'] : [];
-                    delete prefs.sidebarOpen;
-                    LOG(MODULE, 'Migrated sidebarOpen (Boolean) → sidebarsOpen (Array)');
-                }
-
-                // NEU: Fallback für fehlende Sidebar-Preferences
-                if (!prefs.sidebarsOpen) {
-                    prefs.sidebarsOpen = ['navigation'];
-                }
-                if (!prefs.activeSidebarTab) {
-                    prefs.activeSidebarTab = 'navigation';
-                }
-
-                // Merge mit Default-Preferences
-                STATE.preferences = {
-                    ...STATE.preferences,
-                    ...prefs
-                };
-
-                LOG.success(MODULE, 'Loaded preferences:', STATE.preferences);
-
-                // Triggere Event damit andere Module Preferences anwenden können
-                window.dispatchEvent(new CustomEvent('preferencesLoaded', {
-                    detail: { preferences: STATE.preferences }
-                }));
-
-            } else {
-                LOG.debug(MODULE, 'No stored preferences, using defaults');
-
-                // Auch bei Defaults das Event triggern
-                window.dispatchEvent(new CustomEvent('preferencesLoaded', {
-                    detail: { preferences: STATE.preferences }
-                }));
-            }
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to load preferences', e);
-            STATE.preferences = {
+        // StateManager hat bereits geladen - nur Migration durchführen
+        let tempPrefs;
+        if (window.StateManager) {
+            tempPrefs = window.StateManager.get('preferences');
+            LOG.debug(MODULE, 'Using StateManager for preferences');
+        } else if (window.APP_STATE && window.APP_STATE.preferences) {
+            tempPrefs = window.APP_STATE.preferences;
+            LOG.warn(MODULE, 'StateManager not available, using APP_STATE fallback');
+        } else {
+            LOG.error(MODULE, 'Neither StateManager nor APP_STATE available!');
+            // Default-Preferences als Notfall-Fallback
+            tempPrefs = {
                 detailLevel: 'bestpractice',
                 timeFormat: 'relative',
                 showTips: true,
@@ -84,33 +41,64 @@
                 activeSidebarTab: 'navigation'
             };
         }
+
+        const prefs = tempPrefs;
+
+        // Migrationen (falls nötig)
+        let migrated = false;
+
+        if (prefs.detailLevel === 'beginner') {
+            prefs.detailLevel = 'basic';
+            migrated = true;
+        }
+        if (prefs.detailLevel === 'intermediate') {
+            prefs.detailLevel = 'bestpractice';
+            migrated = true;
+        }
+
+        if (migrated && window.StateManager) {
+            window.StateManager.set('preferences', prefs);
+        }
+
+        LOG.success(MODULE, 'Loaded preferences:', prefs);
+
+        window.dispatchEvent(new CustomEvent('preferencesLoaded', {
+            detail: { preferences: prefs }
+        }));
     }
 
     function saveUserPreferences() {
-        LOG(MODULE, 'Saving user preferences...');
-
-        try {
-            localStorage.setItem(
-                CONST.STORAGE_KEYS.PREFERENCES,
-                JSON.stringify(STATE.preferences)
-            );
-
-            LOG.success(MODULE, 'Preferences saved:', STATE.preferences);
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to save preferences', e);
+        if (!window.StateManager) {
+            LOG.warn(MODULE, 'StateManager not available');
+            return;
         }
+
+        // StateManager übernimmt automatisches Speichern
+        LOG.debug(MODULE, 'Preferences auto-saved by StateManager');
+
+        // Trigger Event für UI-Updates
+        window.dispatchEvent(new CustomEvent('preferencesSaved', {
+            detail: { preferences: window.StateManager.get('preferences') }
+        }));
     }
 
     function setPreference(key, value) {
-        const oldValue = STATE.preferences[key];
-        STATE.preferences[key] = value;
-        saveUserPreferences();
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available');
+            return;
+        }
+
+        const oldValue = window.StateManager.get(`preferences.${key}`);
+        window.StateManager.set(`preferences.${key}`, value);
 
         LOG(MODULE, `Preference changed: ${key}: ${oldValue} → ${value}`);
     }
 
     function getPreference(key) {
-        return STATE.preferences[key];
+        if (!window.StateManager) {
+            return STATE.preferences[key]; // Fallback
+        }
+        return window.StateManager.get(`preferences.${key}`);
     }
 
     function resetPreferences() {

@@ -204,21 +204,39 @@
     // ========================================================================
 
     function saveSidebarPreferences() {
-        if (window.Preferences) {
-            STATE.preferences.sidebarsOpen = [...STATE.sidebarsOpen];
-            STATE.preferences.activeSidebarTab = STATE.activeSidebarTab;
-            window.Preferences.save();
-            LOG.debug(MODULE, `Saved preferences: open=[${STATE.sidebarsOpen}], active=${STATE.activeSidebarTab}`);
+        if (!window.StateManager) {
+            LOG.warn(MODULE, 'StateManager not available, sidebar state not saved');
+            return;
         }
+
+        // In den StateManager schreiben
+        window.StateManager.set('preferences.sidebarsOpen', STATE.sidebarsOpen);
+        window.StateManager.set('preferences.activeSidebarTab', STATE.activeSidebarTab);
+
+        LOG.debug(MODULE, `🔍 Saved preferences: open=[${STATE.sidebarsOpen}], active=${STATE.activeSidebarTab}`);
     }
 
     function loadSidebarStates() {
-        LOG(MODULE, 'Loading sidebar states from preferences...');
+        LOG(MODULE, 'Loading sidebar states from StateManager...');
 
-        const { sidebarsOpen, activeSidebarTab } = STATE.preferences;
+        // Preferences aus StateManager holen (oder Fallback auf STATE)
+        const sidebarsOpen = window.StateManager
+        ? window.StateManager.get('preferences.sidebarsOpen')
+        : (STATE.preferences?.sidebarsOpen || []);
+
+        const activeSidebarTab = window.StateManager
+        ? window.StateManager.get('preferences.activeSidebarTab')
+        : (STATE.preferences?.activeSidebarTab || null);
+
+        LOG.debug(MODULE, `Loading: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
 
         if (window.innerWidth > 1024) {
             // Schritt 1: Alle Sidebars in STATE.sidebarsOpen registrieren
+            // WICHTIG: Initialisieren falls undefined
+            if (!STATE.sidebarsOpen) {
+                STATE.sidebarsOpen = [];
+            }
+
             sidebarsOpen.forEach(sidebarName => {
                 if (!STATE.sidebarsOpen.includes(sidebarName)) {
                     STATE.sidebarsOpen.push(sidebarName);
@@ -397,10 +415,10 @@
 
     window.SidebarManager = {
         init: initSidebarManager,
- registerShortcut: registerShortcut,
- activate: activateSidebar,
- deactivate: deactivateSidebar,
- closeAll: closeSidebarContainer
+        registerShortcut: registerShortcut,
+        activate: activateSidebar,
+        deactivate: deactivateSidebar,
+        closeAll: closeSidebarContainer
     };
 
     LOG(MODULE, 'Sidebar manager module loaded');
