@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-SECTION-MANAGEMENT.JS - Version 040
+// SCRIPT-SECTION-MANAGEMENT.JS - Version 039
 // Section-Management: Scroll-basierte Section-Auswahl
 // ============================================================================
 
@@ -482,22 +482,32 @@
     }
 
     function scrollToSection(sectionId) {
-        const section = document.querySelector(`[data-section="${sectionId}"]`);
-        if (!section) {
-            LOG.error(MODULE, `Section not found for scroll: ${sectionId}`);
+        LOG(MODULE, `🎯 scrollToSection() called with: ${sectionId}`);  // NEU
+
+        const targetSection = document.querySelector(`main [data-section="${sectionId}"]`);
+
+        if (!targetSection) {
+            LOG.error(MODULE, `❌ Section not found: ${sectionId}`);  // NEU
             return;
         }
 
-        LOG(MODULE, `Scrolling to: ${sectionId}`);
+        LOG.debug(MODULE, `✅ Target section found: ${sectionId}, offsetTop=${targetSection.offsetTop}`);  // NEU
 
-        const timestamp = Date.now();
-        STATE.lastNavigationTime = timestamp;
         STATE.lastNavigatedSection = sectionId;
+        STATE.lastNavigationTime = Date.now();
 
-        section.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
+        const rect = targetSection.getBoundingClientRect();
+        const scrollY = window.scrollY;
+        const targetPosition = scrollY + rect.top - CONST.NAVIGATION_PRIORITY_OFFSET;
+
+        LOG.debug(MODULE, `📍 Scroll calculation: currentY=${scrollY}, targetY=${targetPosition}`);  // NEU
+
+        window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
         });
+
+        LOG.success(MODULE, `✅ Scrolling to: ${sectionId}`);  // BEHALTEN
 
         activateSection(sectionId);
     }

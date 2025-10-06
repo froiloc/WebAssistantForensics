@@ -8,8 +8,8 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '041',
-    buildDate: '2025-10-02', // 2. Oktober 2025
+    version: '053',
+    buildDate: '2025-10-04', // 4. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };
 
@@ -128,36 +128,60 @@ window.LOG.debug = function(module, message, data) {
  * @param {string} stack - Error.stack String
  * @returns {string|null} - Formatierte Caller-Info "script-name.js:123"
  */
+/**
+ * Extrahiert Script-Name und Zeilennummer aus Stack-Trace
+ * Robusterer Ansatz für verschiedene Browser und Umgebungen
+ */
 function extractCallerInfo(stack) {
     if (!stack) return null;
 
     try {
-        // Stack-Trace aufteilen
         const lines = stack.split('\n');
 
-        // Überspringe erste 3 Zeilen (Error, LOG function, LOG.xyz wrapper)
-        for (let i = 3; i < lines.length; i++) {
-            const line = lines[i];
+        // Definiere welche Funktionen wir überspringen wollen
+        const internalPatterns = [
+            /at LOG\./,
+            /at window\.LOG/,
+            /at Object\.LOG/,
+            /at LOG\s/,
+            /extractCallerInfo/
+        ];
 
-            // Suche nach Script-Name und Zeilennummer
-            // Format: "at functionName (http://localhost/script-name.js:123:45)"
-            // oder: "at http://localhost/script-name.js:123:45"
-            const match = line.match(/([^\/\\]+\.js):(\d+):\d+/);
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            // Überspringe interne LOG-Funktionen
+            const isInternal = internalPatterns.some(pattern =>
+            pattern.test(line)
+            );
+
+            if (isInternal) {
+                continue;
+            }
+
+            // Verbesserte Regex für verschiedene Stack-Trace-Formate:
+            // - "at functionName (file.js:10:20)"
+            // - "at file.js:10:20"
+            // - "at http://localhost/file.js:10:20"
+            const match = line.match(/(?:\s+at\s+.*?\()?([^()]+?):(\d+):(\d+)\)?$/);
 
             if (match) {
-                const scriptName = match[1];
+                const fullPath = match[1];
                 const lineNumber = match[2];
 
-                // Überspringe script-core.js selbst
-                if (scriptName === 'script-core.js') {
+                // Extrahiere nur den Dateinamen aus dem Pfad
+                const fileName = fullPath.split(/[\/\\]/).pop();
+
+                // Überspringe unsere eigene Logging-Datei
+                if (fileName === 'script-core.js' || !fileName) {
                     continue;
                 }
 
-                return `${scriptName}:${lineNumber}`;
+                return `${fileName}:${lineNumber}`;
             }
         }
     } catch (e) {
-        // Fallback: Keine Caller-Info
+        // Silent fail - besser kein Logging hier, um Endlosschleifen zu vermeiden
         return null;
     }
 
@@ -213,11 +237,15 @@ window.APP_STATE = {
     lastScrollIntentionTime: 0,
     focusObserver: null,
     scrollCallCounter: 0,
+    sidebarsOpen: [],  // Array: ['navigation', 'history']
+    activeSidebarTab: null,  // 'navigation' | 'history' | 'favorites'
     preferences: {
         detailLevel: 'bestpractice',
         timeFormat: 'relative',
         showTips: true,
-        autoSaveNotes: true
+        autoSaveNotes: true,
+        sidebarsOpen: ['navigation'],  // Default: Navigation offen
+        activeSidebarTab: 'navigation'
     },
     history: [],
     notesContent: '',
@@ -230,6 +258,7 @@ window.APP_STATE = {
 
 window.APP_CONSTANTS = {
     NAVIGATION_PRIORITY_DURATION: 500,
+    NAVIGATION_PRIORITY_OFFSET: 80,
     SECTION_CHANGE_COOLDOWN: 150,
     SCROLL_INTENTION_COOLDOWN: 200,
     NOTES_AUTOSAVE_DELAY: 2000,
@@ -317,7 +346,140 @@ window.showSaveIndicator = function(message = 'Gespeichert!', duration = 2000) {
 };
 
 // ============================================================================
+// Color-Theme
+// ============================================================================
+
+function setTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    localStorage.setItem('theme-preference', themeName);
+    updateMetaThemeColor(themeName);
+}
+
+function initTheme() {
+    const saved = localStorage.getItem('theme-preference');
+    if (saved) {
+        setTheme(saved);
+        return;
+    }
+
+    // Respektiere System-Präferenz
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(prefersDark ? 'dark' : 'light');
+}
+
+function updateMetaThemeColor(theme) {
+    const colors = {
+        'light': '#FAFAFA',
+        'dark': '#121212',
+        'contrast-high': '#FFFFFF',
+        'contrast-inverse': '#000000'
+    };
+    document.querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', colors[theme] || colors.light);
+}
+
+// FOUC (Flash of Unstyled Content) vermeiden
+(function() {
+    const saved = localStorage.getItem('theme-preference');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+})();
+
+// ============================================================================
 // MODULE LOADED
 // ============================================================================
 
 LOG('CORE', `Core module loaded - Build ${window.BUILD_INFO.version} (${window.BUILD_INFO.buildDate})`);
+
+
+/**
+ * Test-Suite für das Logging-System
+ */
+function testLoggingSystem() {
+    console.log('=== STARTING LOGGING TESTS ===');
+
+    // Test 1: Basic log from known location
+    function testBasicLog() {
+        LOG('TEST', 'This should show the correct line number');
+    }
+
+    // Test 2: Log with data
+    function testLogWithData() {
+        const testData = { user: 'test', action: 'login' };
+        LOG('TEST', 'User action', testData);
+    }
+
+    // Test 3: Different log levels
+    function testDifferentLevels() {
+        LOG.warn('TEST', 'Warning message');
+        LOG.error('TEST', 'Error message');
+        LOG.success('TEST', 'Success message');
+        LOG.debug('TEST', 'Debug message');
+    }
+
+    // Test 4: Nested function calls
+    function outerFunction() {
+        innerFunction();
+    }
+
+    function innerFunction() {
+        LOG('TEST', 'Log from nested function call');
+    }
+
+    // Test 5: Test separator and groups
+    function testSpecialFunctions() {
+        LOG.separator('TEST', 'Test Section');
+        LOG.group('TEST', 'Test Group');
+        LOG('TEST', 'Message inside group');
+        LOG.groupEnd();
+    }
+
+    // Run all tests
+    testBasicLog();
+    testLogWithData();
+    testDifferentLevels();
+    outerFunction();
+    testSpecialFunctions();
+
+    console.log('=== LOGGING TESTS COMPLETE ===');
+
+    // Manuelle Überprüfung:
+    console.log(`
+    MANUAL VERIFICATION CHECKLIST:
+    ✓ Basic LOG shows correct file and line number
+    ✓ LOG.warn shows correct file and line number
+    ✓ LOG.error shows correct file and line number
+    ✓ LOG.success shows correct file and line number
+    ✓ LOG.debug shows correct file and line number
+    ✓ Nested function calls show correct location
+    ✓ All logs show the module name and version
+    ✓ Separator and group functions work properly
+    `);
+}
+
+// Utility function to test stack trace directly
+function debugStackTrace() {
+    console.log('=== STACK TRACE DEBUG ===');
+    const stack = new Error().stack;
+    console.log('Full stack trace:');
+    console.log(stack);
+
+    console.log('Parsed lines:');
+    const lines = stack.split('\n');
+    lines.forEach((line, index) => {
+        console.log(`[${index}]: ${line.trim()}`);
+    });
+}
+
+// Enable debug mode for testing
+if (!window.BUILD_INFO) {
+    window.BUILD_INFO = {
+        debugMode: true,
+        version: 'test-1.0.0'
+    };
+}
+
+// Run tests when ready
+//testLoggingSystem();
+//debugStackTrace();

@@ -14,6 +14,10 @@
     // PREFERENCES MANAGEMENT
     // ========================================================================
 
+    // ============================================================================
+    // In loadUserPreferences() Funktion, nach dem JSON.parse():
+    // ============================================================================
+
     function loadUserPreferences() {
         LOG(MODULE, 'Loading user preferences...');
 
@@ -23,7 +27,7 @@
             if (stored) {
                 const prefs = JSON.parse(stored);
 
-                // Migration: Alte Level-Namen zu neuen konvertieren
+                // MIGRATION 1: Alte Level-Namen (bestehend)
                 if (prefs.detailLevel === 'beginner') {
                     prefs.detailLevel = 'basic';
                     LOG(MODULE, 'Migrated detailLevel: beginner → basic');
@@ -31,6 +35,21 @@
                 if (prefs.detailLevel === 'intermediate') {
                     prefs.detailLevel = 'bestpractice';
                     LOG(MODULE, 'Migrated detailLevel: intermediate → bestpractice');
+                }
+
+                // NEU: MIGRATION 2: Alte sidebarOpen (Boolean) → sidebarsOpen (Array)
+                if (typeof prefs.sidebarOpen === 'boolean') {
+                    prefs.sidebarsOpen = prefs.sidebarOpen ? ['navigation'] : [];
+                    delete prefs.sidebarOpen;
+                    LOG(MODULE, 'Migrated sidebarOpen (Boolean) → sidebarsOpen (Array)');
+                }
+
+                // NEU: Fallback für fehlende Sidebar-Preferences
+                if (!prefs.sidebarsOpen) {
+                    prefs.sidebarsOpen = ['navigation'];
+                }
+                if (!prefs.activeSidebarTab) {
+                    prefs.activeSidebarTab = 'navigation';
                 }
 
                 // Merge mit Default-Preferences
@@ -56,6 +75,14 @@
             }
         } catch (e) {
             LOG.error(MODULE, 'Failed to load preferences', e);
+            STATE.preferences = {
+                detailLevel: 'bestpractice',
+                timeFormat: 'relative',
+                showTips: true,
+                autoSaveNotes: true,
+                sidebarsOpen: ['navigation'],
+                activeSidebarTab: 'navigation'
+            };
         }
     }
 

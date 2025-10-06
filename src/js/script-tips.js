@@ -166,7 +166,7 @@
             footer.classList.remove('hidden');
             STATE.preferences.showTips = true;
 
-            document.body.classList.remove('tips-hidden');
+            document.documentElement.style.setProperty('--tips-footer-height', '80px');
 
             if (showBtn) {
                 showBtn.style.display = 'none';
@@ -191,7 +191,7 @@
             footer.classList.add('hidden');
             STATE.preferences.showTips = false;
 
-            document.body.classList.add('tips-hidden');
+            document.documentElement.style.setProperty('--tips-footer-height', '0px');
 
             if (showBtn) {
                 showBtn.style.display = 'inline-block';

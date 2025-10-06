@@ -69,7 +69,7 @@
     <div id="menu-dropdown" class="menu-dropdown" role="menu" aria-hidden="true">
         <button class="menu-item" id="show-history-btn" role="menuitem">
             <span class="menu-icon">📜</span>
-            Verlauf anzeigen
+            Verlauf ein/aus
         </button>
         <button class="menu-item" id="toggle-nav-sidebar-btn" role="menuitem">
             <span class="menu-icon">🗂️</span>
@@ -82,6 +82,16 @@
         
         <hr style="margin: 5px 0; border: none; border-top: 1px solid #e0e0e0;">
         
+        <button class="menu-item" id="toggle-theme" role="menuitem" aria-label="Theme wechseln">
+            <div class="theme-icon">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            Theme: <span id="current-theme">System</span>
+        </button>
+
         <button class="menu-item" id="toggle-media-layer" role="menuitem">
             <span class="menu-icon">🖼️</span>
             Medien: <span id="media-layer-status">Standard</span>
@@ -93,18 +103,98 @@
         </button>
     </div>
 
-    <!-- Navigation Sidebar -->
-    <aside id="nav-sidebar" class="nav-sidebar" aria-label="Navigationsmenü">
-        <div class="nav-sidebar-header">
-            <h3>Navigation</h3>
-            <button id="close-nav-sidebar" class="close-btn" aria-label="Navigation schließen">✕</button>
+    <!-- Sidebar Container (zentrale Verwaltung) -->
+    <div id="sidebar-container" class="sidebar-container">
+
+        <!-- Navigation Sidebar -->
+        <div id="sidebar-navigation" class="sidebar-wrapper" data-sidebar="navigation">
+            <!-- Tab Header (immer sichtbar) -->
+            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                <button class="sidebar-tab-button" aria-label="Navigation öffnen/schließen" data-sidebar="navigation">
+                    <span class="sidebar-tab-icon">📑</span>
+                    <span class="sidebar-tab-text">Navigation</span>
+                </button>
+
+                <!-- Close-Button im Header -->
+                <button class="sidebar-close-btn"
+                        aria-label="Navigation schließen"
+                        data-sidebar="navigation">
+                    ✕
+                </button>
+            </div>
+
+            <div class="sidebar-tab-body">
+                <!-- Subheader (nur bei aktiver Sidebar) -->
+                <div class="sidebar-subheader">
+                    <span style="font-size: 0.9em; color: var(--color-text-secondary);">
+                        Abschnitte
+                    </span>
+                </div>
+
+                <!-- Body (Content-Bereich) -->
+                <div class="sidebar-body">
+                    <ul class="nav-tree" role="tree">
+                        <!-- Wird dynamisch von script-navigation.js generiert -->
+                    </ul>
+                </div>
+
+                <!-- Footer (Footer-Bereich) -->
+                <div class="sidebar-footer">
+                </div>
+            </div>
         </div>
-        <div class="nav-sidebar-content">
-            <ul class="nav-tree" role="tree">
-                <!-- Wird dynamisch generiert -->
-            </ul>
+
+        <!-- Verlauf Sidebar -->
+        <div id="sidebar-history" class="sidebar-wrapper" data-sidebar="history">
+            <!-- Tab Header (immer sichtbar) -->
+            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                <button class="sidebar-tab-button"
+                        aria-label="Verlauf öffnen/schließen"
+                        data-sidebar="history">Verlauf
+                </button>
+
+                <!-- Close-Button im Header -->
+                <button class="sidebar-close-btn"
+                        aria-label="Verlauf schließen"
+                        data-sidebar="history">
+                    ✕
+                </button>
+            </div>
+
+            <div class="sidebar-tab-body">
+                <!-- Subheader (nur bei aktiver Sidebar) -->
+                <div class="sidebar-subheader">
+                    <div id="history-controls-subheader" style="display: flex; gap: 10px;">
+                        <button id="time-format-toggle"
+                                class="btn-secondary"
+                                aria-label="Zeitformat umschalten">
+                            🕐 Zeit: Relativ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Body (Content-Bereich) -->
+                <div class="sidebar-body">
+                    <div id="history-list"></div>
+                    <div id="history-empty" class="history-empty">Noch keine Einträge</div>
+                </div>
+
+                <!-- Footer (Löschen-Button) -->
+                <div class="sidebar-footer">
+                    <div id="history-controls-footer" style="display: flex; gap: 10px;">
+                        <button id="clear-history-btn"
+                                class="btn-secondary btn-secondary-destructive"
+                                aria-label="Verlauf löschen">
+                            🗑️ Löschen
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </aside>
+
+        <!-- Weitere Sidebars kommen hier später hinzu (Favoriten, etc.) -->
+
+    </div>
 
     <!-- Main Container -->
     <div class="container">
@@ -439,7 +529,7 @@
                 aria-label="Notizfeld"></textarea>
         </div>
         <div class="notes-footer">
-            <button id="clear-notes" class="btn-secondary">Notizen löschen</button>
+            <button id="clear-notes" class="btn-secondary btn-secondary-destructive">🗑️  Notizen löschen</button>
             <span class="save-indicator" id="save-indicator">Automatisch gespeichert</span>
         </div>
     </aside>
@@ -489,30 +579,6 @@
         </div>
     </aside>
 
-    <!-- History Modal -->
-    <div id="history-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title" aria-hidden="true">
-        <div class="modal-content history-modal-content">
-            <div class="modal-header">
-                <h2 id="history-modal-title">Verlauf</h2>
-                <div class="history-controls">
-                    <button id="time-format-toggle" class="btn-small" aria-label="Zeitformat umschalten">
-                        <span id="time-format-text">Relativ</span>
-                    </button>
-                    <button id="clear-history-btn" class="btn-small btn-danger" aria-label="Verlauf löschen">
-                        Löschen
-                    </button>
-                </div>
-                <button class="modal-close" id="close-history-modal" aria-label="Verlauf schließen">✕</button>
-            </div>
-            <div class="modal-body">
-                <ul id="history-list" class="history-list">
-                    <!-- Wird dynamisch gefüllt -->
-                </ul>
-                <p id="history-empty" class="history-empty">Noch keine Abschnitte besucht.</p>
-            </div>
-        </div>
-    </div>
-
     <!-- Tips Footer -->
     <div id="tips-footer" class="tips-footer" role="complementary" aria-label="Tipps und Tastenkombinationen">
         <button id="tips-prev-btn" class="tips-nav-btn tips-prev-btn" aria-label="Vorheriger Tipp" title="Vorheriger Tipp">
@@ -532,31 +598,37 @@
     </div>
 
     <!-- Scripts -->
-        <!-- 1. CORE - Basis-Funktionen und globale Variablen (MUSS ZUERST geladen werden) -->
+    <!-- 1. CORE - Basis-Funktionen und globale Variablen (MUSS ZUERST geladen werden) -->
     <script src="js/script-core.js"></script>
 
     <!-- 2. SECTION MANAGEMENT - Kern-Funktionalität für Section-Auswahl -->
     <script src="js/script-section-management.js"></script>
 
-    <!-- 3. NAVIGATION - Navigation, Sidebar, Menu, Breadcrumb -->
+    <!-- 3. Sidebar Manager (MUSS vor den individuellen Sidebars geladen werden) -->
+    <script src="js/script-sidebar-manager.js"></script>
+
+    <!-- 4. NAVIGATION - Navigation, Sidebar, Menu, Breadcrumb -->
     <script src="js/script-navigation.js"></script>
 
-    <!-- 4. HISTORY - Section-History Tracking -->
+    <!-- 5. HISTORY - Section-History Tracking -->
     <script src="js/script-history.js"></script>
 
-    <!-- 5. NOTES - Notizen-Feature -->
+    <!-- 6. NOTES - Notizen-Feature -->
     <script src="js/script-notes.js"></script>
 
-    <!-- 6. DETAIL LEVEL - Detail-Level-System -->
+    <!-- 7. DETAIL LEVEL - Detail-Level-System -->
     <script src="js/script-detail-level.js"></script>
 
-    <!-- 7. TIPS - Tips-Footer mit Rotation -->
+    <!-- 8. TIPS - Tips-Footer mit Rotation -->
     <script src="js/script-tips.js"></script>
 
-    <!-- 8. PREFERENCES - User Preferences Management -->
+    <!-- 9. PREFERENCES - User Preferences Management -->
     <script src="js/script-preferences.js"></script>
 
-    <!-- 9. INIT - Haupt-Initialisierung (MUSS ZULETZT geladen werden) -->
+    <!-- 10. THEME - Theme Management System -->
+    <script src="js/script-theme.js"></script>
+
+    <!-- 11. INIT - Haupt-Initialisierung (MUSS ZULETZT geladen werden) -->
     <script src="js/script-init.js"></script>
     <script src="js/agent.js"></script>
     <script src="js/media-handler.js"></script>

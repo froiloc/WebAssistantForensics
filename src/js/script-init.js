@@ -31,35 +31,42 @@
             LOG.error(MODULE, 'SectionManagement module not loaded!');
         }
 
-        // 3. Navigation (benötigt Section Management)
+        // 3. Sidebar Manager (VOR Navigation/History!)
+        if (window.SidebarManager) {
+            window.SidebarManager.init();
+        } else {
+            LOG.error(MODULE, 'SidebarManager module not loaded!');
+        }
+
+        // 4. Navigation (benötigt Section Management)
         if (window.Navigation) {
             window.Navigation.init();
         } else {
             LOG.error(MODULE, 'Navigation module not loaded!');
         }
 
-        // 4. History
+        // 5. History
         if (window.History) {
             window.History.init();
         } else {
             LOG.warn(MODULE, 'History module not loaded');
         }
 
-        // 5. Notes
+        // 6. Notes
         if (window.Notes) {
             window.Notes.init();
         } else {
             LOG.warn(MODULE, 'Notes module not loaded');
         }
 
-        // 6. Detail Level
+        // 7. Detail Level
         if (window.DetailLevel) {
             window.DetailLevel.init();
         } else {
             LOG.warn(MODULE, 'DetailLevel module not loaded');
         }
 
-        // 7. Tips
+        // 8. Tips
         if (window.Tips) {
             window.Tips.init();
         } else {

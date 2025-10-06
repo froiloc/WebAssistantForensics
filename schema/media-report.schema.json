@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/froiloc/WebAssistentForensics/media-report.schema.json",
+  "title": "Media Validation Report Schema",
+  "description": "Schema for the missing media files report output",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "description": "Unique identifier for the media item"
+      },
+      "title": {
+        "type": "string",
+        "description": "Descriptive title for the media item"
+      },
+      "type": {
+        "type": "string",
+        "enum": ["screenshot", "annotated", "video"],
+        "description": "Type of media file"
+      },
+      "context": {
+        "type": "string",
+        "description": "CSS selector or context path where media is used"
+      },
+      "snippet": {
+        "type": "string",
+        "description": "Relevant text snippet near the media reference"
+      },
+      "filePath": {
+        "type": "string",
+        "description": "Relative path to the missing media file"
+      },
+      "altText": {
+        "type": "string",
+        "description": "Alternative text or description for the media"
+      },
+      "similarFiles": {
+        "type": "array",
+        "description": "List of existing files with similar names",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Filename of similar file"
+            },
+            "distance": {
+              "type": "integer",
+              "description": "Levenshtein distance from target filename"
+            }
+          },
+          "required": ["name", "distance"]
+        }
+      },
+      "completed": {
+        "type": "boolean",
+        "description": "Whether the media file has been marked as completed"
+      }
+    },
+    "required": [
+      "id",
+      "title", 
+      "type",
+      "context",
+      "snippet",
+      "filePath",
+      "altText",
+      "similarFiles",
+      "completed"
+    ]
+  }
+}

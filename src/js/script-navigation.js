@@ -30,7 +30,11 @@
         STATE.allSections.forEach(section => {
             const sectionId = section.dataset.section;
             const sectionTitle = section.dataset.title ||
-            section.querySelector('h2')?.textContent ||
+            section.querySelector('h2')?.textContent?.trim() ||
+            section.querySelector('h3')?.textContent?.trim() ||
+            section.querySelector('h4')?.textContent?.trim() ||
+            section.querySelector('h5')?.textContent?.trim() ||
+            section.querySelector('h6')?.textContent?.trim() ||
             sectionId;
 
             const li = document.createElement('li');
@@ -56,11 +60,6 @@
 
                 if (window.SectionManagement) {
                     window.SectionManagement.scrollToSection(sectionId);
-
-                    // Schließe Sidebar auf Mobile nach Navigation
-                    if (window.innerWidth <= 1024) {
-                        closeNavSidebar();
-                    }
                 }
             });
 
@@ -90,67 +89,20 @@
     function initNavSidebar() {
         LOG(MODULE, 'Initializing navigation sidebar...');
 
-        const sidebar = document.getElementById('nav-sidebar');
-        const closeBtn = document.getElementById('close-nav-sidebar');
+        // Shortcut beim SidebarManager registrieren
+        if (window.SidebarManager) {
+            const registered = window.SidebarManager.registerShortcut('navigation', 'n');
 
-        LOG.debug(MODULE, 'Sidebar elements:', {
-            sidebar: !!sidebar,
-            closeBtn: !!closeBtn
-        });
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeNavSidebar);
-            LOG.debug(MODULE, 'Close button listener attached');
-        }
-
-        // KEYBOARD SHORTCUTS für Navigation-Sidebar
-        document.addEventListener('keydown', (e) => {
-            // ALT + N: Toggle Navigation-Sidebar
-            if (e.altKey && e.key.toLowerCase() === 'n') {
-                e.preventDefault();
-                toggleNavSidebar();
-                LOG(MODULE, 'Alt+N shortcut triggered');
+            if (registered) {
+                LOG.success(MODULE, 'Shortcut Alt+n registered with SidebarManager');
+            } else {
+                LOG.warn(MODULE, 'Shortcut Alt+n already taken');
             }
-        });
-
-        LOG.success(MODULE, 'Keyboard shortcuts registered: Alt+N (toggle), ESC (close)');
-
-        // Öffne Sidebar initial auf Desktop (> 1024px)
-        if (window.innerWidth > 1024 && sidebar) {
-            sidebar.classList.add('open');
-            document.body.classList.add('nav-sidebar-open');
-            LOG(MODULE, 'Sidebar opened initially (desktop)');
+        } else {
+            LOG.error(MODULE, 'SidebarManager not available!');
         }
 
         LOG.success(MODULE, 'Navigation sidebar initialized');
-    }
-
-    function toggleNavSidebar() {
-        const sidebar = document.getElementById('nav-sidebar');
-        const body = document.body;
-
-        if (sidebar) {
-            const isOpen = sidebar.classList.contains('open');
-
-            if (isOpen) {
-                closeNavSidebar();
-            } else {
-                sidebar.classList.add('open');
-                body.classList.add('nav-sidebar-open');
-                LOG(MODULE, 'Sidebar opened (toggle)');
-            }
-        }
-    }
-
-    function closeNavSidebar() {
-        const sidebar = document.getElementById('nav-sidebar');
-        const body = document.body;
-
-        if (sidebar) {
-            sidebar.classList.remove('open');
-            body.classList.remove('nav-sidebar-open');
-            LOG(MODULE, 'Sidebar closed');
-        }
     }
 
     // ========================================================================
@@ -186,8 +138,9 @@
         // Menu-Item: History anzeigen
         if (showHistoryBtn) {
             showHistoryBtn.addEventListener('click', () => {
-                if (window.History) {
-                    window.History.open();
+                // Nutze SidebarManager statt History.open()
+                if (window.SidebarManager) {
+                    window.SidebarManager.activate('history');
                 }
                 closeMenu();
             });
@@ -196,7 +149,19 @@
         // Menu-Item: Navigation ein/aus
         if (toggleNavBtn) {
             toggleNavBtn.addEventListener('click', () => {
-                toggleNavSidebar();
+                // Nutze SidebarManager zum Toggle
+                if (window.SidebarManager) {
+                    const sidebar = document.getElementById('sidebar-navigation');
+
+                    if (sidebar && sidebar.classList.contains('active')) {
+                        // Sidebar ist aktiv → deaktivieren
+                        window.SidebarManager.deactivate('navigation');
+                    } else {
+                        // Sidebar ist inaktiv → aktivieren
+                        window.SidebarManager.activate('navigation');
+                    }
+                }
+
                 closeMenu();
             });
         }
@@ -275,7 +240,11 @@
             const firstSection = STATE.allSections[0];
             if (firstSection) {
                 const title = firstSection.dataset.title ||
-                firstSection.querySelector('h2')?.textContent ||
+                firstSection.querySelector('h2')?.textContent?.trim() ||
+                firstSection.querySelector('h3')?.textContent?.trim() ||
+                firstSection.querySelector('h4')?.textContent?.trim() ||
+                firstSection.querySelector('h5')?.textContent?.trim() ||
+                firstSection.querySelector('h6')?.textContent?.trim() ||
                 'Überblick';
         updateBreadcrumb(title);
         LOG.debug(MODULE, `Initial breadcrumb set to: ${title}`);
@@ -309,17 +278,22 @@
 
             updateActiveNavItem();
 
-            const section = document.querySelector(`[data-section="${sectionId}"]`);
+            // Nur Elemente im Hauptbereich werden untersucht, daher muss main vorangestellt werden, sonst kommt die Antwort aus dem nav-sidebar
+            const section = document.querySelector(`main [data-section="${sectionId}"]`);
             if (section) {
-                const title = section.dataset.title ||
-                section.querySelector('h2')?.textContent ||
+                // Robuste Titel-Ermittlung mit Fallback-Kette
+                const title = section.dataset.title?.trim() ||
+                section.querySelector('h2')?.textContent?.trim() ||
+                section.querySelector('h3')?.textContent?.trim() ||
+                section.querySelector('h4')?.textContent?.trim() ||
+                section.querySelector('h5')?.textContent?.trim() ||
+                section.querySelector('h6')?.textContent?.trim() ||
                 'Unbenannt';
-        updateBreadcrumb(title);
-            }
 
-            // Schließe Sidebar auf Mobile
-            if (window.innerWidth < 768) {
-                closeNavSidebar();
+                LOG.debug(MODULE, `Breadcrumb title: "${title}" for section: ${sectionId}`);
+                updateBreadcrumb(title);
+            } else {
+                LOG.warn(MODULE, `Section not found: ${sectionId}`);
             }
         });
 
@@ -348,12 +322,10 @@
 
     window.Navigation = {
         init: initNavigation,
- updateActiveNavItem: updateActiveNavItem,
- updateBreadcrumb: updateBreadcrumb,
- toggleSidebar: toggleNavSidebar,
- closeSidebar: closeNavSidebar,
- toggleMenu: toggleMenu,
- closeMenu: closeMenu
+        updateActiveNavItem: updateActiveNavItem,
+        updateBreadcrumb: updateBreadcrumb,
+        toggleMenu: toggleMenu,
+        closeMenu: closeMenu
     };
 
     LOG(MODULE, 'Navigation module loaded');

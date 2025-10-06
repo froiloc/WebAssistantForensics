@@ -19,8 +19,8 @@
 
         const entry = {
             id: sectionId,
- title: sectionTitle,
- timestamp: timestamp
+            title: sectionTitle,
+            timestamp: timestamp
         };
 
         if (STATE.history.length > 0) {
@@ -44,6 +44,10 @@
     }
 
     function clearHistory() {
+        if (!confirm('Verlauf wirklich löschen?')) {
+            return;
+        }
+
         STATE.history = [];
         saveHistoryToStorage();
         updateHistoryDisplay();
@@ -82,76 +86,41 @@
     }
 
     // ========================================================================
-    // UI - MODAL
+    // SIDEBAR
     // ========================================================================
 
-    function initHistoryModal() {
-        LOG(MODULE, 'Initializing history modal...');
+    function initHistorySidebar() {
+        // Registriere Shortcut bei SidebarManager
+        if (window.SidebarManager) {
+            const registered = window.SidebarManager.registerShortcut('history', 'h');
 
-        const openBtn = document.getElementById('show-history-btn');
-        const modal = document.getElementById('history-modal');
-        const closeBtn = document.getElementById('close-history-modal');
+            if (registered) {
+                LOG.success(MODULE, 'Shortcut Alt+h registered with SidebarManager');
+            } else {
+                LOG.warn(MODULE, 'Shortcut Alt+h already taken');
+            }
+        }
+
+        // Controls initialisieren
         const clearBtn = document.getElementById('clear-history-btn');
         const timeFormatBtn = document.getElementById('time-format-toggle');
 
-        LOG.debug(MODULE, 'Modal elements:', {
-            openBtn: !!openBtn,
-            modal: !!modal,
-            closeBtn: !!closeBtn,
+        LOG.debug(MODULE, 'Sidebar elements:', {
             clearBtn: !!clearBtn,
             timeFormatBtn: !!timeFormatBtn
         });
 
-        if (openBtn) {
-            openBtn.addEventListener('click', openHistoryModal);
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closeHistoryModal);
-        }
-
         if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (confirm('Verlauf wirklich löschen?')) {
-                    clearHistory();
-                }
-            });
-        }
-
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeHistoryModal();
-                }
-            });
+            clearBtn.addEventListener('click', clearHistory);
+            LOG.debug(MODULE, 'Clear button listener attached');
         }
 
         if (timeFormatBtn) {
             timeFormatBtn.addEventListener('click', toggleTimeFormat);
+            LOG.debug(MODULE, 'Time format toggle listener attached');
         }
 
-        LOG.success(MODULE, 'History modal initialized');
-    }
-
-    function openHistoryModal() {
-        const modal = document.getElementById('history-modal');
-
-        if (modal) {
-            modal.classList.add('show');
-            modal.setAttribute('aria-hidden', 'false');
-            updateHistoryDisplay();
-            LOG(MODULE, 'Modal opened');
-        }
-    }
-
-    function closeHistoryModal() {
-        const modal = document.getElementById('history-modal');
-
-        if (modal) {
-            modal.classList.remove('show');
-            modal.setAttribute('aria-hidden', 'true');
-            LOG(MODULE, 'Modal closed');
-        }
+        LOG.success(MODULE, 'History sidebar initialized');
     }
 
     function toggleTimeFormat() {
@@ -160,6 +129,14 @@
         : 'relative';
 
         LOG(MODULE, `Time format switched to: ${STATE.preferences.timeFormat}`);
+
+        // Button-Text aktualisieren
+        const btn = document.getElementById('time-format-toggle');
+        if (btn) {
+            btn.innerHTML = STATE.preferences.timeFormat === 'relative'
+            ? '🕐 Zeit: Relativ'
+            : '📅 Zeit: Absolut';
+        }
 
         updateHistoryDisplay();
 
@@ -206,7 +183,7 @@
             item.addEventListener('click', () => {
                 if (window.SectionManagement) {
                     window.SectionManagement.scrollToSection(entry.id);
-                    closeHistoryModal();
+
                     LOG(MODULE, `Navigating to: ${entry.id}`);
                 }
             });
@@ -227,12 +204,19 @@
         window.addEventListener('sectionActivated', (e) => {
             const { sectionId } = e.detail;
 
-            const section = document.querySelector(`[data-section="${sectionId}"]`);
+            // KRITISCH: main-Scope verwenden!
+            const section = document.querySelector(`main [data-section="${sectionId}"]`);
             if (section) {
                 const title = section.dataset.title ||
-                section.querySelector('h2')?.textContent ||
-                'Unbenannt';
-        addToHistory(sectionId, title);
+                    section.querySelector('h2')?.textContent?.trim() ||
+                    section.querySelector('h3')?.textContent?.trim() ||
+                    section.querySelector('h4')?.textContent?.trim() ||
+                    section.querySelector('h5')?.textContent?.trim() ||
+                    section.querySelector('h6')?.textContent?.trim() ||
+                    'Unbenannt';
+
+                LOG.debug(MODULE, `Section title extracted: "${title}" for ${sectionId}`);
+                addToHistory(sectionId, title);
             }
         });
 
@@ -247,8 +231,9 @@
         LOG(MODULE, 'Initializing history module...');
 
         loadHistoryFromStorage();
-        initHistoryModal();
+        initHistorySidebar();
         initHistoryListeners();
+        updateHistoryDisplay();
 
         LOG.success(MODULE, 'History module initialized');
     }
@@ -259,10 +244,8 @@
 
     window.History = {
         init: initHistory,
- add: addToHistory,
- clear: clearHistory,
- open: openHistoryModal,
- close: closeHistoryModal
+        add: addToHistory,
+        clear: clearHistory
     };
 
     LOG(MODULE, 'History module loaded');
