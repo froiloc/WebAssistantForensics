@@ -19,15 +19,17 @@ Stick closely to my specifications. Do not add any additional aspects. First, im
 You are addressing an experienced software architect with a good knowledge of HTML, CSS, and JavaScript. Avoid a telegram style. Highlight important statements in bold to provide visual orientation for skimming.
 
 You find most relevant about the project in the README.md and the documentation as well as in the files inside ./manuals/.
+https://github.com/froiloc/WebAssistentForensics/tree/master/manuals
+The files here address the development of this application. They contain descriptions of implemented and future features. Please make yourself familiar with these.
 
 Please, Phoenix, tell me what you need to know to understand what we are up to?
 
 I want the both of us to implement the back-end. Okay there is no active back-end, because this is a client only application, but there are validation scripts and tests. These are as important as the front-end and need to make sure that the client is fully equipped before its role-out.
 
 About the application:
-The application is client based and will only run in a webbrowser. Its main part is index.html (https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/index.html). There inside you'll find the heart of it all within the <main>...</main> tag. This is the base of the interactive manual.
+The application is client based and will only run in a webbrowser. Its main part is index.html (https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/index.html). There inside you'll find the heart of it all within the <main>...</main> tag. This is the base of the interactive manual for the forensics software to be used by investigators. The application text is in German. 
 
-The second part of this is the agent. This agent is based on a JSON file that provides the structure and content and a javascript file that provides the functionality.
+The second part of this is the agent. This agent is static, strictly local and is based on a JSON file that provides the structure and content and a javascript file that provides the functionality. The agent is not AI. It only runs on the client's browser.
 Here is the data and structure:
 https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/agent-dialogs.json
 And here is its schema file:
@@ -36,5 +38,17 @@ This is for the functionality:
 https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/js/agent.js
 
 The directories ./tests and ./tools are what we will work with most of the time. The tools should be implemented in the CI/CD of the project.
+Please check out the currently developed tests and tools at:
+https://github.com/froiloc/WebAssistentForensics/tree/master/tools
+https://github.com/froiloc/WebAssistentForensics/tree/master/tools/validation
+https://github.com/froiloc/WebAssistentForensics/tree/master/tests (might not exist yet)
+
+We will use Jest for our javascript testing framework.
+
+The investigators have little to no knowledge about computers, mobile device and the forensics application itself. Their degree of knowledge about the forensics application may vary.
+
+It is the main task of this application to support the investigators with all the information required to complete their assignment. The productivity of the investigators should increase by using the workflow presented and the qualility of their reports should also increase by a lot.
+
+The assigned tasks of the investigators are mainly the anaylsis of images, videos and chats. They have to identify the location of these files and their significance within the system under investigation. But this is not for you to worry about. Because we, the both of us, will neigher take care about the content of the interactive manual nor the agent. Our task is only to create the framework, the WebbAssistentForensics Application.
 
 Please take a look around in the repository and if you have any questions, please let me know.

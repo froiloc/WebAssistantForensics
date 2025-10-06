@@ -279,13 +279,13 @@
     function getPersistedState() {
         return {
             preferences: _state.preferences,
- history: {
-     entries: _state.history.entries
- },
- notes: {
-     content: _state.notes.content,
- lastSaved: _state.notes.lastSaved
- }
+            history: {
+                entries: _state.history.entries
+            },
+            notes: {
+                content: _state.notes.content,
+            lastSaved: _state.notes.lastSaved
+            }
         };
     }
 
@@ -494,51 +494,51 @@
         _state = {
             ui: {
                 sidebarOpen: false,
- sidebarsOpen: [],
- activeSidebarTab: null,
- notesOpen: false,
- tipsVisible: true,
- menuOpen: false
-            },
- preferences: {
-     theme: 'system',
-     detailLevel: 'bestpractice',
-     timeFormat: 'relative',
-     showTips: true,
-     autoSaveNotes: true,
-     sidebarsOpen: ['navigation'],
-     activeSidebarTab: 'navigation'
- },
- sections: {
-     currentActive: 'intro',
-     allSections: [],
-     lastNavigationTime: 0,
-     lastNavigatedSection: null,
-     lastSectionChangeTime: 0,
-     lastChangedToSection: null
- },
- scroll: {
-     lastScrollY: 0,
-     lastDirection: 'down',
-     userIsScrolling: false,
-     scrollTimeout: null,
-     isProcessingIntersection: false,
-     isProcessingScroll: false,
-     lastScrollIntentionTime: 0,
-     scrollCallCounter: 0
- },
- history: {
-     entries: [],
-     maxLength: MAX_HISTORY_LENGTH
- },
- notes: {
-     content: '',
-     lastSaved: null,
-     saveTimer: null
- },
- observers: {
-     focusObserver: null
- }
+                sidebarsOpen: [],
+                activeSidebarTab: null,
+                notesOpen: false,
+                tipsVisible: true,
+                menuOpen: false
+                            },
+                preferences: {
+                    theme: 'system',
+                    detailLevel: 'bestpractice',
+                    timeFormat: 'relative',
+                    showTips: true,
+                    autoSaveNotes: true,
+                    sidebarsOpen: ['navigation'],
+                    activeSidebarTab: 'navigation'
+                },
+                sections: {
+                    currentActive: 'intro',
+                    allSections: [],
+                    lastNavigationTime: 0,
+                    lastNavigatedSection: null,
+                    lastSectionChangeTime: 0,
+                    lastChangedToSection: null
+                },
+                scroll: {
+                    lastScrollY: 0,
+                    lastDirection: 'down',
+                    userIsScrolling: false,
+                    scrollTimeout: null,
+                    isProcessingIntersection: false,
+                    isProcessingScroll: false,
+                    lastScrollIntentionTime: 0,
+                    scrollCallCounter: 0
+                },
+                history: {
+                    entries: [],
+                    maxLength: MAX_HISTORY_LENGTH
+                },
+                notes: {
+                    content: '',
+                    lastSaved: null,
+                    saveTimer: null
+                },
+                observers: {
+                    focusObserver: null
+                }
         };
 
         // localStorage löschen
@@ -607,8 +607,8 @@
             // Debug-Funktionen (nur wenn debugMode aktiv)
             _debug: window.BUILD_INFO?.debugMode ? {
                 getState: () => deepClone(_state),
- getObservers: () => Object.keys(_observers),
- clearStorage: clearStorage
+                getObservers: () => Object.keys(_observers),
+                clearStorage: clearStorage
             } : undefined
         };
 

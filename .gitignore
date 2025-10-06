@@ -21,3 +21,5 @@ src/index.html.backup
 src/index.test.html
 
 node_modules
+
+tools/validation/__pycache__

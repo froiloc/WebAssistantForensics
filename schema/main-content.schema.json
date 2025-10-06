@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/froiloc/WebAssistentForensics/schema/main-content.schema.json",
+  "title": "WebAssistentForensics Main Content Structure",
+  "description": "Schema for validating the structure and semantics of content within index.html <main> section - Focused on semantic HTML and meaningful accessibility",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "language": {"type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$"}
+      },
+      "required": ["title", "language"]
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "level": {"type": "integer", "minimum": 1, "maximum": 6},
+          "content": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {"$ref": "#/definitions/textBlock"},
+                {"$ref": "#/definitions/detailLevel"},
+                {"$ref": "#/definitions/listBlock"},
+                {"$ref": "#/definitions/interactiveElement"}
+              ]
+            }
+          }
+        },
+        "required": ["id", "title", "level", "content"]
+      }
+    }
+  },
+  "required": ["metadata", "sections"],
+  "definitions": {
+    "textBlock": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "text"},
+        "content": {"type": "string", "minLength": 1}
+      },
+      "required": ["type", "content"]
+    },
+    "detailLevel": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "detail-level"},
+        "level": {"type": "integer", "minimum": 1, "maximum": 3},
+        "content": {"type": "string", "minLength": 1},
+        "children": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {"$ref": "#/definitions/textBlock"},
+              {"$ref": "#/definitions/detailLevel"},
+              {"$ref": "#/definitions/listBlock"},
+              {"$ref": "#/definitions/interactiveElement"}
+            ]
+          }
+        }
+      },
+      "required": ["type", "level", "content", "children"]
+    },
+    "listBlock": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "list"},
+        "listType": {"enum": ["ul", "ol"]},
+        "items": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "required": ["type", "listType", "items"]
+    },
+    "interactiveElement": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "interactive"},
+        "role": {"type": "string", "minLength": 1},
+        "ariaLabel": {"type": "string", "minLength": 1},
+        "content": {"type": "string", "minLength": 1}
+      },
+      "required": ["type", "role", "ariaLabel", "content"]
+    }
+  }
+}
