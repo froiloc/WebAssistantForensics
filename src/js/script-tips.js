@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'TIPS';
 
@@ -83,7 +82,7 @@
     function showNextTipManual() {
         showNextTip();
 
-        if (STATE.preferences.showTips) {
+        if (window.StateManager.get('preferences.showTips')) {
             startTipRotation();
         }
 
@@ -94,7 +93,7 @@
         currentTipIndex = (currentTipIndex - 1 + tips.length) % tips.length;
         showCurrentTip();
 
-        if (STATE.preferences.showTips) {
+        if (window.StateManager.get('preferences.showTips')) {
             startTipRotation();
         }
 
@@ -147,7 +146,7 @@
     }
 
     function applyTipsPreference() {
-        const shouldShow = STATE.preferences.showTips;
+        const shouldShow = window.StateManager.get('preferences.showTips');
 
         LOG(MODULE, `Applying tips preference: showTips=${shouldShow}`);
 
@@ -178,9 +177,6 @@
 
             if (window.StateManager) {
                 window.StateManager.set('preferences.showTips', true);
-            } else {
-                STATE.preferences.showTips = true;
-                window.Preferences?.save();
             }
         }
     }
@@ -204,15 +200,12 @@
 
             if (window.StateManager) {
                 window.StateManager.set('preferences.showTips', false);
-            } else {
-                STATE.preferences.showTips = false;
-                window.Preferences?.save();
             }
         }
     }
 
     function toggleTipsFooter() {
-        if (STATE.preferences.showTips) {
+        if (window.StateManager.get('preferences.showTips')) {
             hideTipsFooter();
         } else {
             showTipsFooter();

@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'SIDEBAR-MGR';
 
@@ -63,11 +62,6 @@
                 currentOpen.push(sidebarName);
                 window.StateManager.set('ui.sidebarsOpen', currentOpen);
             }
-        } else {
-            STATE.activeSidebarTab = sidebarName;
-            if (!STATE.sidebarsOpen.includes(sidebarName)) {
-                STATE.sidebarsOpen.push(sidebarName);
-            }
         }
 
         saveSidebarPreferences();
@@ -99,17 +93,12 @@
             sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
             sidebarsOpen = sidebarsOpen.filter(s => s !== sidebarName);
             window.StateManager.set('ui.sidebarsOpen', sidebarsOpen);
-        } else {
-            STATE.sidebarsOpen = STATE.sidebarsOpen.filter(s => s !== sidebarName);
-            sidebarsOpen = STATE.sidebarsOpen;
         }
 
         if (sidebarsOpen.length === 0) {
             container.classList.remove('open');
             if (window.StateManager) {
                 window.StateManager.set('ui.activeSidebarTab', null);
-            } else {
-                STATE.activeSidebarTab = null;
             }
             LOG(MODULE, 'All sidebars closed, container hidden');
         } else {
@@ -120,8 +109,6 @@
                 firstSidebar.style.display = 'flex';
                 if (window.StateManager) {
                     window.StateManager.set('ui.activeSidebarTab', firstRemaining);
-                } else {
-                    STATE.activeSidebarTab = firstRemaining;
                 }
                 LOG(MODULE, `Auto-activated remaining sidebar: ${firstRemaining}`);
             }
@@ -149,9 +136,6 @@
         if (window.StateManager) {
             window.StateManager.set('ui.sidebarsOpen', []);
             window.StateManager.set('ui.activeSidebarTab', null);
-        } else {
-            STATE.sidebarsOpen = [];
-            STATE.activeSidebarTab = null;
         }
 
         saveSidebarPreferences();
@@ -168,9 +152,7 @@
         if (!sidebar) return;
 
         const isActive = sidebar.classList.contains('active');
-        const sidebarsOpen = window.StateManager
-            ? window.StateManager.get('ui.sidebarsOpen') || []
-            : STATE.sidebarsOpen;
+        const sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
         const isInContainer = sidebarsOpen.includes(sidebarName);
 
         if (isActive) {
@@ -187,12 +169,8 @@
 
     function activateNextSidebar() {
         // StateManager für Lesezugriffe verwenden
-        const sidebarsOpen = window.StateManager
-            ? window.StateManager.get('ui.sidebarsOpen') || []
-            : STATE.sidebarsOpen;
-        const activeSidebarTab = window.StateManager
-            ? window.StateManager.get('ui.activeSidebarTab')
-            : STATE.activeSidebarTab;
+        const sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
+        const activeSidebarTab = window.StateManager.get('ui.activeSidebarTab');
 
         LOG.debug(MODULE, `🔍 activateNextSidebar called:`);
         LOG.debug(MODULE, `  - sidebarsOpen: [${sidebarsOpen.join(', ')}] (length: ${sidebarsOpen.length})`);
@@ -268,13 +246,9 @@
         LOG(MODULE, 'Loading sidebar states from StateManager...');
 
         // Preferences aus StateManager holen (oder Fallback auf STATE)
-        const sidebarsOpen = window.StateManager
-            ? window.StateManager.get('preferences.sidebarsOpen')
-            : (STATE.preferences?.sidebarsOpen || []);
+        const sidebarsOpen = window.StateManager.get('preferences.sidebarsOpen');
 
-        const activeSidebarTab = window.StateManager
-            ? window.StateManager.get('preferences.activeSidebarTab')
-            : (STATE.preferences?.activeSidebarTab || null);
+        const activeSidebarTab = window.StateManager.get('preferences.activeSidebarTab');
 
         LOG.debug(MODULE, `Loading: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
 
@@ -290,15 +264,6 @@
                 });
 
                 window.StateManager.set('ui.sidebarsOpen', currentOpen);
-            } else {
-                if (!STATE.sidebarsOpen) {
-                    STATE.sidebarsOpen = [];
-                }
-                sidebarsOpen.forEach(sidebarName => {
-                    if (!STATE.sidebarsOpen.includes(sidebarName)) {
-                        STATE.sidebarsOpen.push(sidebarName);
-                    }
-                });
             }
 
             // Schritt 2: Nur die aktive Sidebar aktivieren (mit deactivateAllSidebars)
@@ -309,9 +274,7 @@
 
             // Schritt 3: Container öffnen
             const container = document.getElementById('sidebar-container');
-            const currentSidebarsOpen = window.StateManager
-                ? window.StateManager.get('ui.sidebarsOpen') || []
-                : (STATE.sidebarsOpen || []);
+            const currentSidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
 
             if (currentSidebarsOpen.length > 0) {
                 container.classList.add('open');

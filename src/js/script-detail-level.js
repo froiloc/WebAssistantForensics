@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const MODULE = 'DETAIL';
 
     // Mapping zwischen numerischen Werten und Level-Namen
@@ -39,25 +38,17 @@
             return;
         }
 
-        const oldLevel = STATE.preferences.detailLevel;
-        STATE.preferences.detailLevel = normalizedLevel;
-
-        LOG(MODULE, `Detail level changed: ${oldLevel} → ${normalizedLevel} (from input: ${level})`);
-
         updateDetailVisibility();
         updateInfoText(normalizedLevel);
         updateActiveButton(normalizedLevel);
 
         if (window.StateManager) {
             window.StateManager.set('preferences.detailLevel', level);
-        } else {
-            STATE.preferences.detailLevel = level;
-            window.Preferences?.save();
         }
     }
 
     function updateDetailVisibility() {
-        const level = STATE.preferences.detailLevel;
+        const level = window.StateManager.get('preferences.detailLevel');
         const currentLevel = LEVEL_MAP[level]
 
         const level1Elements = document.querySelectorAll('.detail-level-1');
@@ -164,7 +155,7 @@
         });
 
         // Wende initialen Level aus Preferences an
-        const initialLevel = STATE.preferences.detailLevel;
+        const initialLevel = window.StateManager.get('preferences.detailLevel');
         LOG(MODULE, `Applying initial detail level: ${initialLevel}`);
 
         updateDetailVisibility();
@@ -184,7 +175,7 @@
         // Reagiere auf Preferences-Loaded Event
         window.addEventListener('preferencesLoaded', () => {
             LOG(MODULE, 'Preferences loaded event received');
-            const level = STATE.preferences.detailLevel;
+            const level = window.StateManager.get('preferences.detailLevel');
             LOG(MODULE, `Applying loaded detail level: ${level}`);
 
             updateDetailVisibility();
@@ -194,7 +185,7 @@
 
         window.addEventListener('preferencesReset', () => {
             LOG(MODULE, 'Preferences reset event received');
-            const level = STATE.preferences.detailLevel;
+            const level = window.StateManager.get('preferences.detailLevel');
 
             updateDetailVisibility();
             updateInfoText(level);

@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-CORE.JS - Version 067
+// SCRIPT-CORE.JS - Version 068
 // Basis-Funktionen, globale Variablen und Logging-System
 // ============================================================================
 
@@ -8,8 +8,8 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '067',
-    buildDate: '2025-10-06', // 4. Oktober 2025
+    version: '068',
+    buildDate: '2025-10-07', // 7. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };
 
@@ -215,50 +215,6 @@ window.LOG.group = function(module, title) {
 window.LOG.groupEnd = function() {
     if (!window.BUILD_INFO.debugMode) return;
     console.groupEnd();
-};
-
-// ============================================================================
-// GLOBALE VARIABLEN - Shared State
-// WIRD VOM STATE MANAGER GEPROXIED - Struktur muss kompatibel sein!
-// ============================================================================
-
-window.APP_STATE = {
-    // Section Management (direkt auf Root für Kompatibilität)
-    currentActiveSection: 'intro',
-    lastNavigationTime: 0,
-    lastNavigatedSection: null,
-    lastSectionChangeTime: 0,
-    lastChangedToSection: null,
-
-    // Scroll State (direkt auf Root für Kompatibilität)
-    lastScrollY: 0,
-    lastDirection: 'down',
-    userIsScrolling: false,
-    scrollTimeout: null,
-    isProcessingIntersection: false,
-    isProcessingScroll: false,
-    lastScrollIntentionTime: 0,
-    focusObserver: null,
-    scrollCallCounter: 0,
-
-    // UI State (direkt auf Root für Legacy-Kompatibilität)
-    sidebarsOpen: [],  // Array: ['navigation', 'history']
-    activeSidebarTab: null,  // 'navigation' | 'history' | 'favorites'
-
-    // Preferences (verschachtelt - wird vom StateManager verwaltet)
-    preferences: {
-        detailLevel: 'bestpractice',
-        timeFormat: 'relative',
-        showTips: true,
-        autoSaveNotes: true,
-        sidebarsOpen: ['navigation'],  // Default: Navigation offen
-        activeSidebarTab: 'navigation'
-    },
-
-    // History & Notes (direkt auf Root für Kompatibilität)
-    history: [],
-    notesContent: '',
-    notesSaveTimer: null
 };
 
 // ============================================================================

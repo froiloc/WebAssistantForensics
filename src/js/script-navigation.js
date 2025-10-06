@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const MODULE = 'NAV';
 
     // ========================================================================
@@ -60,9 +59,7 @@
             `;
 
             // Initial aktive Section aus StateManager holen
-            const currentActive = window.StateManager
-                ? window.StateManager.get('sections.currentActive')
-                : STATE.currentActiveSection;
+            const currentActive = window.StateManager.get('sections.currentActive');
 
             if (sectionId === currentActive) {
                 navItem.classList.add('active');
@@ -92,9 +89,7 @@
         });
 
         // Aktive Section aus StateManager holen (KORRIGIERT!)
-        const currentActive = window.StateManager
-            ? window.StateManager.get('sections.currentActive')
-            : STATE.currentActiveSection;
+        const currentActive = window.StateManager.get('sections.currentActive');
 
         // Entsprechendes nav-item aktivieren
         const activeItem = document.querySelector(`.nav-item[data-section="${currentActive}"]`);

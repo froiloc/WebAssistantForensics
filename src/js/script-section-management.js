@@ -7,7 +7,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'SECTION';
 
@@ -39,8 +38,6 @@
             // Nur den Section-Namen (String) im StateManager speichern
             if (window.StateManager) {
                 window.StateManager.set('sections.currentActive', initialSection);
-            } else {
-                STATE.currentActiveSection = initialSection;
             }
 
             allSections[0].classList.add('active');
@@ -114,27 +111,14 @@
                     window.StateManager.set('scroll.userIsScrolling', false);
                 }, 200);
                 window.StateManager.set('scroll.scrollTimeout', timeoutId);
-            } else {
-                // Fallback für Legacy
-                STATE.userIsScrolling = true;
-                if (STATE.scrollTimeout) {
-                    clearTimeout(STATE.scrollTimeout);
-                }
-                STATE.scrollTimeout = setTimeout(() => {
-                    STATE.userIsScrolling = false;
-                }, 200);
             }
 
             // isProcessingScroll Check und Update
-            const isProcessing = window.StateManager
-                ? window.StateManager.get('scroll.isProcessingScroll')
-                : STATE.isProcessingScroll;
+            const isProcessing = window.StateManager.get('scroll.isProcessingScroll');
 
             if (!isProcessing) {
                 if (window.StateManager) {
                     window.StateManager.set('scroll.isProcessingScroll', true);
-                } else {
-                    STATE.isProcessingScroll = true;
                 }
 
                 updateActiveSectionFromScroll();
@@ -142,8 +126,6 @@
                 setTimeout(() => {
                     if (window.StateManager) {
                         window.StateManager.set('scroll.isProcessingScroll', false);
-                    } else {
-                        STATE.isProcessingScroll = false;
                     }
                 }, 50);
             }
@@ -161,9 +143,7 @@
         const timestamp = Date.now();
 
         // StateManager verwenden für lastScrollIntentionTime
-        const lastIntentionTime = window.StateManager
-            ? window.StateManager.get('scroll.lastScrollIntentionTime') || 0
-            : STATE.lastScrollIntentionTime;
+        const lastIntentionTime = window.StateManager.get('scroll.lastScrollIntentionTime') || 0;
 
         if (timestamp - lastIntentionTime < CONST.SCROLL_INTENTION_COOLDOWN) {
             return;
@@ -171,8 +151,6 @@
 
         if (window.StateManager) {
             window.StateManager.set('scroll.lastScrollIntentionTime', timestamp);
-        } else {
-            STATE.lastScrollIntentionTime = timestamp;
         }
 
         const scrollY = window.scrollY;
@@ -192,9 +170,7 @@
     }
 
     function handleEndScroll(direction) {
-        const currentActive = window.StateManager
-            ? window.StateManager.get('sections.currentActive')
-            : STATE.currentActiveSection;
+        const currentActive = window.StateManager.get('sections.currentActive');
 
         const currentActiveIndex = allSections.findIndex(
             s => s.dataset.section === currentActive
@@ -218,15 +194,11 @@
 
     function updateActiveSectionFromScroll() {
         // scrollCallCounter über StateManager
-        const currentCounter = window.StateManager
-            ? window.StateManager.get('scroll.scrollCallCounter')
-            : STATE.scrollCallCounter;
+        const currentCounter = window.StateManager.get('scroll.scrollCallCounter');
         const callId = (currentCounter || 0) + 1;
 
         if (window.StateManager) {
             window.StateManager.set('scroll.scrollCallCounter', callId);
-        } else {
-            STATE.scrollCallCounter = callId;
         }
 
         LOG.separator(MODULE, `Scroll Event #${callId}`);
@@ -238,9 +210,7 @@
 
         if (winner && winner.id !== currentActive) {
             const timestamp = Date.now();
-            const lastChangeTime = window.StateManager
-                ? window.StateManager.get('sections.lastSectionChangeTime') || 0
-                : STATE.lastSectionChangeTime;
+            const lastChangeTime =  window.StateManager.get('sections.lastSectionChangeTime') || 0;
             const timeSinceLastChange = timestamp - lastChangeTime;
 
             if (timeSinceLastChange < CONST.SECTION_CHANGE_COOLDOWN) {
@@ -417,23 +387,16 @@
 
         // DIRECTION LOCK - MIGRIERT
         const scrollY = window.scrollY;
-        const lastScrollY = window.StateManager
-            ? window.StateManager.get('scroll.lastScrollY') || 0
-            : STATE.lastScrollY;
+        const lastScrollY = window.StateManager.get('scroll.lastScrollY') || 0;
         const scrollDelta = scrollY - lastScrollY;
 
-        const lastDirection = window.StateManager
-            ? window.StateManager.get('scroll.lastDirection') || 'down'
-            : STATE.lastDirection;
+        const lastDirection = window.StateManager.get('scroll.lastDirection') || 'down';
         const direction = scrollDelta > 0 ? 'down' : (scrollDelta < 0 ? 'up' : lastDirection);
 
         // StateManager verwenden
         if (window.StateManager) {
             window.StateManager.set('scroll.lastScrollY', scrollY);
             window.StateManager.set('scroll.lastDirection', direction);
-        } else {
-            STATE.lastScrollY = scrollY;
-            STATE.lastDirection = direction;
         }
 
         const currentActive = getCurrentActiveSection();
@@ -501,10 +464,6 @@
             window.StateManager.set('sections.currentActive', sectionId);
             window.StateManager.set('sections.lastSectionChangeTime', timestamp);
             window.StateManager.set('sections.lastChangedToSection', sectionId);
-        } else {
-            STATE.currentActiveSection = sectionId;
-            STATE.lastSectionChangeTime = timestamp;
-            STATE.lastChangedToSection = sectionId;
         }
 
         window.dispatchEvent(new CustomEvent('sectionActivated', {
@@ -528,9 +487,6 @@
         if (window.StateManager) {
             window.StateManager.set('sections.lastNavigatedSection', sectionId);
             window.StateManager.set('sections.lastNavigationTime', Date.now());
-        } else {
-            STATE.lastNavigatedSection = sectionId;
-            STATE.lastNavigationTime = Date.now();
         }
 
         const rect = targetSection.getBoundingClientRect();
@@ -568,8 +524,6 @@
         // Wird im StateManager unter observers.focusObserver gespeichert (nicht persistiert)
         if (window.StateManager) {
             window.StateManager.set('observers.focusObserver', observer);
-        } else {
-            STATE.focusObserver = observer;
         }
 
         // DOM-Elemente sind in STATE
@@ -584,9 +538,7 @@
         const timestamp = Date.now();
 
         // isProcessingIntersection über StateManager
-        const isProcessing = window.StateManager
-            ? window.StateManager.get('scroll.isProcessingIntersection')
-            : STATE.isProcessingIntersection;
+        const isProcessing = window.StateManager.get('scroll.isProcessingIntersection');
 
         if (isProcessing) {
             return;
@@ -595,8 +547,6 @@
         // StateManager verwenden
         if (window.StateManager) {
             window.StateManager.set('scroll.isProcessingIntersection', true);
-        } else {
-            STATE.isProcessingIntersection = true;
         }
 
         try {
@@ -609,15 +559,11 @@
             const isAtBottom = scrollY + viewportHeight >= documentHeight - 10;
 
             // lastNavigationTime über StateManager
-            const lastNavTime = window.StateManager
-                ? window.StateManager.get('sections.lastNavigationTime') || 0
-                : STATE.lastNavigationTime;
+            const lastNavTime = window.StateManager.get('sections.lastNavigationTime') || 0;
             const navigationPriorityActive = timestamp - lastNavTime < CONST.NAVIGATION_PRIORITY_DURATION;
 
             // lastNavigatedSection über StateManager
-            const lastNavSection = window.StateManager
-                ? window.StateManager.get('sections.lastNavigatedSection')
-                : STATE.lastNavigatedSection;
+            const lastNavSection = window.StateManager.get('sections.lastNavigatedSection');
 
             entries.forEach(entry => {
                 const sectionId = entry.target.dataset.section;
@@ -634,8 +580,6 @@
             setTimeout(() => {
                 if (window.StateManager) {
                     window.StateManager.set('scroll.isProcessingIntersection', false);
-                } else {
-                    STATE.isProcessingIntersection = false;
                 }
             }, 100);
         }
@@ -646,9 +590,7 @@
     // ========================================================================
 
     function getCurrentActiveSection() {
-        return window.StateManager
-            ? window.StateManager.get('sections.currentActive')
-            : STATE.currentActiveSection;
+        return window.StateManager.get('sections.currentActive');
     }
 
     // ========================================================================

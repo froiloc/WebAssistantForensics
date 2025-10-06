@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'NOTES';
 
@@ -16,9 +15,7 @@
 
     function autoSaveNotes() {
         // Timer aus StateManager holen (oder Fallback)
-        const saveTimer = window.StateManager
-        ? window.StateManager.get('notes.saveTimer')
-        : STATE.notesSaveTimer;
+        const saveTimer = window.StateManager.get('notes.saveTimer');
 
         if (saveTimer) {
             clearTimeout(saveTimer);
@@ -36,8 +33,6 @@
         // Timer in StateManager speichern (oder Fallback)
         if (window.StateManager) {
             window.StateManager.set('notes.saveTimer', newTimer);
-        } else {
-            STATE.notesSaveTimer = newTimer;
         }
     }
 
@@ -47,15 +42,6 @@
             window.StateManager.set('notes.content', content);
             window.StateManager.set('notes.lastSaved', Date.now());
             LOG.debug(MODULE, `Saved ${content.length} characters via StateManager`);
-        } else {
-            // Legacy-Fallback
-            STATE.notesContent = content;
-            try {
-                localStorage.setItem(CONST.STORAGE_KEYS.NOTES, content);
-                LOG.debug(MODULE, `Saved ${content.length} characters to storage (legacy)`);
-            } catch (e) {
-                LOG.error(MODULE, 'Failed to save notes', e);
-            }
         }
     }
 
@@ -63,16 +49,9 @@
         LOG(MODULE, 'Loading notes...');
 
         // Aus StateManager laden (oder Legacy-Fallback)
-        const stored = window.StateManager
-        ? window.StateManager.get('notes.content')
-        : localStorage.getItem(CONST.STORAGE_KEYS.NOTES);
+        const stored = window.StateManager.get('notes.content');
 
         if (stored) {
-            if (!window.StateManager) {
-                // Nur bei Legacy direkt in STATE schreiben
-                STATE.notesContent = stored;
-            }
-
             LOG.success(MODULE, `Loaded ${stored.length} characters`);
 
             const textarea = document.getElementById('notes-textarea');
@@ -98,9 +77,6 @@
         if (window.StateManager) {
             window.StateManager.set('notes.content', '');
             window.StateManager.set('notes.lastSaved', Date.now());
-        } else {
-            STATE.notesContent = '';
-            saveNotesToStorage('');
         }
 
         LOG(MODULE, 'Notes cleared');
@@ -142,9 +118,7 @@
         // Auto-Save bei Eingabe
         if (textarea) {
             // Preferences aus StateManager holen
-            const autoSave = window.StateManager
-            ? window.StateManager.get('preferences.autoSaveNotes')
-            : STATE.preferences.autoSaveNotes;
+            const autoSave = window.StateManager.get('preferences.autoSaveNotes');
 
             if (autoSave) {
                 textarea.addEventListener('input', autoSaveNotes);
@@ -168,8 +142,6 @@
             // Status in StateManager speichern (oder Fallback)
             if (window.StateManager) {
                 window.StateManager.set('ui.notesOpen', false);
-            } else {
-                STATE.notesOpen = false;
             }
 
             LOG(MODULE, 'Notes sidebar closed');
@@ -180,8 +152,6 @@
             // Status in StateManager speichern (oder Fallback)
             if (window.StateManager) {
                 window.StateManager.set('ui.notesOpen', true);
-            } else {
-                STATE.notesOpen = true;
             }
 
             LOG(MODULE, 'Notes sidebar opened');
@@ -200,9 +170,7 @@
 
     function exportNotes() {
         // Notizen aus StateManager holen
-        const content = window.StateManager
-        ? window.StateManager.get('notes.content')
-        : STATE.notesContent;
+        const content = window.StateManager.get('notes.content');
 
         if (!content || content.trim() === '') {
             alert('Keine Notizen zum Exportieren vorhanden');

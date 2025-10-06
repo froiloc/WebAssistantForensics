@@ -1,12 +1,11 @@
 // ============================================================================
-// SCRIPT-HISTORY.JS - Version 058 (StateManager Migration)
+// SCRIPT-HISTORY.JS - Version 68
 // Section-History Tracking mit StateManager-Integration
 // ============================================================================
 
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'HISTORY';
 
@@ -19,40 +18,36 @@
     const MIN_DWELL_TIME = 5000; // 5 Sekunden
 
     function addToHistory(sectionId) {
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available!');
+            return;
+        }
+
         const timestamp = Date.now();
 
-        // History aus StateManager holen (oder Fallback)
-        const history = window.StateManager
-        ? window.StateManager.get('history.entries')
-        : STATE.history;
+        // History aus StateManager holen
+        const history = window.StateManager.get('history.entries') || [];
 
         // Section-Titel holen
         const sectionTitle = getSectionTitle(sectionId);
 
         const entry = {
             sectionId: sectionId,
- title: sectionTitle,
- timestamp: timestamp
+            title: sectionTitle,
+            timestamp: timestamp
         };
 
         history.push(entry);
 
         // Max-Length einhalten
-        const maxLength = window.StateManager
-        ? window.StateManager.get('history.maxLength')
-        : 50;
+        const maxLength = window.StateManager.get('history.maxLength') || 50;
 
         if (history.length > maxLength) {
             history.shift();
         }
 
-        // Zurück in StateManager schreiben (oder Fallback)
-        if (window.StateManager) {
-            window.StateManager.set('history.entries', history);
-        } else {
-            STATE.history = history;
-            saveHistoryToStorage();
-        }
+        // Zurück in StateManager schreiben
+        window.StateManager.set('history.entries', history);
 
         LOG.debug(MODULE, `Added to history: ${sectionId} (${history.length} entries)`);
 
@@ -64,67 +59,32 @@
             return;
         }
 
-        // StateManager verwenden
-        if (window.StateManager) {
-            window.StateManager.set('history.entries', []);
-        } else {
-            STATE.history = [];
-            saveHistoryToStorage();
-        }
-
-        updateHistoryDisplay();
-        LOG(MODULE, 'History cleared');
-    }
-
-    // ========================================================================
-    // STORAGE (Legacy-Fallback für Nicht-StateManager-Umgebungen)
-    // ========================================================================
-
-    function saveHistoryToStorage() {
-        // Nur noch Fallback - StateManager übernimmt normalerweise
-        if (window.StateManager) {
-            LOG.debug(MODULE, 'StateManager handles saving automatically');
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available!');
             return;
         }
 
-        try {
-            localStorage.setItem(
-                CONST.STORAGE_KEYS.HISTORY,
-                JSON.stringify(STATE.history)
-            );
-            LOG.debug(MODULE, `Saved ${STATE.history.length} entries to storage (legacy)`);
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to save to localStorage', e);
-        }
+        window.StateManager.set('history.entries', []);
+        updateHistoryDisplay();
+
+        LOG(MODULE, '✓ History cleared');
     }
 
     function loadHistoryFromStorage() {
         LOG(MODULE, 'Loading history...');
 
-        // Aus StateManager laden (oder Legacy-Fallback)
-        const stored = window.StateManager
-        ? window.StateManager.get('history.entries')
-        : (function() {
-            try {
-                const s = localStorage.getItem(CONST.STORAGE_KEYS.HISTORY);
-                return s ? JSON.parse(s) : null;
-            } catch (e) {
-                LOG.error(MODULE, 'Failed to load from localStorage', e);
-                return null;
-            }
-        })();
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available!');
+            return;
+        }
+
+        // StateManager hat bereits beim Init aus localStorage geladen
+        const stored = window.StateManager.get('history.entries');
 
         if (stored && Array.isArray(stored)) {
-            if (!window.StateManager) {
-                // Nur bei Fallback direkt in STATE schreiben
-                STATE.history = stored;
-            }
-            LOG.success(MODULE, `Loaded ${stored.length} entries`);
+            LOG.success(MODULE, `✓ Loaded ${stored.length} entries`);
         } else {
             LOG.debug(MODULE, 'No stored history found');
-            if (!window.StateManager) {
-                STATE.history = [];
-            }
         }
     }
 
@@ -168,20 +128,13 @@
 
     function toggleTimeFormat() {
         // Preferences aus StateManager holen
-        const currentFormat = window.StateManager
-        ? window.StateManager.get('preferences.timeFormat')
-        : STATE.preferences.timeFormat;
+        const currentFormat = window.StateManager.get('preferences.timeFormat');
 
         const newFormat = currentFormat === 'relative' ? 'absolute' : 'relative';
 
         // In StateManager speichern (oder Fallback)
         if (window.StateManager) {
             window.StateManager.set('preferences.timeFormat', newFormat);
-        } else {
-            STATE.preferences.timeFormat = newFormat;
-            if (window.Preferences) {
-                window.Preferences.save();
-            }
         }
 
         updateHistoryDisplay();
@@ -199,13 +152,9 @@
         }
 
         // History aus StateManager holen
-        const history = window.StateManager
-        ? window.StateManager.get('history.entries')
-        : STATE.history;
+        const history = window.StateManager.get('history.entries');
 
-        const timeFormat = window.StateManager
-        ? window.StateManager.get('preferences.timeFormat')
-        : STATE.preferences.timeFormat;
+        const timeFormat = window.StateManager.get('preferences.timeFormat');
 
         if (!history || history.length === 0) {
             historyList.innerHTML = '';
@@ -220,8 +169,8 @@
 
         historyList.innerHTML = reversed.map(entry => {
             const timeStr = timeFormat === 'relative'
-            ? window.getRelativeTime(entry.timestamp)
-            : window.getAbsoluteTime(entry.timestamp);
+                ? window.getRelativeTime(entry.timestamp)
+                : window.getAbsoluteTime(entry.timestamp);
 
             return `
             <li class="history-item" data-section="${entry.sectionId}">
@@ -275,9 +224,7 @@
                         // Mindest-Verweilzeit erreicht → zur History hinzufügen
 
                         // History aus StateManager holen
-                        const history = window.StateManager
-                        ? window.StateManager.get('history.entries')
-                        : STATE.history;
+                        const history = window.StateManager.get('history.entries');
 
                         // Nicht hinzufügen wenn es die gleiche Section wie zuletzt ist
                         if (history.length === 0 || history[history.length - 1].sectionId !== prevSectionId) {

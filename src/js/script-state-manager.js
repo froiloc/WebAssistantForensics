@@ -548,38 +548,6 @@
     }
 
     // ========================================================================
-    // LEGACY SUPPORT - Kompatibilität mit bestehendem Code
-    // ========================================================================
-
-    /**
-     * Ermöglicht direkten Zugriff auf window.APP_STATE
-     * für Legacy-Code der noch nicht migriert ist
-     *
-     * WICHTIG: Dies ist ein Proxy - Änderungen werden automatisch
-     * über den StateManager geleitet
-     */
-    function createLegacyProxy() {
-        window.APP_STATE = new Proxy(_state, {
-            get(target, prop) {
-                // Spezielle Properties durchreichen
-                if (prop === '__isProxy') return true;
-
-                return target[prop];
-            },
-            set(target, prop, value) {
-                LOG.warn(MODULE, `⚠️ Legacy direct access: APP_STATE.${prop} = ${value}`);
-                LOG.warn(MODULE, '   Please migrate to StateManager.set()');
-
-                // Über StateManager setzen
-                set(prop, value);
-                return true;
-            }
-        });
-
-        LOG.debug(MODULE, '🔗 Legacy APP_STATE proxy created');
-    }
-
-    // ========================================================================
     // INITIALISIERUNG
     // ========================================================================
 
@@ -593,10 +561,7 @@
         // 1. State aus localStorage laden
         loadFromStorage();
 
-        // 2. Legacy Proxy erstellen (für schrittweise Migration)
-        createLegacyProxy();
-
-        // 3. Global verfügbar machen
+        // 2. Global verfügbar machen
         window.StateManager = {
             get: get,
             set: set,

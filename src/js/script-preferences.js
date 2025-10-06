@@ -6,7 +6,6 @@
 (function() {
     'use strict';
 
-    const STATE = window.APP_STATE;
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'PREFS';
 
@@ -26,11 +25,8 @@
         if (window.StateManager) {
             tempPrefs = window.StateManager.get('preferences');
             LOG.debug(MODULE, 'Using StateManager for preferences');
-        } else if (window.APP_STATE && window.APP_STATE.preferences) {
-            tempPrefs = window.APP_STATE.preferences;
-            LOG.warn(MODULE, 'StateManager not available, using APP_STATE fallback');
         } else {
-            LOG.error(MODULE, 'Neither StateManager nor APP_STATE available!');
+            LOG.error(MODULE, 'StateManager is not available!');
             // Default-Preferences als Notfall-Fallback
             tempPrefs = {
                 detailLevel: 'bestpractice',
@@ -95,20 +91,17 @@
     }
 
     function getPreference(key) {
-        if (!window.StateManager) {
-            return STATE.preferences[key]; // Fallback
-        }
         return window.StateManager.get(`preferences.${key}`);
     }
 
     function resetPreferences() {
         if (confirm('Alle Einstellungen zurücksetzen?')) {
-            STATE.preferences = {
-                detailLevel: 'bestpractice',  // GEÄNDERT
+            window.StateManager.set(`preferences`, {
+                detailLevel: 'bestpractice',
                 timeFormat: 'relative',
                 showTips: true,
                 autoSaveNotes: true
-            };
+            });
 
             saveUserPreferences();
 
