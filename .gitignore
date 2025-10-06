@@ -16,3 +16,8 @@ env.bak/
 venv.bak/
 
 .rsyncignore
+
+src/index.html.backup
+src/index.test.html
+
+node_modules

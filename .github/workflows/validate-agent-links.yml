@@ -1,0 +1,42 @@
+name: Validate Agent Links
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-agent-selectors:
+    name: Validate Agent Dialog Selectors
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install Python dependencies
+      run: |
+        cd tools/validation
+        pip install -r requirements.txt
+        
+    - name: Run agent links validation
+      run: |
+        cd tools/validation
+        python validate_agent_links.py
+        
+    - name: Check validation exit code
+      run: |
+        cd tools/validation
+        python validate_agent_links.py
+        if [ $? -ne 0 ]; then
+          echo "❌ Validation failed!"
+          exit 1
+        else
+          echo "✅ All selectors are valid!"
+        fi

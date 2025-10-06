@@ -1,0 +1,44 @@
+Analysiere AUSSCHLIESSLICH die aktuelle index.html und die aktuellen CSS-Dateien.
+Ignoriere alle Implementation Guides, Dokumentationen und Kommentare.
+Vergleiche nur den tatsächlich vorhandenen Code.
+
+oder
+
+Suche NUR in folgenden Dateien nach Inkonsistenzen:
+- index.html (aktueller Stand)
+- styles.css (aktueller Stand)
+- media.css (aktueller Stand)
+- agent.css (aktueller Stand)
+
+Ignoriere alle Markdown-Dateien, Guides und Dokumentationen.
+
+--------
+--------
+Wir befinden uns im Debugging und der Fehlersuche. Wir haben einiges am Code geändert. Der aktuelle Code ist im Projekt-Dateispeicher.
+
+Das Problem, welches gerade relevant ist, beschreibt sich wie folgt:
+
+1) Ausgangslage: Beim Öffnen der Webseite liegen im Präferenzspeicher des Browser Daten über die geöffneten Seitenleisten. Diese sind sowohl "navigation" als auch "history". Also insgesamt zwei Stück. Und die Annahme ist, dass "history" zuletzt als active gespeichert wurde. Das bedeutet, nur von "history" sollen sidebar-body, sidebar.subheader und sidebar.footer angezeigt werden. Für "navigation" soll lediglich sidebar-tab-header angezeigt werden; sidebar-body, sidebar.subheader und sidebar.footer sollen nicht angezeigt werden.
+
+2) Anforderung: Beide Sidebars sollten also auch wieder angezeigt werden, "navigation" oberhalb von "history".
+
+3) Beobachtung: Da beide Sitebars sichbar sein sollten, sollte die Funktion activateNextSidebar aus js/scipt-sidebar-manager.js funktionieren und im Log "Switched to next sidebar" anzeigen. ABER: das passiert nicht. Es wird "Cannot switch: only 1 sidebar(s) open" angezeigt. DAS IST VERKEHRT UND EIN FEHLER!
+
+4) Auftrag: Wir müssen dieses Verhalten verstehen und eine Lösung finden, um das gewünschte Verhalten (wieder) herzustellen.
+
+Bitte analysiere ausschließlich den aktuellen Projekt-Dateispeicher. Ignoriere alle Implementation Guides, Dokumentationen und Kommentare. Vergleiche nur den tatsächlich vorhandenen Code.
+
+Relevant ist wahrscheinlich nur:
+* script-sidebar-manager.js
+
+Möglicherweise auch:
+* index.html
+* styles.css
+* script-history.js
+* script-navigation.js
+
+Analysiere die Ausgabe aus dem letzten Test: Debug-output.052.
+
+Versuche für die von dir als kritisch und relevant identifizierten Stellen eine Art pen-and-paper Test.
+
+Teile mir hiernach deine Erkenntnisse mit und was du für möglich Ursachen hältst. Dann werden wir dafür nach einer Lösung suchen.

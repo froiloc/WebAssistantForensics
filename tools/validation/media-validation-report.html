@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssistentForensics - Missing Media Report</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --screenshot-color: #27ae60;
+            --annotated-color: #e67e22;
+            --video-color: #9b59b6;
+            --text-light: #7f8c8d;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .report-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .stats-bar {
+            background: var(--light);
+            padding: 25px 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        
+        .stat-breakdown {
+            font-size: 0.85em;
+            color: var(--text-light);
+            font-weight: 300;
+            margin-top: 5px;
+        }
+        
+        .screenshot-breakdown { color: var(--screenshot-color); }
+        .annotated-breakdown { color: var(--annotated-color); }
+        .video-breakdown { color: var(--video-color); }
+        
+        .progress-section {
+            background: var(--light);
+            padding: 0 30px 25px;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #2ecc71);
+            transition: width 0.5s ease;
+        }
+        
+        .controls {
+            background: var(--light);
+            padding: 20px 30px;
+            border-bottom: 2px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-item:not(.active) {
+            opacity: 0.5;
+            filter: grayscale(1) blur(1px);
+        }
+        
+        .filter-icon {
+            width: 80px;
+            height: 45px;
+            border: 2px solid;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            transition: all 0.3s ease;
+        }
+        
+        .screenshot-filter .filter-icon { border-color: var(--screenshot-color); background: rgba(39, 174, 96, 0.1); }
+        .annotated-filter .filter-icon { border-color: var(--annotated-color); background: rgba(230, 126, 34, 0.1); }
+        .video-filter .filter-icon { border-color: var(--video-color); background: rgba(155, 89, 182, 0.1); }
+        
+        .filter-item.active .filter-icon {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .marked-completed {
+            display: none;
+        }
+        
+        .marked-completed.show-if-completed {
+            display: grid;
+        }
+        
+        .filtered {
+            display: none !important;
+        }
+        
+        .show-if-completed {
+            padding: 25px 30px !important;
+            height: auto !important;
+            opacity: 1 !important;
+            overflow: visible !important;
+            border-bottom: 1px solid var(--light) !important;
+        }
+
+        .show-if-completed .item-content {
+            display: grid;
+        }
+        
+        .media-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .media-item {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--light);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        .item-content {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .item-number {
+            background: var(--accent);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 15px;
+        }
+        
+        .item-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .item-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .type-screenshot { background: rgba(39, 174, 96, 0.1); color: var(--screenshot-color); border: 1px solid var(--screenshot-color); }
+        .type-annotated { background: rgba(230, 126, 34, 0.1); color: var(--annotated-color); border: 1px solid var(--annotated-color); }
+        .type-video { background: rgba(155, 89, 182, 0.1); color: var(--video-color); border: 1px solid var(--video-color); }
+        
+        .item-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .file-path {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 12px 0;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .file-icon {
+            font-size: 1.4em;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-info .path {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95em;
+            color: var(--dark);
+        }
+        
+        .snippet-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            border-left: 4px solid var(--success);
+            font-style: italic;
+        }
+        
+        .similar-files {
+            background: #fff3cd;
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .similar-file {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .completion-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .item-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-group {
+                flex-wrap: wrap;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="header">
+            <h1>Missing Media Report</h1>
+            <p>Track your progress in creating required media files</p>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-card" title="Total number of missing media files across all categories">
+                <div class="stat-number" id="total-count">12</div>
+                <div>Total Items</div>
+                <div class="stat-breakdown">
+                    <span class="screenshot-breakdown" title="Screenshot files">4📷</span> / 
+                    <span class="annotated-breakdown" title="Annotated screenshot files">5🖊️</span> / 
+                    <span class="video-breakdown" title="Video files">3🎥</span>
+                </div>
+            </div>
+            <div class="stat-card" title="Number of items marked as completed">
+                <div class="stat-number" id="completed-count">3</div>
+                <div>Completed</div>
+                <div class="stat-breakdown">
+                    <span class="screenshot-breakdown" title="Completed screenshots">1📷</span> / 
+                    <span class="annotated-breakdown" title="Completed annotated screenshots">1🖊️</span> / 
+                    <span class="video-breakdown" title="Completed videos">1🎥</span>
+                </div>
+            </div>
+            <div class="stat-card" title="Number of items remaining to be completed">
+                <div class="stat-number" id="remaining-count">9</div>
+                <div>Remaining</div>
+                <div class="stat-breakdown">
+                    <span class="screenshot-breakdown" title="Remaining screenshots">3📷</span> / 
+                    <span class="annotated-breakdown" title="Remaining annotated screenshots">4🖊️</span> / 
+                    <span class="video-breakdown" title="Remaining videos">2🎥</span>
+                </div>
+            </div>
+            <div class="stat-card" title="Overall completion percentage">
+                <div class="stat-number" id="completion-percent">25%</div>
+                <div>Complete</div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="visibility-control">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="show-completed">
+                    Show completed items
+                </label>
+            </div>
+            
+            <div class="filter-controls">
+                <span>Filter by type:</span>
+                <div class="filter-group">
+                    <div class="filter-item screenshot-filter active" data-type="screenshot">
+                        <div class="filter-icon">📷</div>
+                        <span>Screenshots</span>
+                    </div>
+                    <div class="filter-item annotated-filter active" data-type="annotated">
+                        <div class="filter-icon">🖊️</div>
+                        <span>Annotated</span>
+                    </div>
+                    <div class="filter-item video-filter active" data-type="video">
+                        <div class="filter-icon">🎥</div>
+                        <span>Videos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="media-list" id="media-list">
+            <!-- Example Items will be generated here by Python script -->
+        </div>
+    </div>
+
+    <script>
+        class MediaReport {
+        constructor() {
+            this.mediaItems = [];
+            this.showCompletedCheckbox = document.getElementById('show-completed');
+            this.filterItems = document.querySelectorAll('.filter-item');
+            this.statsElements = {
+            total: document.getElementById('total-count'),
+            completed: document.getElementById('completed-count'),
+            remaining: document.getElementById('remaining-count'),
+            percent: document.getElementById('completion-percent'),
+            progress: document.getElementById('progress-fill')
+            };
+            
+            this.filters = {
+            showCompleted: true,
+            screenshot: true,
+            annotated: true,
+            video: true
+            };
+            
+            this.init();
+        }
+        
+        init() {
+            this.loadMediaData();
+            this.setupEventListeners();
+            this.updateDisplay();
+        }
+        
+        loadMediaData() {
+            this.mediaItems = window.mediaData;
+            this.renderItems();
+        }
+        
+        renderItems() {
+            const container = document.getElementById('media-list');
+            container.innerHTML = '';
+            
+            this.mediaItems.forEach(item => {
+            const itemElement = this.createItemElement(item);
+            container.appendChild(itemElement);
+            });
+            
+            this.updateStats();
+            this.applyFilters(); // Apply filters after rendering
+        }
+        
+        createItemElement(item) {
+            const div = document.createElement('div');
+            div.className = `media-item ${item.completed ? 'marked-completed' : ''}`;
+            div.setAttribute('data-type', item.type);
+            div.setAttribute('data-completed', item.completed);
+            div.setAttribute('data-id', item.id);
+            
+            const typeClass = `type-${item.type}`;
+            const typeIcon = item.type === 'screenshot' ? '📷' : item.type === 'annotated' ? '🖊️' : '🎥';
+            
+            div.innerHTML = `
+            <div class="item-content">
+                <div class="item-number">${item.id}</div>
+                <div class="item-details">
+                <div class="item-header">
+                    <div class="item-title">${item.title}</div>
+                    <div class="item-type ${typeClass}">${typeIcon} ${item.type}</div>
+                </div>
+                <div class="item-meta">
+                    <span>Context: <code>${item.context}</code></span>
+                </div>
+                <div class="snippet-text">${item.snippet}</div>
+                <div class="file-path">
+                    <div class="file-icon">${typeIcon}</div>
+                    <div class="file-info">
+                    <div class="path">${item.filePath}</div>
+                    <div class="alt-text">${item.altText}</div>
+                    </div>
+                </div>
+                ${item.similarFiles.length > 0 ? `
+                    <div class="similar-files">
+                    🔍 Similar files: 
+                    ${item.similarFiles.map(sf => 
+                        `<span class="similar-file">${sf.name}</span> (distance: ${sf.distance})`
+                    ).join(', ')}
+                    </div>
+                ` : ''}
+                <div class="completion-control">
+                    <label class="checkbox-label">
+                    <input type="checkbox" class="completed-checkbox" ${item.completed ? 'checked' : ''}>
+                    Mark as completed
+                    </label>
+                </div>
+                </div>
+            </div>
+            `;
+            
+            return div;
+        }
+        
+        setupEventListeners() {
+            // Filter toggles
+            this.filterItems.forEach(filter => {
+                filter.addEventListener('click', () => {
+                    const type = filter.dataset.type;
+                    filter.classList.toggle('active');
+                    this.filters[type] = filter.classList.contains('active');
+                    this.updateDisplay();
+                });
+            });
+
+            // Show completed toggle
+            this.showCompletedCheckbox.addEventListener('change', (e) => {
+                this.filters.showCompleted = e.target.checked;
+                this.toggleShowCompleted(e.target.checked); // Only handle show-if-completed
+            });
+            
+            // Delegate completion checkbox events
+            document.getElementById('media-list').addEventListener('change', (e) => {
+                if (e.target.classList.contains('completed-checkbox')) {
+                    const itemElement = e.target.closest('.media-item');
+                    const itemId = parseInt(itemElement.getAttribute('data-id'));
+                    this.toggleCompletion(itemId, e.target.checked); // Only handle marked-completed
+                }
+            });
+            }
+        
+        updateDisplay() {
+            this.applyFilters();
+            this.updateStats();
+        }
+        
+        applyFilters() {
+            const items = document.querySelectorAll('.media-item');
+            
+            items.forEach(item => {
+                const type = item.getAttribute('data-type');
+                const typeVisible = this.filters[type];
+                
+                if (!typeVisible) {
+                    item.classList.add('filtered');
+                } else {
+                    item.classList.remove('filtered');
+                }
+            });
+        }
+        
+        toggleShowCompleted(status) {
+            const items = document.querySelectorAll('.media-item');
+            items.forEach(item => {
+                if (status) {
+                    item.classList.add('show-if-completed');
+                } else {
+                    item.classList.remove('show-if-completed');
+                }
+            });
+        }
+        
+        toggleCompletion(itemId, completed) {
+            const item = this.mediaItems.find(i => i.id === itemId);
+            if (item) {
+                item.completed = completed;
+                
+                const itemElement = document.querySelector(`.media-item[data-id="${itemId}"]`);
+                if (itemElement) {
+                    // Only handle marked-completed class - nothing else
+                    if (completed) {
+                        setTimeout(() => {
+                            itemElement.classList.add('marked-completed');
+                        }, 800);
+                    } else {
+                        itemElement.classList.remove('marked-completed');
+                    }
+                    
+                    itemElement.setAttribute('data-completed', completed);
+                }
+                
+                this.updateStats();
+            }
+        }        
+        
+        updateStats() {
+            const total = this.mediaItems.length;
+            const completed = this.mediaItems.filter(item => item.completed).length;
+            const remaining = total - completed;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            // Count by type
+            const typeCounts = { screenshot: 0, annotated: 0, video: 0 };
+            const completedTypeCounts = { screenshot: 0, annotated: 0, video: 0 };
+            
+            this.mediaItems.forEach(item => {
+            typeCounts[item.type]++;
+            if (item.completed) completedTypeCounts[item.type]++;
+            });
+            
+            // Update main stats
+            this.statsElements.total.textContent = total;
+            this.statsElements.completed.textContent = completed;
+            this.statsElements.remaining.textContent = remaining;
+            this.statsElements.percent.textContent = percent + '%';
+            this.statsElements.progress.style.width = percent + '%';
+            
+            // Update breakdowns in stats cards
+            this.updateStatBreakdowns(typeCounts, completedTypeCounts, completed);
+        }
+        
+        updateStatBreakdowns(typeCounts, completedTypeCounts, totalCompleted) {
+            // Update total breakdown
+            const totalBreakdown = `${typeCounts.screenshot}📷 / ${typeCounts.annotated}🖊️ / ${typeCounts.video}🎥`;
+            
+            // Update completed breakdown  
+            const completedBreakdown = `${completedTypeCounts.screenshot}📷 / ${completedTypeCounts.annotated}🖊️ / ${completedTypeCounts.video}🎥`;
+            
+            // Update remaining breakdown
+            const remainingBreakdown = `${typeCounts.screenshot - completedTypeCounts.screenshot}📷 / ${typeCounts.annotated - completedTypeCounts.annotated}🖊️ / ${typeCounts.video - completedTypeCounts.video}🎥`;
+            
+            // Find and update the breakdown elements (simplified - in real implementation would target specific elements)
+            const breakdownElements = document.querySelectorAll('.stat-breakdown');
+            if (breakdownElements.length >= 3) {
+                breakdownElements[0].innerHTML = `<span class="screenshot-breakdown" title="Screenshot files">${typeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Annotated screenshot files">${typeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Video files">${typeCounts.video}🎥</span>`;
+                breakdownElements[1].innerHTML = `<span class="screenshot-breakdown" title="Completed screenshots">${completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Completed annotated screenshots">${completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Completed videos">${completedTypeCounts.video}🎥</span>`;
+                breakdownElements[2].innerHTML = `<span class="screenshot-breakdown" title="Remaining screenshots">${typeCounts.screenshot - completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Remaining annotated screenshots">${typeCounts.annotated - completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Remaining videos">${typeCounts.video - completedTypeCounts.video}🎥</span>`;
+            }
+        }
+    }
+        
+    // Initialize the report when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        new MediaReport();
+    });
+    </script>
+
+        <script>
+        // Media data injected by Python script
+        window.mediaData = [
+  {
+    "id": 1,
+    "title": "HTML Annotated Axiom Menu Marked Thumb",
+    "type": "annotated",
+    "context": "#section-workflow div.detail-level-3:nth-of-type(3) figure.media-figure:nth-of-type(1) img.media-thumbnail",
+    "snippet": "Benutzeroberfläche im Detail Hauptmenü-Pfad: Der vollständige Menüpfad führt von der Hauptmenüleiste über \"Datei\" zum Untermenü \"Bericht/Export erstellen\". Dieser Weg ist standardisiert und funktionie...",
+    "filePath": "media/annotated/axiom-menu-marked-thumb.png",
+    "altText": "AXIOM Hauptmenü mit nummerierten Schritten: 1. Datei-Menü, 2. Bericht/Export erstellen",
+    "similarFiles": [],
+    "completed": false
+  },
+  {
+    "id": 2,
+    "title": "HTML Screenshot Format Selection Thumb",
+    "type": "screenshot",
+    "context": "#section-step2 div.detail-level-2:nth-of-type(2) figure.media-figure img.media-thumbnail",
+    "snippet": "Im Dialog \"Export / report format\" wählen Sie HTML aus den\n                        verfügbaren Optionen (Excel, XML, HTML, PST, PDF, CSV, JSON, Load File, Portable Case). 🐕‍🦺 Warum HTML? Export-Dialog...",
+    "filePath": "media/screenshots/format-selection-thumb.png",
+    "altText": "AXIOM Export-Dialog mit Format-Auswahl, HTML ist hervorgehoben",
+    "similarFiles": [],
+    "completed": false
+  },
+  {
+    "id": 3,
+    "title": "HTML Video Export Workflow",
+    "type": "video",
+    "context": "#section-workflow div.detail-level-3:nth-of-type(3) figure.media-figure:nth-of-type(2) video.media-video",
+    "snippet": "Benutzeroberfläche im Detail Hauptmenü-Pfad: Der vollständige Menüpfad führt von der Hauptmenüleiste über \"Datei\" zum Untermenü \"Bericht/Export erstellen\". Dieser Weg ist standardisiert und funktionie...",
+    "filePath": "media/videos/export-workflow.mp4",
+    "altText": "Video content",
+    "similarFiles": [],
+    "completed": false
+  }
+];
+        </script>
+        
+</body>
+</html>

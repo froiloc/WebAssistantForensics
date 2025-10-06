@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "simple-git-hooks": "^2.13.1"
+  },
+  "scripts": {
+    "test": "jest",
+    "postinstall": "npx simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-push": "npm test",
+    "commit-msg": "node ./tools/validation/validate_commit_msg.js"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "passWithNoTests": true
+  }
+}
