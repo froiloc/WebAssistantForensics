@@ -43,7 +43,7 @@ https://github.com/froiloc/WebAssistentForensics/tree/master/tools
 https://github.com/froiloc/WebAssistentForensics/tree/master/tools/validation
 https://github.com/froiloc/WebAssistentForensics/tree/master/tests (might not exist yet)
 
-We will use Jest for our javascript testing framework.
+The validation scripts have been implemented using Python 3.12. I'd like to continue this approach.
 
 The investigators have little to no knowledge about computers, mobile device and the forensics application itself. Their degree of knowledge about the forensics application may vary.
 
