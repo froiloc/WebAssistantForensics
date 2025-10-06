@@ -14,6 +14,10 @@
     // HISTORY MANAGEMENT
     // ========================================================================
 
+    // Tracking für Mindest-Verweilzeit
+    let sectionEnterTime = {};
+    const MIN_DWELL_TIME = 5000; // 5 Sekunden
+
     function addToHistory(sectionId) {
         const timestamp = Date.now();
 
@@ -22,8 +26,12 @@
         ? window.StateManager.get('history.entries')
         : STATE.history;
 
+        // Section-Titel holen
+        const sectionTitle = getSectionTitle(sectionId);
+
         const entry = {
             sectionId: sectionId,
+ title: sectionTitle,
  timestamp: timestamp
         };
 
@@ -183,6 +191,8 @@
 
     function updateHistoryDisplay() {
         const historyList = document.getElementById('history-list');
+        const emptyMsg = document.getElementById('history-empty');
+
         if (!historyList) {
             LOG.warn(MODULE, 'History list element not found');
             return;
@@ -198,9 +208,13 @@
         : STATE.preferences.timeFormat;
 
         if (!history || history.length === 0) {
-            historyList.innerHTML = '<li class="history-empty">Noch kein Verlauf vorhanden</li>';
+            historyList.innerHTML = '';
+            if (emptyMsg) emptyMsg.style.display = 'block';
             return;
         }
+
+        // Empty-Message ausblenden wenn Einträge vorhanden
+        if (emptyMsg) emptyMsg.style.display = 'none';
 
         const reversed = [...history].reverse();
 
@@ -209,13 +223,11 @@
             ? window.getRelativeTime(entry.timestamp)
             : window.getAbsoluteTime(entry.timestamp);
 
-            const sectionTitle = getSectionTitle(entry.sectionId);
-
             return `
             <li class="history-item" data-section="${entry.sectionId}">
             <button class="history-link" data-section="${entry.sectionId}">
-            <span class="history-title">${sectionTitle}</span>
-            <span class="history-time">${timeStr}</span>
+            <span class="history-item-title">${entry.title}</span>
+            <span class="history-item-time">${timeStr}</span>
             </button>
             </li>
             `;
@@ -249,22 +261,43 @@
     function initEventListeners() {
         LOG(MODULE, 'Initializing event listeners...');
 
-        // Section-Wechsel tracken
+        // Section-Wechsel tracken mit Mindest-Verweilzeit
         window.addEventListener('sectionActivated', (e) => {
             const sectionId = e.detail.sectionId;
+            const timestamp = e.detail.timestamp;
 
-            // History aus StateManager holen
-            const history = window.StateManager
-            ? window.StateManager.get('history.entries')
-            : STATE.history;
+            // Vorherige Section: Prüfen ob Mindest-Verweilzeit erreicht
+            for (const [prevSectionId, enterTime] of Object.entries(sectionEnterTime)) {
+                if (prevSectionId !== sectionId) {
+                    const dwellTime = timestamp - enterTime;
 
-            // Nicht hinzufügen wenn es die gleiche Section wie zuletzt ist
-            if (history.length > 0 && history[history.length - 1].sectionId === sectionId) {
-                LOG.debug(MODULE, `Skipping duplicate entry: ${sectionId}`);
-                return;
+                    if (dwellTime >= MIN_DWELL_TIME) {
+                        // Mindest-Verweilzeit erreicht → zur History hinzufügen
+
+                        // History aus StateManager holen
+                        const history = window.StateManager
+                        ? window.StateManager.get('history.entries')
+                        : STATE.history;
+
+                        // Nicht hinzufügen wenn es die gleiche Section wie zuletzt ist
+                        if (history.length === 0 || history[history.length - 1].sectionId !== prevSectionId) {
+                            LOG.debug(MODULE, `Adding ${prevSectionId} to history (dwelled ${dwellTime}ms)`);
+                            addToHistory(prevSectionId);
+                        } else {
+                            LOG.debug(MODULE, `Skipping duplicate entry: ${prevSectionId}`);
+                        }
+                    } else {
+                        LOG.debug(MODULE, `Skipping ${prevSectionId} (dwelled only ${dwellTime}ms < ${MIN_DWELL_TIME}ms)`);
+                    }
+
+                    // Enter-Zeit löschen
+                    delete sectionEnterTime[prevSectionId];
+                }
             }
 
-            addToHistory(sectionId);
+            // Neue Section: Enter-Zeit setzen
+            sectionEnterTime[sectionId] = timestamp;
+            LOG.debug(MODULE, `Section ${sectionId} entered at ${timestamp}`);
         });
 
         // Time-Format-Präferenz ändern → Display aktualisieren

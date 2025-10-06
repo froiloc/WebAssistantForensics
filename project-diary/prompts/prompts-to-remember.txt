@@ -12,6 +12,8 @@ Suche NUR in folgenden Dateien nach Inkonsistenzen:
 
 Ignoriere alle Markdown-Dateien, Guides und Dokumentationen.
 
+Alle Änderungsvorschläge dürfen ausschließlich auf dem aktuellen aus den Dateien aus dem Projekt-Dateispeicher basieren. Verwende nicht die Versionen, an die du dich eventuell erinnerst.
+
 --------
 --------
 Wir befinden uns im Debugging und der Fehlersuche. Wir haben einiges am Code geändert. Der aktuelle Code ist im Projekt-Dateispeicher.

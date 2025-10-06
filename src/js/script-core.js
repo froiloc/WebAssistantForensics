@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-CORE.JS - Version 059
+// SCRIPT-CORE.JS - Version 063
 // Basis-Funktionen, globale Variablen und Logging-System
 // ============================================================================
 
@@ -8,7 +8,7 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '059',
+    version: '063',
     buildDate: '2025-10-06', // 4. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };

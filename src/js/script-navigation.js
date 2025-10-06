@@ -1,5 +1,5 @@
 // ============================================================================
-// SCRIPT-NAVIGATION.JS - Version 040 (CSS-Namen korrigiert)
+// SCRIPT-NAVIGATION.JS - Version 060 (StateManager Fix)
 // Navigation, Sidebar, Menu, Breadcrumb
 // ============================================================================
 
@@ -49,11 +49,16 @@
             <span class="nav-item-text">${sectionTitle}</span>
             `;
 
-            if (sectionId === STATE.currentActiveSection) {
+            // Initial aktive Section aus StateManager holen
+            const currentActive = window.StateManager
+            ? window.StateManager.get('sections.currentActive')
+            : STATE.currentActiveSection;
+
+            if (sectionId === currentActive) {
                 navItem.classList.add('active');
             }
 
-            // DOPPELKLICK für Navigation (laut styles.css Kommentar)
+            // DOPPELKLICK für Navigation
             navItem.addEventListener('dblclick', (e) => {
                 e.preventDefault();
                 LOG(MODULE, `Navigation double-click: ${sectionId}`);
@@ -71,14 +76,23 @@
     }
 
     function updateActiveNavItem() {
+        // Alle nav-items deaktivieren
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
 
-        const activeItem = document.querySelector(`.nav-item[data-section="${STATE.currentActiveSection}"]`);
+        // Aktive Section aus StateManager holen (KORRIGIERT!)
+        const currentActive = window.StateManager
+        ? window.StateManager.get('sections.currentActive')
+        : STATE.currentActiveSection;
+
+        // Entsprechendes nav-item aktivieren
+        const activeItem = document.querySelector(`.nav-item[data-section="${currentActive}"]`);
         if (activeItem) {
             activeItem.classList.add('active');
-            LOG.debug(MODULE, `Active nav item updated: ${STATE.currentActiveSection}`);
+            LOG.debug(MODULE, `Active nav item updated: ${currentActive}`);
+        } else {
+            LOG.warn(MODULE, `Nav item not found for section: ${currentActive}`);
         }
     }
 
@@ -128,45 +142,32 @@
             toggleTipsBtn: !!toggleTipsBtn
         });
 
+        // Menu Toggle
         if (menuBtn) {
-            menuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleMenu();
-            });
+            menuBtn.addEventListener('click', toggleMenu);
         }
 
-        // Menu-Item: History anzeigen
+        // Show History Sidebar
         if (showHistoryBtn) {
             showHistoryBtn.addEventListener('click', () => {
-                // Nutze SidebarManager statt History.open()
                 if (window.SidebarManager) {
-                    window.SidebarManager.activate('history');
+                    window.SidebarManager.toggleSidebar('history');
                 }
                 closeMenu();
             });
         }
 
-        // Menu-Item: Navigation ein/aus
+        // Toggle Navigation Sidebar
         if (toggleNavBtn) {
             toggleNavBtn.addEventListener('click', () => {
-                // Nutze SidebarManager zum Toggle
                 if (window.SidebarManager) {
-                    const sidebar = document.getElementById('sidebar-navigation');
-
-                    if (sidebar && sidebar.classList.contains('active')) {
-                        // Sidebar ist aktiv → deaktivieren
-                        window.SidebarManager.deactivate('navigation');
-                    } else {
-                        // Sidebar ist inaktiv → aktivieren
-                        window.SidebarManager.activate('navigation');
-                    }
+                    window.SidebarManager.toggleSidebar('navigation');
                 }
-
                 closeMenu();
             });
         }
 
-        // Menu-Item: Tipps ein/aus
+        // Toggle Tips Footer
         if (toggleTipsBtn) {
             toggleTipsBtn.addEventListener('click', () => {
                 if (window.Tips) {
@@ -175,16 +176,6 @@
                 closeMenu();
             });
         }
-
-        // Schließe Menu bei Klick außerhalb
-        document.addEventListener('click', (e) => {
-            if (menuDropdown &&
-                !menuDropdown.contains(e.target) &&
-                menuBtn &&
-                !menuBtn.contains(e.target)) {
-                closeMenu();
-                }
-        });
 
         LOG.success(MODULE, 'Menu initialized');
     }
@@ -246,6 +237,7 @@
                 firstSection.querySelector('h5')?.textContent?.trim() ||
                 firstSection.querySelector('h6')?.textContent?.trim() ||
                 'Überblick';
+
         updateBreadcrumb(title);
         LOG.debug(MODULE, `Initial breadcrumb set to: ${title}`);
             }
@@ -276,12 +268,12 @@
 
             LOG.debug(MODULE, `Section activated event: ${sectionId}`);
 
+            // WICHTIG: updateActiveNavItem() aufrufen um Navigation zu aktualisieren
             updateActiveNavItem();
 
-            // Nur Elemente im Hauptbereich werden untersucht, daher muss main vorangestellt werden, sonst kommt die Antwort aus dem nav-sidebar
+            // Breadcrumb aktualisieren
             const section = document.querySelector(`main [data-section="${sectionId}"]`);
             if (section) {
-                // Robuste Titel-Ermittlung mit Fallback-Kette
                 const title = section.dataset.title?.trim() ||
                 section.querySelector('h2')?.textContent?.trim() ||
                 section.querySelector('h3')?.textContent?.trim() ||
@@ -290,8 +282,8 @@
                 section.querySelector('h6')?.textContent?.trim() ||
                 'Unbenannt';
 
-                LOG.debug(MODULE, `Breadcrumb title: "${title}" for section: ${sectionId}`);
-                updateBreadcrumb(title);
+        LOG.debug(MODULE, `Breadcrumb title: "${title}" for section: ${sectionId}`);
+        updateBreadcrumb(title);
             } else {
                 LOG.warn(MODULE, `Section not found: ${sectionId}`);
             }
@@ -322,10 +314,10 @@
 
     window.Navigation = {
         init: initNavigation,
-        updateActiveNavItem: updateActiveNavItem,
-        updateBreadcrumb: updateBreadcrumb,
-        toggleMenu: toggleMenu,
-        closeMenu: closeMenu
+ updateActiveNavItem: updateActiveNavItem,
+ updateBreadcrumb: updateBreadcrumb,
+ toggleMenu: toggleMenu,
+ closeMenu: closeMenu
     };
 
     LOG(MODULE, 'Navigation module loaded');

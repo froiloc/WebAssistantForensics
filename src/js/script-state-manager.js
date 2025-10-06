@@ -28,63 +28,63 @@
         // UI-Status
         ui: {
             sidebarOpen: false,
- sidebarsOpen: [],           // Array: ['navigation', 'history']
- activeSidebarTab: null,     // 'navigation' | 'history' | null
- notesOpen: false,
- tipsVisible: true,
- menuOpen: false
+        sidebarsOpen: [],           // Array: ['navigation', 'history']
+        activeSidebarTab: null,     // 'navigation' | 'history' | null
+        notesOpen: false,
+        tipsVisible: true,
+        menuOpen: false
+                },
+
+        // User Preferences (persistiert)
+        preferences: {
+            theme: 'system',            // 'light' | 'dark' | 'system'
+            detailLevel: 'bestpractice', // 'basic' | 'bestpractice' | 'expert'
+            timeFormat: 'relative',     // 'relative' | 'absolute'
+            showTips: true,             // boolean
+            autoSaveNotes: true,        // boolean
+            sidebarsOpen: ['navigation'], // Default-Sidebars
+            activeSidebarTab: 'navigation'
         },
 
- // User Preferences (persistiert)
- preferences: {
-     theme: 'system',            // 'light' | 'dark' | 'system'
-     detailLevel: 'bestpractice', // 'basic' | 'bestpractice' | 'expert'
-     timeFormat: 'relative',     // 'relative' | 'absolute'
-     showTips: true,             // boolean
- autoSaveNotes: true,        // boolean
- sidebarsOpen: ['navigation'], // Default-Sidebars
- activeSidebarTab: 'navigation'
- },
+        // Section Management (nicht persistiert)
+        sections: {
+            currentActive: 'intro',
+            allSections: [],
+            lastNavigationTime: 0,
+            lastNavigatedSection: null,
+            lastSectionChangeTime: 0,
+            lastChangedToSection: null
+        },
 
- // Section Management (nicht persistiert)
- sections: {
-     currentActive: 'intro',
- allSections: [],
- lastNavigationTime: 0,
- lastNavigatedSection: null,
- lastSectionChangeTime: 0,
- lastChangedToSection: null
- },
+        // Scroll State (nicht persistiert)
+        scroll: {
+            lastScrollY: 0,
+            lastDirection: 'down',
+            userIsScrolling: false,
+            scrollTimeout: null,
+            isProcessingIntersection: false,
+            isProcessingScroll: false,
+            lastScrollIntentionTime: 0,
+            scrollCallCounter: 0
+        },
 
- // Scroll State (nicht persistiert)
- scroll: {
-     lastScrollY: 0,
-     lastDirection: 'down',
-     userIsScrolling: false,
-     scrollTimeout: null,
-     isProcessingIntersection: false,
-     isProcessingScroll: false,
-     lastScrollIntentionTime: 0,
-     scrollCallCounter: 0
- },
+        // History (persistiert)
+        history: {
+            entries: [],               // Array von History-Einträgen
+            maxLength: MAX_HISTORY_LENGTH
+        },
 
- // History (persistiert)
- history: {
-     entries: [],               // Array von History-Einträgen
-     maxLength: MAX_HISTORY_LENGTH
- },
+        // Notes (persistiert)
+        notes: {
+            content: '',
+            lastSaved: null,
+            saveTimer: null
+        },
 
- // Notes (persistiert)
- notes: {
-     content: '',
-     lastSaved: null,
-     saveTimer: null
- },
-
- // Observers/Misc (nicht persistiert)
- observers: {
-     focusObserver: null
- }
+        // Observers/Misc (nicht persistiert)
+        observers: {
+            focusObserver: null
+        }
     };
 
     /**

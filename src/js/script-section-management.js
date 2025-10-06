@@ -1,6 +1,7 @@
 // ============================================================================
-// SCRIPT-SECTION-MANAGEMENT.JS - Version 058 (StateManager Migration)
+// SCRIPT-SECTION-MANAGEMENT.JS - Version 063 (StateManager Migration Complete)
 // Section-Management: Scroll-basierte Section-Auswahl
+// Vollständig migriert - keine Legacy-Zugriffe mehr
 // ============================================================================
 
 (function() {
@@ -88,18 +89,40 @@
             }
         }, { passive: true });
 
+        // MIGRIERT: userIsScrolling und scrollTimeout
         window.addEventListener('scroll', () => {
-            STATE.userIsScrolling = true;
+            if (window.StateManager) {
+                // userIsScrolling auf true setzen
+                window.StateManager.set('scroll.userIsScrolling', true);
 
-            if (STATE.scrollTimeout) {
-                clearTimeout(STATE.scrollTimeout);
+                // Timeout löschen falls vorhanden
+                const currentTimeout = window.StateManager.get('scroll.scrollTimeout');
+                if (currentTimeout) {
+                    clearTimeout(currentTimeout);
+                }
+
+                // Neuen Timeout setzen
+                const timeoutId = setTimeout(() => {
+                    window.StateManager.set('scroll.userIsScrolling', false);
+                }, 200);
+                window.StateManager.set('scroll.scrollTimeout', timeoutId);
+            } else {
+                // Fallback für Legacy
+                STATE.userIsScrolling = true;
+                if (STATE.scrollTimeout) {
+                    clearTimeout(STATE.scrollTimeout);
+                }
+                STATE.scrollTimeout = setTimeout(() => {
+                    STATE.userIsScrolling = false;
+                }, 200);
             }
-            STATE.scrollTimeout = setTimeout(() => {
-                STATE.userIsScrolling = false;
-            }, 200);
 
-            if (!STATE.isProcessingScroll) {
-                // StateManager verwenden
+            // isProcessingScroll Check und Update
+            const isProcessing = window.StateManager
+            ? window.StateManager.get('scroll.isProcessingScroll')
+            : STATE.isProcessingScroll;
+
+            if (!isProcessing) {
                 if (window.StateManager) {
                     window.StateManager.set('scroll.isProcessingScroll', true);
                 } else {
@@ -125,13 +148,24 @@
     // SCROLL-INTENTION-HANDLER
     // ========================================================================
 
+    // MIGRIERT: lastScrollIntentionTime
     function handleScrollIntention(direction) {
         const timestamp = Date.now();
 
-        if (timestamp - STATE.lastScrollIntentionTime < CONST.SCROLL_INTENTION_COOLDOWN) {
+        // StateManager verwenden für lastScrollIntentionTime
+        const lastIntentionTime = window.StateManager
+        ? window.StateManager.get('scroll.lastScrollIntentionTime') || 0
+        : STATE.lastScrollIntentionTime;
+
+        if (timestamp - lastIntentionTime < CONST.SCROLL_INTENTION_COOLDOWN) {
             return;
         }
-        STATE.lastScrollIntentionTime = timestamp;
+
+        if (window.StateManager) {
+            window.StateManager.set('scroll.lastScrollIntentionTime', timestamp);
+        } else {
+            STATE.lastScrollIntentionTime = timestamp;
+        }
 
         const scrollY = window.scrollY;
         const viewportHeight = window.innerHeight;
@@ -178,27 +212,41 @@
     // ========================================================================
 
     function updateActiveSectionFromScroll() {
-        const callId = ++STATE.scrollCallCounter;
+        // scrollCallCounter über StateManager
+        const currentCounter = window.StateManager
+        ? window.StateManager.get('scroll.scrollCallCounter')
+        : STATE.scrollCallCounter;
+        const callId = (currentCounter || 0) + 1;
+
+        if (window.StateManager) {
+            window.StateManager.set('scroll.scrollCallCounter', callId);
+        } else {
+            STATE.scrollCallCounter = callId;
+        }
+
         LOG.separator(MODULE, `Scroll Event #${callId}`);
 
         const candidates = collectVisibleSections();
         const winner = determineWinner(candidates);
 
-        if (winner && winner.id !== getCurrentActiveSection()) {
+        const currentActive = getCurrentActiveSection();
+
+        if (winner && winner.id !== currentActive) {
             const timestamp = Date.now();
-            const timeSinceLastChange = timestamp - STATE.lastSectionChangeTime;
+            const lastChangeTime = window.StateManager
+            ? window.StateManager.get('sections.lastSectionChangeTime') || 0
+            : STATE.lastSectionChangeTime;
+            const timeSinceLastChange = timestamp - lastChangeTime;
 
             if (timeSinceLastChange < CONST.SECTION_CHANGE_COOLDOWN) {
-                LOG.debug(MODULE, `Cooldown active (${timeSinceLastChange}ms < ${CONST.SECTION_CHANGE_COOLDOWN}ms)`);
+                LOG.debug(MODULE, `Cooldown active: ${timeSinceLastChange}ms < ${CONST.SECTION_CHANGE_COOLDOWN}ms`);
                 return;
             }
 
-            LOG(MODULE, `Section change: ${getCurrentActiveSection()} → ${winner.id}`);
+            LOG(MODULE, `Section change: ${currentActive} → ${winner.id}`);
             activateSection(winner.id);
         } else if (winner) {
             LOG.debug(MODULE, `No change: Winner already active (${winner.id})`);
-        } else {
-            LOG.debug(MODULE, 'No winner determined');
         }
     }
 
@@ -255,120 +303,165 @@
         });
 
         LOG.debug(MODULE, `Candidates after RULE1+2: Count=${visibleSections.length}, ` +
-        `IDs=[${visibleSections.map(s => s.id).join(', ')}]`);
+        `IDs=[${visibleSections.map(c => c.id).join(', ')}]`);
 
-        // HYSTERESE
-        const currentActive = getCurrentActiveSection();
-        const currentActiveIndex = STATE.allSections.findIndex(
-            s => s.dataset.section === currentActive
-        );
-
-        if (currentActiveIndex !== -1) {
-            const activeSection = STATE.allSections[currentActiveIndex];
-            const alreadyCandidate = visibleSections.find(s => s.id === currentActive);
-
-            if (!alreadyCandidate) {
-                const rect = activeSection.getBoundingClientRect();
-                const sectionHeight = rect.height;
-                const viewportTop = 0;
-                const viewportBottom = viewportHeight;
-                const sectionTop = rect.top;
-                const sectionBottom = rect.bottom;
-                const visibleTop = Math.max(sectionTop, viewportTop);
-                const visibleBottom = Math.min(sectionBottom, viewportBottom);
-                const sectionHeightInViewport = Math.max(0, visibleBottom - visibleTop);
-                const sectionInViewportRatio = sectionHeight > 0
-                ? (sectionHeightInViewport / sectionHeight)
-                : 0;
-                const viewportOccupancyRatio = viewportHeight > 0
-                ? (sectionHeightInViewport / viewportHeight)
-                : 0;
-
-                if (sectionInViewportRatio >= 0.2 || viewportOccupancyRatio >= 0.15) {
-                    LOG.debug(MODULE, `HYSTERESE: Adding active section ${currentActive} ` +
-                    `(sectionRatio=${(sectionInViewportRatio*100).toFixed(1)}%, ` +
-                    `viewportRatio=${(viewportOccupancyRatio*100).toFixed(1)}%)`);
-
-                    visibleSections.push({
-                        id: currentActive,
-                        element: activeSection,
-                        sectionInViewportRatio: sectionInViewportRatio,
-                        viewportOccupancyRatio: viewportOccupancyRatio,
-                        reason: 'hysteresis'
-                    });
-                }
+        // RULE3: FIRST/LAST BEI BOTTOM/TOP
+        if (visibleSections.length === 0) {
+            if (isAtBottom) {
+                const lastSection = allSections[allSections.length - 1];
+                LOG.debug(MODULE, `RULE3: At bottom, adding last section: ${lastSection.dataset.section}`);
+                visibleSections.push({
+                    id: lastSection.dataset.section,
+                    element: lastSection,
+                    sectionInViewportRatio: 0,
+                    viewportOccupancyRatio: 0,
+                    reason: 'rule3-atBottom'
+                });
+            } else if (isAtTop) {
+                const firstSection = allSections[0];
+                LOG.debug(MODULE, `RULE3: At top, adding first section: ${firstSection.dataset.section}`);
+                visibleSections.push({
+                    id: firstSection.dataset.section,
+                    element: firstSection,
+                    sectionInViewportRatio: 0,
+                    viewportOccupancyRatio: 0,
+                    reason: 'rule3-atTop'
+                });
             }
         }
+
+        // RULE4: BEI TOP DIE ERSTEN SECTIONS EINBEZIEHEN
+        if (isAtTop && visibleSections.length < 3) {
+            allSections.slice(0, 3).forEach((section, index) => {
+                if (!visibleSections.find(c => c.id === section.dataset.section)) {
+                    const rect = section.getBoundingClientRect();
+                    const sectionHeight = rect.height;
+                    const viewportTop = 0;
+                    const viewportBottom = viewportHeight;
+                    const sectionTop = rect.top;
+                    const sectionBottom = rect.bottom;
+
+                    const visibleTop = Math.max(sectionTop, viewportTop);
+                    const visibleBottom = Math.min(sectionBottom, viewportBottom);
+                    const sectionHeightInViewport = Math.max(0, visibleBottom - visibleTop);
+
+                    const sectionInViewportRatio = sectionHeight > 0
+                    ? (sectionHeightInViewport / sectionHeight)
+                    : 0;
+                    const viewportOccupancyRatio = viewportHeight > 0
+                    ? (sectionHeightInViewport / viewportHeight)
+                    : 0;
+
+                    const sectionId = section.dataset.section;
+
+                    LOG.debug(MODULE, `RULE4: Adding ${sectionId} (idx=${index})`);
+
+                    visibleSections.push({
+                        id: sectionId,
+                        index: index,
+                        sectionHeightInViewport: Math.round(sectionHeightInViewport),
+                                         sectionHeight: Math.round(sectionHeight),
+                                         sectionInViewportRatio: Math.round(sectionInViewportRatio * 1000) / 10,
+                                         viewportOccupancyRatio: Math.round(viewportOccupancyRatio * 1000) / 10,
+                                         element: section,
+                                         addedByRule: 'rule4-atTop'
+                    });
+                }
+            });
+        }
+
+        // FALLBACK
+        if (visibleSections.length === 0) {
+            const currentActive = getCurrentActiveSection();
+            LOG.warn(MODULE, `FALLBACK: No candidates found, keeping current: ${currentActive}`);
+
+            const currentActiveIndex = allSections.findIndex(
+                s => s.dataset.section === currentActive
+            );
+
+            if (currentActiveIndex !== -1) {
+                const activeSection = allSections[currentActiveIndex];
+                const rect = activeSection.getBoundingClientRect();
+
+                visibleSections.push({
+                    id: currentActive,
+                    index: currentActiveIndex,
+                    sectionHeightInViewport: 0,
+                    sectionHeight: Math.round(rect.height),
+                                     sectionInViewportRatio: 0,
+                                     viewportOccupancyRatio: 0,
+                                     element: activeSection,
+                                     addedByRule: 'fallback'
+                });
+            }
+        }
+
+        LOG.debug(MODULE, `Final candidates: Count=${visibleSections.length}`);
 
         return visibleSections;
     }
 
+    // MIGRIERT: lastScrollY und lastDirection
     function determineWinner(candidates) {
         if (candidates.length === 0) {
-            LOG.debug(MODULE, 'No candidates');
+            LOG.warn(MODULE, 'No candidates for winner selection');
             return null;
         }
 
-        LOG.debug(MODULE, `Final candidates: Count=${candidates.length}`);
+        if (candidates.length === 1) {
+            LOG.debug(MODULE, `Only one candidate: ${candidates[0].id}`);
+            return candidates[0];
+        }
 
+        // DIRECTION LOCK - MIGRIERT
         const scrollY = window.scrollY;
-        const lastScrollY = STATE.lastScrollY;
-        const direction = scrollY > lastScrollY ? 'down' : 'up';
+        const lastScrollY = window.StateManager
+        ? window.StateManager.get('scroll.lastScrollY') || 0
+        : STATE.lastScrollY;
+        const scrollDelta = scrollY - lastScrollY;
 
-        STATE.lastScrollY = scrollY;
-        STATE.lastDirection = direction;
+        const lastDirection = window.StateManager
+        ? window.StateManager.get('scroll.lastDirection') || 'down'
+        : STATE.lastDirection;
+        const direction = scrollDelta > 0 ? 'down' : (scrollDelta < 0 ? 'up' : lastDirection);
+
+        // StateManager verwenden
+        if (window.StateManager) {
+            window.StateManager.set('scroll.lastScrollY', scrollY);
+            window.StateManager.set('scroll.lastDirection', direction);
+        } else {
+            STATE.lastScrollY = scrollY;
+            STATE.lastDirection = direction;
+        }
 
         const currentActive = getCurrentActiveSection();
-        const navigationPriorityActive = Date.now() - STATE.lastNavigationTime < CONST.NAVIGATION_PRIORITY_DURATION;
+        const currentIndex = STATE.allSections.findIndex(s => s.dataset.section === currentActive);
 
-        if (navigationPriorityActive && STATE.lastNavigatedSection) {
-            const navTarget = candidates.find(c => c.id === STATE.lastNavigatedSection);
-            if (navTarget) {
-                LOG.debug(MODULE, `Navigation priority: Forcing ${STATE.lastNavigatedSection}`);
-                return navTarget;
+        let filtered = candidates.filter(c => {
+            const cIndex = STATE.allSections.findIndex(s => s.dataset.section === c.id);
+
+            if (direction === 'down') {
+                return cIndex >= currentIndex;
+            } else if (direction === 'up') {
+                return cIndex <= currentIndex;
             }
+            return true;
+        });
+
+        LOG.debug(MODULE, `Direction lock ${direction.toUpperCase()}: Filtered from ${candidates.length} to ${filtered.length}`);
+
+        if (filtered.length === 0) {
+            filtered = candidates;
         }
 
-        let filteredCandidates = [...candidates];
+        // SCORING
+        LOG.separator(MODULE, 'Scoring Results');
+        const scored = filtered.map(c => {
+            const isActive = c.id === currentActive;
+            const activeBonus = isActive ? 50 : 0;
+            const score = (c.viewportOccupancyRatio * 300) + activeBonus;
 
-        if (filteredCandidates.length > 1) {
-            const hasActiveSectionInCandidates = filteredCandidates.some(c => c.id === currentActive);
-
-            if (hasActiveSectionInCandidates) {
-                // DOM-Elemente sind in STATE
-                const allSections = STATE.allSections;
-
-                const activeIndex = allSections.findIndex(s => s.dataset.section === currentActive);
-
-                filteredCandidates = filteredCandidates.filter(c => {
-                    const candIndex = allSections.findIndex(s => s.dataset.section === c.id);
-
-                    if (direction === 'down') {
-                        return candIndex >= activeIndex;
-                    } else {
-                        return candIndex <= activeIndex;
-                    }
-                });
-
-                LOG.debug(MODULE, `Direction lock ${direction.toUpperCase()}: Filtered from ${candidates.length} to ${filteredCandidates.length}`);
-            }
-        }
-
-        if (filteredCandidates.length === 0) {
-            filteredCandidates = candidates;
-        }
-
-        LOG.group(MODULE, 'Scoring Results');
-        const scored = filteredCandidates.map(c => {
-            let score = 0;
-
-            score += c.viewportOccupancyRatio * 300;
-
-            if (c.id === currentActive) {
-                score += 50;
-            }
-
-            LOG(MODULE, `${c.id}: score=${Math.round(score)} (viewportRatio=${(c.viewportOccupancyRatio*100).toFixed(1)}%, active=${c.id === currentActive})`);
+            LOG(MODULE, `${c.id}: score=${Math.round(score)} (viewportRatio=${(c.viewportOccupancyRatio*100).toFixed(1)}%, active=${isActive})`);
 
             return { ...c, score };
         });
@@ -484,7 +577,12 @@
     function handleIntersection(entries, observer) {
         const timestamp = Date.now();
 
-        if (STATE.isProcessingIntersection) {
+        // isProcessingIntersection über StateManager
+        const isProcessing = window.StateManager
+        ? window.StateManager.get('scroll.isProcessingIntersection')
+        : STATE.isProcessingIntersection;
+
+        if (isProcessing) {
             return;
         }
 
@@ -504,11 +602,20 @@
             const isAtTop = scrollY === 0;
             const isAtBottom = scrollY + viewportHeight >= documentHeight - 10;
 
-            const navigationPriorityActive = timestamp - STATE.lastNavigationTime < CONST.NAVIGATION_PRIORITY_DURATION;
+            // lastNavigationTime über StateManager
+            const lastNavTime = window.StateManager
+            ? window.StateManager.get('sections.lastNavigationTime') || 0
+            : STATE.lastNavigationTime;
+            const navigationPriorityActive = timestamp - lastNavTime < CONST.NAVIGATION_PRIORITY_DURATION;
+
+            // lastNavigatedSection über StateManager
+            const lastNavSection = window.StateManager
+            ? window.StateManager.get('sections.lastNavigatedSection')
+            : STATE.lastNavigatedSection;
 
             entries.forEach(entry => {
                 const sectionId = entry.target.dataset.section;
-                const isNavigationTarget = sectionId === STATE.lastNavigatedSection && navigationPriorityActive;
+                const isNavigationTarget = sectionId === lastNavSection && navigationPriorityActive;
 
                 if (isNavigationTarget && entry.isIntersecting) {
                     LOG.debug(MODULE, `Navigation target intersecting: ${sectionId}`);
