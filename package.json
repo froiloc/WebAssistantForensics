@@ -13,7 +13,7 @@
   },
   "simple-git-hooks": {
     "pre-push": "npm test",
-    "commit-msg": "node ./tools/validation/validate_commit_msg.js '$1'"
+    "commit-msg": "node ./tools/validation/validate_commit_msg.js './.git/COMMIT_EDITMSG'"
   },
   "jest": {
     "testEnvironment": "jsdom",
