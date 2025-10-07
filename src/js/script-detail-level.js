@@ -38,7 +38,7 @@
             return;
         }
 
-        updateDetailVisibility();
+        updateDetailVisibility(normalizedLevel);
         updateInfoText(normalizedLevel);
         updateActiveButton(normalizedLevel);
 
@@ -47,8 +47,7 @@
         }
     }
 
-    function updateDetailVisibility() {
-        const level = window.StateManager.get('preferences.detailLevel');
+    function updateDetailVisibility(level) {
         const currentLevel = LEVEL_MAP[level]
 
         const level1Elements = document.querySelectorAll('.detail-level-1');
@@ -158,7 +157,7 @@
         const initialLevel = window.StateManager.get('preferences.detailLevel');
         LOG(MODULE, `Applying initial detail level: ${initialLevel}`);
 
-        updateDetailVisibility();
+        updateDetailVisibility(initialLevel);
         updateInfoText(initialLevel);
         updateActiveButton(initialLevel);
 
@@ -178,7 +177,7 @@
             const level = window.StateManager.get('preferences.detailLevel');
             LOG(MODULE, `Applying loaded detail level: ${level}`);
 
-            updateDetailVisibility();
+            updateDetailVisibility(level);
             updateInfoText(level);
             updateActiveButton(level);
         });
@@ -187,7 +186,7 @@
             LOG(MODULE, 'Preferences reset event received');
             const level = window.StateManager.get('preferences.detailLevel');
 
-            updateDetailVisibility();
+            updateDetailVisibility(level);
             updateInfoText(level);
             updateActiveButton(level);
         });
