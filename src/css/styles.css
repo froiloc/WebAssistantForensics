@@ -36,6 +36,28 @@
     /* Transitions */
     --transition-fast: 0.2s ease;
     --transition-medium: 0.3s ease;
+
+    /* ===== ERWEITERTE ANIMATION-VARIABLEN (V09) ===== */
+
+    /* Erweiterte Timings */
+    --transition-slow: 0.5s ease;
+
+    /* Easing Functions - Professionelle Bewegungskurven */
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);         /* Material Design Standard */
+    --ease-out: cubic-bezier(0.0, 0, 0.2, 1);            /* Beschleunigt am Anfang */
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);               /* Beschleunigt am Ende */
+    --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Sehr weiche Bewegung */
+
+    /* Sidebar-spezifische Timings */
+    --sidebar-transition-duration: 0.35s;
+    --sidebar-transition-easing: var(--ease-smooth);
+
+    /* Tooltip/Modal Timings */
+    --tooltip-transition: 0.2s var(--ease-out);
+    --modal-transition: 0.3s var(--ease-smooth);
+
+    /* Animation-Delays für gestaffelte Effekte */
+    --animation-stagger-delay: 0.05s;
 }
 
 /* Nacht-Modus - WCAG AA/AAA konform */
@@ -131,10 +153,6 @@ body.tips-hidden {
     border-radius: 8px;
     box-shadow: 0 2px 10px var(--color-shadow);
     transition: margin-right var(--transition-medium), background-color var(--transition-medium);
-}
-
-body.notes-open .container {
-    margin-right: 320px;
 }
 
 /* ===== HEADER ===== */
@@ -326,26 +344,28 @@ footer p:last-child {
 .notes-toggle {
     position: fixed;
     right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: var(--color-primary);
-    color: var(--color-surface-elevated);
+    top: calc(50% - 30px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     border: none;
     padding: 15px 10px;
     border-radius: 8px 0 0 8px;
     cursor: pointer;
-    z-index: 998;
-    transition: all var(--transition-medium);
-    box-shadow: -2px 2px 10px var(--color-shadow-strong);
+    z-index: 999; /* below the agent */
+    box-shadow: -2px 2px 10px rgba(0,0,0,0.2);
+
+    /* Identische Transition wie Sidebar */
+    transform: translateX(0);
+    transition: transform var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
 .notes-toggle:hover {
-    background-color: var(--color-primary-hover);
     padding-right: 15px;
+    background: linear-gradient(135deg, #7c8ef5 0%, #8a5cb4 100%);
 }
 
 .notes-toggle:focus {
-    outline: var(--focus-outline-width) solid var(--color-focus);
+    outline: 3px solid var(--color-focus);
     outline-offset: 2px;
 }
 
@@ -354,27 +374,44 @@ footer p:last-child {
     display: block;
 }
 
+/* Wenn Notizen offen: Button fährt MIT der Sidebar */
 body.notes-open .notes-toggle {
-    right: 350px;
+    transform: translateX(-300px);  /* Exakt die Breite der Sidebar */
 }
 
 /* ===== NOTIZBLOCK SIDEBAR ===== */
 .notes-sidebar {
     position: fixed;
-    right: -370px;
-    top: var(--sidebar-top);
-    width: 350px;
-    height: calc(100vh - var(--sidebar-top) - var(--tips-footer-height));
-    background-color: var(--color-surface-elevated);
-    box-shadow: -3px 0 15px var(--color-shadow-strong);
-    transition: right var(--transition-medium), background-color var(--transition-medium);
+    right: 0;
+    top: var(--top-nav-height);
+    width: 300px;
+    height: calc(100vh - var(--top-nav-height) - var(--tips-footer-height, 0px));
     z-index: 999;
+    transform: translateX(100%);
+    transition: transform var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+    box-shadow: -2px 0 15px var(--color-shadow-strong);
+    background-color: var(--color-surface-elevated);
     display: flex;
     flex-direction: column;
+    border-left: 2px solid var(--color-border-strong);
+
+    /* GPU-Beschleunigung */
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 body.notes-open .notes-sidebar {
-    right: 0;
+    transform: translateX(0);
+}
+
+/* Opening Animation */
+.notes-sidebar.opening {
+    transition-timing-function: var(--ease-out);
+}
+
+/* Closing Animation */
+.notes-sidebar.closing {
+    transition-timing-function: var(--ease-in);
 }
 
 .notes-header {
@@ -390,6 +427,14 @@ body.notes-open .notes-sidebar {
     font-size: 1.5em;
     color: var(--color-surface-elevated);
     border: none;
+}
+
+.notes-title {
+    margin: 0;
+    font-size: 1.5em;
+    color: var(--color-surface-elevated);
+    border: none;
+    flex: 1; /* Nimmt verfügbaren Platz, drückt Close-Button nach rechts */
 }
 
 .notes-content {
@@ -776,24 +821,31 @@ body.notes-open .notes-sidebar {
     color: var(--color-surface-elevated);
 }
 
+/* Close-Button für Sidebars (alle Viewports) */
 .close-btn {
     background: none;
     border: none;
     color: var(--color-surface-elevated);
     font-size: 1.5em;
     cursor: pointer;
-    padding: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color var(--transition-fast);
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
 }
 
 .close-btn:hover {
-    color: var(--color-focus);
+    background-color: var(--color-primary-hover);
 }
 
 .close-btn:focus {
-    outline: 2px solid var(--color-focus);
+    outline: var(--focus-outline-width) solid var(--color-focus);
     outline-offset: 2px;
-    border-radius: 3px;
 }
 
 .nav-sidebar-content {
@@ -1076,20 +1128,24 @@ body.notes-open .notes-sidebar {
     body.notes-open .container {
         margin-right: 0;
     }
-    
+
     .notes-sidebar {
-        width: 100%;
-        right: -100%;
+        width: 100vw;  /* Vollbreite bei kleinen Viewports */
     }
-    
-    body.notes-open .notes-sidebar {
-        right: 0;
-    }
-    
+
+    /* Notes-Toggle: Komplett nach links verschieben wenn Sidebar offen */
     body.notes-open .notes-toggle {
-        right: 20px;
+        transform: translateX(calc(-100vw + 0px)); /* Komplett aus Viewport */
     }
-    
+
+    /* WICHTIG: Close-Button muss sichtbar bleiben */
+    .notes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+    }
+
     .breadcrumb-current {
         max-width: 200px;
     }
@@ -1293,23 +1349,39 @@ body.notes-open .notes-sidebar {
 /* Sidebar initial UND geschlossen: Keine Transition */
 .sidebar-container {
     position: fixed;
-    left: 0;
+    left: 0;  /* Anker-Punkt links */
     top: var(--top-nav-height);
     width: 280px;
+    height: calc(100vh - var(--top-nav-height) - var(--tips-footer-height, 0px));
     z-index: 998;
-    /* transform: translateX(-100%); */
-    box-shadow: -3px 0 15px var(--color-shadow-strong);
-    transition: right var(--transition-medium), background-color var(--transition-medium);
-    /* KEINE transition hier! */
+
+    /* Initial komplett versteckt (nach links außerhalb) */
+    transform: translateX(-100%);
+
+    /* Smooth Transition beim Öffnen/Schließen */
+    transition: transform var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+
+    box-shadow: 2px 0 15px var(--color-shadow-strong);
+    background-color: var(--color-surface-elevated);
+
+    /* GPU-Beschleunigung */
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
-/* NUR beim Öffnen UND Schließen: Mit Transition */
-.sidebar-container.animated {
-    transition: transform 0.3s ease-in-out;
-}
-
+/* Geöffneter Zustand - gleitet nach rechts ins Bild */
 .sidebar-container.open {
     transform: translateX(0);
+}
+
+/* Opening Animation - beschleunigt am Anfang */
+.sidebar-container.opening {
+    transition-timing-function: var(--ease-out);
+}
+
+/* Closing Animation - beschleunigt am Ende */
+.sidebar-container.closing {
+    transition-timing-function: var(--ease-in);
 }
 
 /* ===== EINZELNE SIDEBAR WRAPPER ===== */
@@ -1329,7 +1401,6 @@ body.notes-open .notes-sidebar {
     color: var(--color-surface-elevated);
     padding: 12px 15px;
     cursor: pointer;
-    transition: background-color var(--transition-fast);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1338,6 +1409,12 @@ body.notes-open .notes-sidebar {
 
 /* Sidebar wird ausgeblendet */
 .sidebar-wrapper.closing {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+/* ✅ NEU: Tab-Header Slide-Out Animation */
+.sidebar-tab-header.sliding-out {
     transform: translateX(-100%);
     opacity: 0;
 }
@@ -1417,6 +1494,18 @@ body.notes-open .notes-sidebar {
     display: flex;
     flex-direction: column;
     min-height: 0; /* Kritisch */
+
+    /* ✅ NEU: Transition muss VOR Klassenänderung aktiv sein */
+    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+}
+
+/* ✅ NEU: Collapsing-State für Body */
+.sidebar-tab-body.collapsing {
+    flex-grow: 0 !important;
+    opacity: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ===== BODY (scrollbarer Content) ===== */
@@ -1432,6 +1521,19 @@ body.notes-open .notes-sidebar {
 
 .sidebar-wrapper.active .sidebar-body {
     animation: slideDown 0.3s ease;
+}
+
+/* ===== NEUE KLASSE: Tab-Body Collapsing Animation ===== */
+.sidebar-tab-body {
+    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+}
+
+.sidebar-tab-body.collapsing {
+    flex-grow: 0 !important;
+    opacity: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ===== FOOTER (Aktionsbereich) ===== */
@@ -1635,11 +1737,6 @@ body.tips-hidden .sidebar-container {
 @media (max-width: 1024px) {
     .sidebar-container {
         width: 100%;
-        left: -100%;
-    }
-
-    .sidebar-container.open {
-        left: 0;
     }
 }
 
@@ -1688,4 +1785,33 @@ body.tips-hidden .sidebar-container {
 /* Verstecke Subheader in Navigation-Sidebar */
 #sidebar-navigation .sidebar-footer {
     display: none !important;
+}
+
+/* ===== SIDEBAR TAB-HEADER HOVER-EFFEKTE (V09) ===== */
+.sidebar-tab-header,
+.notes-header {
+    transition: background-color var(--transition-fast),
+    transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+}
+
+.sidebar-tab-header:hover,
+.notes-header:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* ✅ NEU: Tab-Header Slide-Out Animation */
+.sidebar-tab-header.sliding-out {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+/* Content-Fade beim Tab-Wechsel */
+.sidebar-tab-body {
+    opacity: 1;
+    transition: opacity var(--transition-medium) var(--ease-smooth);
+}
+
+.sidebar-tab-body.fading {
+    opacity: 0;
 }

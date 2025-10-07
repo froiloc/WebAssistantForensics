@@ -83,9 +83,9 @@
         sidebar.classList.add('closing');
 
         setTimeout(() => {
-            sidebar.style.display = 'none'; // ✅ Verstecke Sidebar
+            sidebar.style.display = 'none';
             sidebar.classList.remove('closing');
-        }, 300); // Nach Animation verstecken
+        }, 300);
 
         // StateManager verwenden
         let sidebarsOpen;
@@ -96,7 +96,14 @@
         }
 
         if (sidebarsOpen.length === 0) {
-            container.classList.remove('open');
+            // ✅ NEU: Closing-Animation für den Container
+            container.classList.add('closing');
+
+            setTimeout(() => {
+                container.classList.remove('open');
+                container.classList.remove('closing');
+            }, 350); // Wartet auf CSS-Transition-Dauer
+
             if (window.StateManager) {
                 window.StateManager.set('ui.activeSidebarTab', null);
             }
@@ -245,12 +252,17 @@
     function loadSidebarStates() {
         LOG(MODULE, 'Loading sidebar states from StateManager...');
 
-        // Preferences aus StateManager holen (oder Fallback auf STATE)
-        const sidebarsOpen = window.StateManager.get('preferences.sidebarsOpen');
+        // ⭐ WICHTIG: Transitions temporär deaktivieren während des Ladens
+        const container = document.getElementById('sidebar-container');
+        if (container) {
+            container.style.transition = 'none';
+        }
 
-        const activeSidebarTab = window.StateManager.get('preferences.activeSidebarTab');
+        // Preferences aus StateManager holen (oder Fallback auf leere Arrays)
+        const sidebarsOpen = window.StateManager.get('preferences.sidebarsOpen') || [];
+        const activeSidebarTab = window.StateManager.get('preferences.activeSidebarTab') || null;
 
-        LOG.debug(MODULE, `Loading: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
+        LOG.debug(MODULE, `🔍 Loading: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
 
         if (window.innerWidth > 1024) {
             // Schritt 1: Alle Sidebars in ui.sidebarsOpen registrieren
@@ -269,11 +281,10 @@
             // Schritt 2: Nur die aktive Sidebar aktivieren (mit deactivateAllSidebars)
             if (activeSidebarTab && sidebarsOpen.includes(activeSidebarTab)) {
                 activateSidebar(activeSidebarTab);
-                LOG.success(MODULE, `Restored active sidebar: ${activeSidebarTab}`);
+                LOG.success(MODULE, `✓ Restored active sidebar: ${activeSidebarTab}`);
             }
 
             // Schritt 3: Container öffnen
-            const container = document.getElementById('sidebar-container');
             const currentSidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
 
             if (currentSidebarsOpen.length > 0) {
@@ -281,7 +292,14 @@
             }
         }
 
-        LOG.debug(MODULE, `Loaded state: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
+        // ⭐ Transitions nach dem Laden wieder aktivieren (kurze Verzögerung)
+        setTimeout(() => {
+            if (container) {
+                container.style.transition = '';
+            }
+        }, 50);
+
+        LOG.debug(MODULE, `🔍 Loaded state: open=[${sidebarsOpen}], active=${activeSidebarTab}`);
     }
 
     // ============================================================================

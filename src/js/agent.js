@@ -70,15 +70,25 @@ function toggleAgent() {
 function openAgent(contextId = null) {
     agentOpen = true;
     document.body.classList.add('agent-open');
-    
+
     const toggleBtn = document.getElementById('agent-toggle');
     if (toggleBtn) {
         toggleBtn.setAttribute('aria-expanded', 'true');
+
+        // ⭐ Bei schmalen Viewports: Focus entfernen wenn Toggle aus Viewport verschwindet
+        if (window.innerWidth <= 1024) {
+            // Warte bis Transform-Animation abgeschlossen (350ms + 50ms Buffer)
+            setTimeout(() => {
+                if (document.activeElement === toggleBtn) {
+                    toggleBtn.blur(); // Focus entfernen
+                }
+            }, 400);
+        }
     }
-    
+
     // Notification Badge ausblenden
     hideAgentNotification();
-    
+
     // Wenn mit spezifischem Kontext geöffnet, Dialog starten
     if (contextId) {
         startAgentDialog(contextId);
@@ -88,10 +98,14 @@ function openAgent(contextId = null) {
 function closeAgent() {
     agentOpen = false;
     document.body.classList.remove('agent-open');
-    
+
     const toggleBtn = document.getElementById('agent-toggle');
     if (toggleBtn) {
         toggleBtn.setAttribute('aria-expanded', 'false');
+
+        // ⭐ Bei schmalen Viewports: Focus kann wieder gesetzt werden
+        // (Toggle kehrt zurück in den Viewport)
+        // Kein automatischer Focus hier, da Nutzer möglicherweise mit Tastatur navigiert
     }
 }
 

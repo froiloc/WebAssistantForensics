@@ -92,22 +92,52 @@
 
         const toggleBtn = document.getElementById('notes-toggle');
         const sidebar = document.getElementById('notes-sidebar');
+        const closeBtn = document.getElementById('close-notes-sidebar');
         const clearBtn = document.getElementById('clear-notes-btn');
         const textarea = document.getElementById('notes-textarea');
 
         LOG.debug(MODULE, 'Notes elements:', {
             toggleBtn: !!toggleBtn,
             sidebar: !!sidebar,
+            closeBtn: !!closeBtn,
             clearBtn: !!clearBtn,
             textarea: !!textarea
         });
 
+        // ⭐ WICHTIG: Transitions temporär deaktivieren während des Ladens
+        if (sidebar) {
+            sidebar.style.transition = 'none';
+        }
+
         // Load saved notes
         loadNotesFromStorage();
+
+        // ⭐ Gespeicherten Open-Status wiederherstellen (OHNE Animation)
+        const wasOpen = window.StateManager.get('ui.notesOpen');
+        if (wasOpen && sidebar) {
+            sidebar.classList.add('open');
+            document.body.classList.add('notes-open');
+            LOG.debug(MODULE, 'Restored notes-open state without animation');
+        }
+
+        // ⭐ Transitions nach kurzer Verzögerung wieder aktivieren
+        setTimeout(() => {
+            if (sidebar) {
+                sidebar.style.transition = '';
+            }
+        }, 50);
 
         // Toggle-Button
         if (toggleBtn) {
             toggleBtn.addEventListener('click', toggleNotesSidebar);
+        }
+
+        // ⭐ Close-Button (NEU)
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                toggleNotesSidebar(); // Verwendet die zentrale Toggle-Funktion
+                LOG.debug(MODULE, 'Notes closed via close button');
+            });
         }
 
         // Clear-Button
@@ -156,7 +186,18 @@
 
             LOG(MODULE, 'Notes sidebar opened');
 
-            // Fokus auf Textarea
+            // ⭐ Bei schmalen Viewports: Focus von Toggle entfernen wenn es aus Viewport verschwindet
+            const toggleBtn = document.getElementById('notes-toggle');
+            if (toggleBtn && window.innerWidth <= 1024) {
+                // Warte bis Transform-Animation abgeschlossen (350ms + 50ms Buffer)
+                setTimeout(() => {
+                    if (document.activeElement === toggleBtn) {
+                        toggleBtn.blur(); // Focus entfernen
+                    }
+                }, 400);
+            }
+
+            // Fokus auf Textarea (nach Toggle-Focus-Handling)
             const textarea = document.getElementById('notes-textarea');
             if (textarea) {
                 textarea.focus();
