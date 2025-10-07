@@ -443,7 +443,8 @@
         registerShortcut: registerShortcut,
         activate: activateSidebar,
         deactivate: deactivateSidebar,
-        closeAll: closeSidebarContainer
+        closeAll: closeSidebarContainer,
+        toggleSidebar: toggleSidebarByShortcut
     };
 
     LOG(MODULE, 'Sidebar manager module loaded');
