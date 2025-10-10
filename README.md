@@ -97,7 +97,7 @@ Der **AXIOM Forensische Leitfaden** ist eine webbasierte, interaktive Anwendung 
 ## 📁 Projektstruktur
 
 ```
-WebAssistentForensics/
+WebAssistantForensics/
 │
 ├── README.md                          # Diese Datei
 ├── LICENSE                            # Lizenzinformationen
