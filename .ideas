@@ -13,4 +13,4 @@ Context:
   44:   <span class="ui-element">File → New Case</span>
   45:   und gibt den Fallnamen ein.</p>
        ^^^^^^ Missing 'lang' attribute
-
+- Tonalität für den Agent soll motivierend-ermunternd sein.

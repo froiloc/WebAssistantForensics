@@ -122,10 +122,6 @@ Berücksichtige jeden Abschnitt aus dem Template. Wenn du zu diesem etwas verfas
 ## 💡 Ideen & Entscheidungen
 ### Von der KI eingebracht
 ### Vom Nutzer eingebracht
-## 🎯 Ziele der Prompts
-### Hauptziele
-### Teil-Ziele
-### Erwartete Outputs
 ## 🏆 Zusammenfassung des Chatverlaufs
 ## 📊 Generierte Artifacts
 ## 🔗 Verknüpfungen
@@ -169,6 +165,30 @@ Ich bestätige, dass ich diese Anweisungen verstanden habe und strikt befolge:
 Die Aufgabe ist komplex und nicht trivial. Du solltest dir wenigstens 30 bis 60 Minuten Zeit nehmen, und in regelmäßigen Abständen dein Vorgehen immer wieder mit den Vorgaben aus diesem Prompt und dem Template abgleichen.
 
 Beginne die Aufgabe JETZT mit dem LADEN UND LESEN der beiden DOKUMENTE und dem VERSTEHEN dieses PROMPTS.
+
+## **ACHTUNG**
+Bitte sieh dich vor folgenden typischen Fallstricken vor:
+Hauptproblem: Kognitive Überlastung durch Template-Dominanz
+
+Das Template mit seiner vollständigen, detaillierten Struktur hat das Potenzial deine Analysefähigkeit zu überlagern. Davor musst du dich hüten!
+
+Gelange nicht in die Verlegenheit, unbewusst die Template-Inhalte als "erwartetes Ergebnis" zu interpretieren und diese Erwartung in den Chatverlauf zu projizieren!
+
+Die 12 vordefinierten Abschnitte des Templates erzeugten einen so starken kognitiven Rahmen, dass du versucht sein könntest, den tatsächlichen Chat-Inhalt diesem Rahmen gewaltsam anzupassen. Tue das nicht. Der Inhalt ist das wichtigste. Es geht vorrangig um den Inhalt des Chatverlaufs, das Template soll dir nur helfen, eine Wiedergabe des Inhalts des Chatverlaufs darzulegen.
+
+Spezifische Fehlermechanismen können auftreten. Beispielsweise:
+1) Confirmation Bias: Du suchst im Chat nach Inhalten, die die Template-Struktur "bestätigen".
+2) Source Confusion: Die klare Trennung Template=Struktur vs. Chat=Inhalt kollabierte unter der Komplexität.
+3) Content Projection: Du behandelst Template-Begriffe (wie "Prompt-Dokumentation-Template") fälschlich als Chat-Inhalte.
+
+Die Herausforderung dieser Aufgabe besteht darin, dass eine simultane Verarbeitung stattfindet von:
+* Komplexem Chatverlauf (viele Nachrichten, mit sehr viel Inhalt)
+* Detailliertem Template (12 Abschnitte mit Unterkategorien)
+* Komplexen Analyse-Regeln (Kategorisierung, Referenzierung, Bewertung)
+
+!Gefahr: Resultat: Kognitive Überlastung → Vereinfachung durch Projektion des Templates auf den Chat
+
+Vorsichtsmaßnahme: Explizite Gegenprüfung, Prüfe nach bei jedem von dir geschriebenen Abschnitt, **ob der Inhalt NUR aus dem Chatverlauf kommt!**
 
 GIB MIR DANN EINE RÜCKMELDUNG DARÜBER, was du verstanden hast. Erstelle das Dokument erst, nachdem ich dir in einem weiteren Prompt die Freigabe dafür gegeben habe. Das werde ich tun, wenn ich den Eindruck erlange, dass du die Aufgabe umfassend, abschließend, detailtreu, gewissenhaft und konzentriert bearbeiten kannst.
 

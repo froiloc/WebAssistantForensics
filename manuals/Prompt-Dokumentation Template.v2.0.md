@@ -40,18 +40,6 @@ Beispiel:
 
 ---
 
-## 📝 Chat-Interaktionen
-
-### Haupt-Interaktionen Zusammenfassung
-
-**Anweisung an die KI**: Erstelle eine Zusammenfassung der wichtigsten Diskussionsstränge. Beschreibe dazu jeweils die Motivation, den Werdegang und das Ergebnis.
-
-*Automatische Erkennung basierend auf ## Prompt: und ## Response: Markern*
-
-[HIER FOLGT DIE AUTOMATISCH GENERIERTE ZUSAMMENFASSUNG DER WICHTIGSTEN INTERAKTIONEN]
-
----
-
 ## 💡 Ideen & Entscheidungen
 
 ### Von der KI eingebracht
@@ -81,40 +69,6 @@ Beispiel:
 - 🎯 **Für spätere Evaluation vorgemerkt**
 
 - ❌ **Abgewiesen**
-
----
-
-## 🎯 Ziele der Prompts
-
-### Hauptziele
-
-**Anweisung an die KI**: Führe aus, welche Ziele vorgegeben wurden und erreicht werden sollten. Strategische Ziele, taktische Ziele.
-
-*Was sollte mit diesem Chatverlauf erreicht werden?*
-
-### Teil-Ziele
-
-**Anweisung an die KI**: Führe aus, welche Ziele vorgegeben wurden und erreicht werden sollten. Taktische Ziele, operative Ziele.
-
-1. [Erstes Teilziel]
-
-2. [Zweites Teilziel]
-
-3. [Drittes Teilziel]
-
-### Erwartete Outputs
-
-**Anweisung an die KI**: Erstelle hier eine Liste der Dokumente, die aufgrund des Chats erstellt wurden.
-
-- Code-Snippets (HTML/CSS/JS)
-
-- Dokumentation
-
-- Konzept/Design
-
-- Entscheidungshilfe
-
-- Sonstiges: ___________
 
 ---
 
@@ -148,33 +102,9 @@ Beispiel:
 
 ---
 
-## 🔗 Verknüpfungen
-
-### Abhängigkeiten
-
-*Von welchen vorherigen Prompts/Arbeiten hingen diese Prompts ab?*
-
-- **Prompt_XXX:** [Kurzbeschreibung der Abhängigkeit]
-
-- **Prompt_YYY:** [Kurzbeschreibung der Abhängigkeit]
-
-### Follow-up Prompts
-
-*Welche Prompts bauten auf diesem auf?*
-
-- **Prompt_ZZZ:** [Was darauf aufbaute]
-
-### Verwandte Dateien
-
-*Welche Projekt-Dateien wurden durch diesen Prompt beeinflusst/erstellt?*
-
-- `[Dateipfad]`
-
-- `[Dateipfad]`
-
----
-
 ## 🎓 Lessons Learned
+
+**Anweisung an die KI**: Hier ist nicht der Inhalt der Konversation, sondern deren Durchführung relevant. Haben sich beide Chatpartner verstanden? Haben sie eine gemeinsame Lösung gefunden? Gab es Verständnisschwierigkeiten? Sind sie beim Thema geblieben oder haben sie sich plötzlich um andere Themen gekümmern, die neu auftraten? Sind sie immer wieder zum Hauptthemenstrang zurückgekommen?
 
 ### Was gut funktioniert hat
 
@@ -200,7 +130,7 @@ Beispiel:
 
 ## 📊 Qualitätsbewertung
 
-**Anweisung an die KI**: Hier ist der Inhalt der Konversation und der sich aus ihr ergebenden Erzeugnisse und Ergebnisse zu bewerten. Es ist NICHT die Art des Chats oder wie er niedergeschrieben oder verlaufen ist zu bewerten. Es geht hier einzig und allein um die Güte der aus der Diskussion im Chat entstandenen Outputs.
+**Anweisung an die KI**: Hier ist der Inhalt der Konversation und der sich aus ihr ergebenden Erzeugnisse und Ergebnisse zu bewerten. Es ist NICHT die Art des Chats oder wie er niedergeschrieben oder verlaufen ist zu bewerten. Es geht hier einzig und allein um die Güte der aus der Diskussion im Chat entstandenen Outputs. Bei der Qualitätsbewertung ist das im Template vorgeschlagene 5-Sterne-System zu verwenden. 5 Sterne: alles bestens, 0 Sterne: alles eine Katastrophe. Dabei ist jeder Aspekt aus dem Inhalt des Chats zu Konzept, Dokumentation und Nützlichkeit EINZELN zu bewerten. Bewerte das Konzept nach Vollständigkeit, Korrektheit, Innovation, Einhalten von Standards, Abdeckung von Edgecases, etc. Bewerte die Dokumentation nach Vollständigkeit, Verständlichkeit, Struktur, Umfang (nicht zu wenig nichts unnötiges), gibt es Beispiele, etc. Bewerte die Nützlichkeit nach Einsatzfähigkeit, Zeitersparnis, Wiederverwendbarkeit, abgedecktem Arbeitsvolumen, Effektivität, Effizienz, etc. Du bewertest also die im Chat besprochenen und erstellten Inhalte selbst. Wohlgemerkt, die INHALTE und NICHT den CHAT SELBST.
 
 ### Konzept-Qualität
 
@@ -246,28 +176,6 @@ Beispiel:
 - [Idee 1]
 
 - [Idee 2]
-
----
-
-## 📎 Anhänge
-
-### Externe Links
-
-*Relevante Links, die im Kontext wichtig sind*
-
-- [Link 1 mit Beschreibung]
-
-- [Link 2 mit Beschreibung]
-
----
-
-## ✏️ Changelog
-
-*Wenn diese Prompt-Dokumentation später aktualisiert wird*
-
-| Datum                       | Version | Änderung | Bearbeiter |
-| --------------------------- | ------- | -------- | ---------- |
-| [TT.MM](https://TT.MM).JJJJ | 1.0     | Erstellt | [Name]     |
 
 ---
 
