@@ -34,7 +34,8 @@ Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
 ### ANALYSEPROZESS:
 1. **Zuerst**: Chatverlauf vollständig analysieren
    - Prompts an "## Prompt:" Markern identifizieren
-     - die Zeile "## Prompt:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln. Alle Zeitstempel wurden sorgfältig vorgeprüft und können ohne Zögern akzeptiert werden.
+     - die Zeile "## Prompt:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln. Alle Zeitstempel wurden sorgfältig vorgeprüft und können ohne Zögern akzeptiert werden. Solltest du wider Erwarten einen falschen Zeitstempel entdecken, dann korrigiere diesen.
+
         Beispiel: 
 ```text
 ## Prompt:
@@ -42,7 +43,8 @@ Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
 ```
      - Merke dir ebenfalls diesen Zeitstempel. Zu diesem Zeitpunkt wurde die Chat-Nachricht abgesendet. Das ist relevant, um den Chatzeitraum zu bestimmen.
    - Responses an "## Response:" Markern identifizieren
-     - die Zeile "## Response:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln. Alle Zeitstempel wurden sorgfältig vorgeprüft und können ohne Zögern akzeptiert werden.
+     - die Zeile "## Response:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln. Alle Zeitstempel wurden sorgfältig vorgeprüft und können ohne Zögern akzeptiert werden. Solltest du wider Erwarten einen falschen Zeitstempel entdecken, dann korrigiere diesen.
+
         Beispiel:
 ```text
 ## Response:
@@ -75,7 +77,7 @@ BEACHTE FOLGENDE SPEZIFIKATIONEN BEI DER ARBEIT MIT DEM TEMPLATE:
 1. CHAT-ANALYSE:
    - Erkenne Prompts an "## Prompt:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
    - Erkenne Responses an "## Response:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
-   - Referenzen zu Textpassagen (referenziere die Abschnitte als Prompt Zeitstempel> oder Response y, wobei x und y für den Rang in der chronoogischen Reinhenfolge der Nachrichten des Chats. Die Reihenfolge richtet sich an den Zeitstempeln der Nachrichten aus, diese sollte aber mit der Reihenfolge per Position im Dokument übereinstimmen. Bei Diskrepanzen hat die positionelle Reihenfolge im Chatverlauf Vorrang).
+   - Referenzen zu Textpassagen (referenziere die Abschnitte als Prompt Zeitstempel> oder Response y, wobei x und y für den Rang in der chronoogischen Reinhenfolge der Nachrichten des Chats. Die Reihenfolge richtet sich an den Zeitstempeln der Nachrichten aus, diese sollte aber mit der Reihenfolge per Position im Dokument übereinstimmen. Bei Diskrepanzen hat die positionelle Reihenfolge im Chatverlauf Vorrang. Kurz, zur Identifikation der Reihenfolge gilt: POSITION VOR ZEITSTEMPEL).
    - Analyse-Tiefe: Verfolge haupsächlich den thematischen Hauptstrang der Unterhaltung. Widme aber auch der Meta-Ebene, also wie zur Lösung gefunden wird, einen Teil deiner Aufmerksamkeit. Dieser Blickwinkel ist aber nachgeordnet und sollte nicht mehr als 20% der Analyse ausmachen. Es reicht, hier einen groben Umriss zu skizzieren. Bei knapper Information priorisierst du den inhaltlichen Hauptstrang.
 
 2. INTERAKTIONS-ZUSAMMENFASSUNG:
@@ -147,13 +149,15 @@ Berücksichtige jeden Abschnitt aus dem Template. Wenn du zu diesem etwas verfas
 ## ✏ Changelog
 ## 🏷 Tags
 
-Ja, es sind viele Abschnitte, und ja, jeder ist zu befüllen, wenn es qualitative Aussagen dazu gibt. Wenn es keine Aussagen dazu gibt, dann lasse den Abschnitt leer und vermerke "keine relevanten Inhalte dazu im Chatverlauf". Ja, wirklich. Eine negativ Meldung ist auch wichtig. Du kannst diese Formulierung direkt so übernehmen.
+Ja, es sind viele Abschnitte, und ja, jeder ist zu befüllen, wenn es qualitative Aussagen dazu gibt. Wenn es keine Aussagen dazu gibt, dann lasse den Abschnitt leer und vermerke "keine relevanten Inhalte dazu im Chatverlauf". Ja, wirklich. Eine negativ Meldung ist auch wichtig. Du kannst diese Formulierung direkt so übernehmen, darfst sie aber auch an den Kontext anpassen.
 
 Bei der Qualitätsbewertung ist das im Template vorgeschlagene 5-Sterne-System zu verwenden. 5 Sterne: alles bestens, 0 Sterne: alles eine Katastrophe. Dabei ist jeder Aspekt aus dem Inhalt des Chats zu Konzept, Dokumentation und Nützlichkeit EINZELN zu bewerten.
 
 Bewerte das Konzept nach Vollständigkeit, Korrektheit, Innovation, Einhalten von Standards, Abdeckung von Edgecases, etc.
 Bewerte die Dokumentation nach Vollständigkeit, Verständlichkeit, Struktur, Umfang (nicht zu wenig nichts unnötiges), gibt es Beispiele, etc.
 Bewerte die Nützlichkeit nach Einsatzfähigkeit, Zeitersparnis, Wiederverwendbarkeit, abgedecktem Arbeitsvolumen, Effektivität, Effizienz, etc.
+
+Du bewertest also die im Chat besprochenen und erstellten Inhalte selbst. Wohlgemerkt, die INHALTE und NICHT den CHAT SELBST.
 
 ## BESTÄTIGUNG:
 Ich bestätige, dass ich diese Anweisungen verstanden habe und strikt befolge:
