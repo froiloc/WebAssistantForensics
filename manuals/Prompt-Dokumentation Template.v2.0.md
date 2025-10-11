@@ -8,9 +8,11 @@
 
 ## Prompt Metadata
 
+**Anweisung an die KI**: Die **Prompt-ID** ist die UUID in der URL hinter **Link:** am Anfang des Dokuments. **Projekttag**: Anzahl der Arbeitstage (Montag bis Freitag) seit dem 29.09.2025. Der **Bearbeiter** ist Alex. Fülle jedes Feld aus. Halte dich streng an diese Vorgaben.
+
 **Prompt-ID:** XXX  
-**Von Datum/Uhrzeit:** [TT.MM](https://TT.MM).JJJJ HH:MM Uhr  
-**Bis Datum/Uhrzeit:** [TT.MM](https://TT.MM).JJJJ HH:MM Uhr  
+**Von Datum/Uhrzeit:** TT.MM.JJJJ HH:MM Uhr  
+**Bis Datum/Uhrzeit:** TT.MM.JJJJ HH:MM Uhr  
 **Projekttag:** X  
 **Bearbeiter:** [Name]  
 **KI-Modell:** [Claude 4.5 Sonnet / GPT-4 / DeepSeek / etc.]  
@@ -18,9 +20,31 @@
 
 ---
 
+## Chronologische Reihenfolge
+
+**Anweisung an die KI**: Erstelle eine Tabelle, welche das Prompt und die Response in der Zeit einordnet
+
+| Nummer | Prompt vom: | Response vom: |
+|--------|-------------|---------------|
+| flfd Nr. | DD.MM.YYYY HH:II:SS |  DD.MM.YYYY HH:II:SS |
+
+### Hinweis
+flfd Nr. = fortlaufende Nummer, beginnend mit 1 und in jeder Zeile um eins erhöht.
+
+Beispiel: 
+| Nummer | Prompt vom: | Response vom: |
+|--------|-------------|---------------|
+|      1 | 09.10.2025 16:45:16 | 09.10.2025 16:45:53 |
+|     .. | ... | ... |
+|      n | 09.10.2025 21:10:34 | 09.10.2025 21:12:12 |
+
+---
+
 ## 📝 Chat-Interaktionen
 
 ### Haupt-Interaktionen Zusammenfassung
+
+**Anweisung an die KI**: Erstelle eine Zusammenfassung der wichtigsten Diskussionsstränge. Beschreibe dazu jeweils die Motivation, den Werdegang und das Ergebnis.
 
 *Automatische Erkennung basierend auf ## Prompt: und ## Response: Markern*
 
@@ -32,10 +56,14 @@
 
 ### Von der KI eingebracht
 
-[ENTSCHEIDUNGSSTATUS] **[Kurztitel der Idee]** (Zeilen X-Y)  
+**Anweisung and die KI**: Erstelle eine Liste von Ideen und Entscheidungen, die von der KI (Response) eingebracht worden sind. Gib einen fett geschriebenen Kurztitel und 1 bis 3 Sätze, welche die Idee/Entscheidung umschreiben und den Beweggrund hinter der Idee/Entscheidung hervorheben.
+
+[ENTSCHEIDUNGSSTATUS] **[Kurztitel der Idee]** (Prompt X/Response Y)  
 *Beschreibung: 1-3 Sätze die die Idee umschreiben und den Beweggrund hervorheben*
 
 ### Vom Nutzer eingebracht
+
+**Anweisung and die KI**: Erstelle eine Liste von Ideen und Entscheidungen, die von dem Benutzer (Prompt) eingebracht worden sind. Gib einen fett geschriebenen Kurztitel und 1 bis 3 Sätze, welche die Idee/Entscheidung umschreiben und den Beweggrund hinter der Idee/Entscheidung hervorheben.
 
 [ENTSCHEIDUNGSSTATUS] **[Kurztitel der Idee]** (Zeilen X-Y)  
 *Beschreibung: 1-3 Sätze die die Idee umschreiben und den Beweggrund hervorheben*
@@ -60,9 +88,13 @@
 
 ### Hauptziele
 
+**Anweisung an die KI**: Führe aus, welche Ziele vorgegeben wurden und erreicht werden sollten. Strategische Ziele, taktische Ziele.
+
 *Was sollte mit diesem Chatverlauf erreicht werden?*
 
 ### Teil-Ziele
+
+**Anweisung an die KI**: Führe aus, welche Ziele vorgegeben wurden und erreicht werden sollten. Taktische Ziele, operative Ziele.
 
 1. [Erstes Teilziel]
 
@@ -71,6 +103,8 @@
 3. [Drittes Teilziel]
 
 ### Erwartete Outputs
+
+**Anweisung an die KI**: Erstelle hier eine Liste der Dokumente, die aufgrund des Chats erstellt wurden.
 
 - Code-Snippets (HTML/CSS/JS)
 
@@ -86,6 +120,8 @@
 
 ## 🏆 Zusammenfassung des Chatverlaufs
 
+**Anweisung an die KI**: Erstelle eine allgemeine Zusammenfassung als Fließtext. Beachte dabei die Aspekte, die abgedeckt werden sollen.
+
 *2-3 Absätze (maximal 5) die folgende Aspekte abdecken:*
 
 - **Wichtigsten Output** des Chats
@@ -99,6 +135,8 @@
 ---
 
 ## 📊 Generierte Artifacts
+
+**Anweisung an die KI**: Liste hier auf, welche Artifacte (Dokumente bei claude.ai) erzeugt worden sind.
 
 *Liste aller generierten Code-Artifacts/Dokumente/Konzepte*
 
@@ -161,6 +199,8 @@
 ---
 
 ## 📊 Qualitätsbewertung
+
+**Anweisung an die KI**: Hier ist der Inhalt der Konversation und der sich aus ihr ergebenden Erzeugnisse und Ergebnisse zu bewerten. Es ist NICHT die Art des Chats oder wie er niedergeschrieben oder verlaufen ist zu bewerten. Es geht hier einzig und allein um die Güte der aus der Diskussion im Chat entstandenen Outputs.
 
 ### Konzept-Qualität
 

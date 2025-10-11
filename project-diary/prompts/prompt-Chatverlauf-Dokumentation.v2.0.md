@@ -1,0 +1,167 @@
+# STRENG STRUKTURIERTE CHATVERLAUF-ANALYSE ZWISCHEN KI UND BENUTZER
+
+## ANWEISUNG FÜR DIE KI:
+### Quellen:
+Chatverlauf-Quelle: https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/project-diary/exports/Claude-Brainstorming%20Prompt-Erstellung%20(1!5).md
+
+Template-Quelle:
+https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/manuals/Prompt-Dokumentation%20Template.v2.0.md
+
+### Aufgabe: 
+LADE dir diese BEIDE DATEIEN HERUNTER. Sie bilden, neben den Anweisungen in diesem Prompt, deine einzige Arbeitsgrundlage.
+
+Analysiere den bereitgestellten Chatverlauf und erstelle eine vollständige Dokumentation basierend auf dem mitgelieferten Template `Prompt-Dokumentation Template.v2.0.md`. Halte dich streng an die stilistischen und formellen Vorgaben im Template. Deine Ausgabe soll der Form nach dem Template entsprechen.
+
+ACHTUNG!!! GANZ WICHTIG!!!
+→→ Das Template ist deine Grundlage für die Struktur, Gliederung, Vollständigkeit und Qualitätssicherung. Das TEMPLATE ist KEINE INHALTLICHE GRUNDLAGE! 
+→→ Der Chatverlauf ist die zu lesende, zu analysierende und inhaltlich zu verarbeitende Quelle. Nur der Chatverlauf liefert die Grundlage der qualitativen Inhalte für das von dir zu erstellende Dokument. Der CHATVERLAUF ist KEINE QUELLE FÜR die FORM und STRUKTUR des von dir zu erstellenden OUTPUTS!
+
+Template => reine Struktur (wie ein leeres Formular)
+
+Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
+
+### QUELLENTRENNUNG - VERBINDLICH:
+- **CHATVERLAUF** (URL): **EINZIGE INHALTLICHE QUELLE** 
+  - Enthält die tatsächlichen Diskussionen, Ideen, Entscheidungen
+  - Wird analysiert für alle inhaltlichen Aussagen
+  - Liefert Basis für Zusammenfassungen, Entscheidungen, Lessons Learned
+  
+- **TEMPLATE** (URL): **NUR STRUKTURVORGABE**
+  - Dient AUSSCHLIESSLICH als leeres Formular/Rahmen
+  - Bestimmt NUR die Gliederung, Abschnitte, Formatierung
+  - Enthält KEINE inhaltlichen Vorgaben für die Befüllung
+
+### ANALYSEPROZESS:
+1. **Zuerst**: Chatverlauf vollständig analysieren
+   - Prompts an "## Prompt:" Markern identifizieren
+     - die Zeile "## Prompt:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen.
+        Beispiel: 
+```text
+## Prompt:
+9.10.2025, 16:45:16
+```
+     - Merke dir ebenfalls diesen Zeitstempel. Zu diesem Zeitpunkt wurde die Chat-Nachricht abgesendet. Das ist relevant, um den Chatzeitraum zu bestimmen.
+   - Responses an "## Response:" Markern identifizieren
+     - die Zeile "## Response:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds.
+        Beispiel:
+```text
+## Response:
+9.10.2025, 21:12:12
+```
+     - Merke dir ebenfalls diesen Zeitstempel. Zu diesem Zeitpunkt wurde die Chat-Nachricht abgesendet. Das ist relevant, um den Chatzeitraum zu bestimmen.
+- 
+   - Inhaltliche Themen, Entscheidungen, Ideen extrahieren
+
+2. **Dann**: Template-Struktur übernehmen
+   - Reine Gliederung kopieren (Abschnittsüberschriften)
+   - Alle Platzhalter/Beispielinhalte entfernen
+
+3. **Abschließend**: Template-Struktur AUSSCHLIESSLICH mit Inhalten aus Chatverlauf befüllen
+
+### VERBOTEN:
+- Inhalte aus dem Template in die Analyse übernehmen
+- Template-Beispiele als reale Chat-Inhalte behandeln  
+- Vermischung von Strukturvorlage und inhaltlicher Quelle
+- "Rückinterpretation" von Template-Inhalten in den Chat
+
+### BEI UNKLARHEITEN:
+- Immer zugunsten der Chatverlauf-Inhalte entscheiden
+- Bei fehlenden Informationen im Chat: entsprechend kennzeichnen
+- Nie Inhalte aus dem Template "erfinden" oder extrapolieren
+
+BEACHTE FOLGENDE SPEZIFIKATIONEN BEI DER ARBEIT MIT DEM TEMPLATE:
+
+1. CHAT-ANALYSE:
+   - Erkenne Prompts an "## Prompt:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
+   - Erkenne Responses an "## Response:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
+   - Referenzen zu Textpassagen (referenziere die Abschnitte als Prompt Zeitstempel> oder Response y, wobei x und y für den Rang in der chronoogischen Reinhenfolge der Nachrichten des Chats).
+   - Analyse-Tiefe: Verfolge haupsächlich den thematischen Hauptstrang der Unterhaltung. Widme aber auch der Meta-Ebene, also wie zur Lösung gefunden wird, einen Teil deiner Aufmerksamkeit. Dieser Blickwinkel ist aber nachgeordnet und sollte nicht mehr als 20% der Analyse ausmachen. Es reicht, hier einen groben Umriss zu skizzieren.
+
+2. INTERAKTIONS-ZUSAMMENFASSUNG:
+   - Fasse die wichtigsten 3-5 Interaktionen zusammen
+   - Keine direkten Zitate, nur Zusammenfassungen
+   - Zeige Prompt-Response-Beziehungen auf
+
+3. IDEEN & ENTSCHEIDUNGEN:
+   - Kategorisiere jede Idee/Verbesserung nach:
+     ✅ Vollständig akzeptiert & umgesetzt, (zu verwenden, wenn ein Vorschlag/ eine Idee von beiden Chatpartnern akzeptiert wurde und eine Umsetzung nicht explizit aufgeschoben wurde=
+     🔄 Teilweise übernommen (mit Anpassungen) (zu verwenden, wenn ein Vorschlag/ eine Idee vom einem der Chatpartner aufgegriffen und zu Teilen mit möglichen Abwandlungen übernommen und in eigene Überlegungen integriert wurde)
+     ⏳ Akzeptiert, aber verschoben (zu verwenden, wenn ein Vorschlage/ eine Idee durch den Menschen akzeptiert wurde, eine Umsetzung aber explizit nicht für die anstehende/ aktuelle Version vorgesehen wurde.)
+     💡 Als Inspiration genutzt (zu verwenden, wenn ein Vorschlag/ eine Idee es nicht in das finale Ergebnis geschafft hat, aber anderen, folgenden Vorschlägen/ Ideen als Grundlage gedient hat.)
+     🎯 Für spätere Evaluation vorgemerkt (zu verwenden, wenn ein Vorschlag/ eine Idee lediglich der Überprüfung von Regeln oder Vorgaben zur Qualitätssicherung dient, aber kein eigenes Feature der Endanwendung ist.)
+     ❌ Abgewiesen (zu verwenden, wenn ein Vorschlag/ eine Idee zurückgewiesen wurde und nicht in das Scope des Projektes mit aufgenommen wurde. Weder für jetzt noch für später).
+   - Kennzeichne Herkunft (KI/Nutzer)
+   - Verwende Fett-Formatierung für Kurztitel
+   - Füge 1-3 Sätze Beschreibung hinzu
+   - Referenziere Original-Zeilen
+Falls eine Entscheidung für eine Kategorie von dir nicht mit wenigstens 60% Bestimmtheit getroffen werden kann, dann markiere die Idee als (❓Verwendung unklar) Dies ist eine verbindliche Grenze.
+
+4. GESAMT-ZUSAMMENFASSUNG:
+   - 2-3 Absätze (maximal 5)
+   - Fokus auf: wichtigsten Output, Innovationen, Leitmotive
+   - Zeige Entwicklung und Entscheidungsprozess
+
+5. ALLGEMEIN:
+   - Keine direkten Zitate aus dem Original-Chat
+   - Verwende nur Referenzen (verwende Prompt X oder Response Y als Referenz).
+   - Halte den Stil konsistent über alle Dokumentationen
+   - Achte auf praktische Umsetzbarkeit der Dokumentation
+   - Zeiterfassung: Im Chatverlauf steht direkt in der Zeile nach "##Prompt:" bzw "##Response:" ein Datum mit Uhrzeit, wann der entsprechende Beitrag abgesendet worden ist. Beachte diese, wenn du die Zeitspanne des Chatverlaufs angeben musst.
+   - Nutze stets die Gegenwartsform als Zeitform, also Präsens. Kein Präteritum oder Perfekt. Das ist eine Beschreibung und kein Märchen.
+
+6. ALLE ABSCHNITTE DES TEMPLATES BERÜCKSICHTIGEN
+Berücksichtige jeden Abschnitt aus dem Template. Wenn du zu diesem etwas verfassen kannst, ohne aufwendig extrapolieren zu müssen, dann befülle jeden der nachfolgend genannten Abschnitte entsprechend der für diesen gemachten Vorgaben:
+
+# KI-Einsatz Dokumentation - Generisches Template
+## Prompt Metadata
+## 📝 Chat-Interaktionen
+### Haupt-Interaktionen Zusammenfassung
+## 💡 Ideen & Entscheidungen
+### Von der KI eingebracht
+### Vom Nutzer eingebracht
+## 🎯 Ziele der Prompts
+### Hauptziele
+### Teil-Ziele
+### Erwartete Outputs
+## 🏆 Zusammenfassung des Chatverlaufs
+## 📊 Generierte Artifacts
+## 🔗 Verknüpfungen
+### Abhängigkeiten
+### Follow-up Prompts
+### Verwandte Dateien
+## 🎓 Lessons Learned
+### Was gut funktioniert hat
+### Was nicht optimal war
+### Verbesserungen für zukünftige Prompts
+## 📊 Qualitätsbewertung
+### Konzept-Qualität
+### Dokumentations-Qualität
+### Nützlichkeit
+## 💭 Kommentare & Notizen
+### Technische Notizen
+### Offene Fragen
+### Ideen für die Zukunft
+## 📎 Anhänge
+### Externe Links
+## ✏ Changelog
+## 🏷 Tags
+
+Ja, es sind viele Abschnitte, und ja, jeder ist zu befüllen, wenn es qualitative Aussagen dazu gibt. Wenn es keine Aussagen dazu gibt, dann lasse den Abschnitt leer und vermerke "keine relevanten Inhalte dazu im Chatverlauf".
+
+Bei der Qualitätsbewertung ist das im Template vorgeschlagene 5-Sterne-System zu verwenden. 5 Sterne: alles bestens, 0 Sterne: alles eine Katastrophe. Dabei ist jeder Aspekt aus dem Inhalt des Chats zu Konzept, Dokumentation und Nützlichkeit EINZELN zu bewerten.
+
+## BESTÄTIGUNG:
+Ich bestätige, dass ich diese Anweisungen verstanden habe und strikt befolge:
+- Chatverlauf = einzige inhaltliche Quelle
+- Template = reine Strukturvorlage  
+- Keine Vermischung der Quellen
+
+## AUFGABEN ZEITRAHMEN:
+Die Aufgabe ist komplex und nicht trivial. Du solltest dir wenigstens 25 bis 40 Minuten Zeit nehmen, und in regelmäßigen Abständen dein Vorgehen immer wieder mit den Vorgaben aus diesem Prompt und dem Template abgleichen.
+
+Beginne die Aufgabe mit dem LADEN UND LESEN der beiden DOKUMENTE und dem VERSTEHEN dieses PROMPTS.
+
+GIB MIR DANN EINE RÜCKMELDUNG DARÜBER, was du verstanden hast. Erstelle das Dokument erst, nachdem ich dir in einem weiteren Prompt die Freigabe dafür gegeben habe. Das werde ich tun, wenn ich den Eindruck erlange, dass du die Aufgabe umfassend, abschließend, detailtreu, gewissenhaft und konzentriert bearbeiten kannst.
+
+Hast du noch grundsätzliche Verständnisfragen, bevor du anfängst? Gibt es Lücken, bei denen du nur extrapolieren kannst? Was hast du zu der dir gestellten Aufgabe verstanden? Hast du zu deiner Aufgabe noch Fragen, Anregungen, Wünsche, Ideen oder sonstige Bemerkungen, zu denen ich Stellung beziehen soll?
+
