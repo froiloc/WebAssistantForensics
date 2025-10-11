@@ -34,7 +34,7 @@ Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
 ### ANALYSEPROZESS:
 1. **Zuerst**: Chatverlauf vollständig analysieren
    - Prompts an "## Prompt:" Markern identifizieren
-     - die Zeile "## Prompt:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen.
+     - die Zeile "## Prompt:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln.
         Beispiel: 
 ```text
 ## Prompt:
@@ -42,7 +42,7 @@ Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
 ```
      - Merke dir ebenfalls diesen Zeitstempel. Zu diesem Zeitpunkt wurde die Chat-Nachricht abgesendet. Das ist relevant, um den Chatzeitraum zu bestimmen.
    - Responses an "## Response:" Markern identifizieren
-     - die Zeile "## Response:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds.
+     - die Zeile "## Response:" ist nur gültig, wenn direkt im Anschluss die Zeile mit dem Zeitstempel folgt. Das Format des Zeitstempels is D.M.YYYY, HH:II:SS, D=day, M=month, YYYY=year, H=hour, I=minutes, S=seconds. Merke dir diese Datums- und Zeitangabe, du musst sie nicht auf Korrektheit parsen, übernimm sie in jedem Fall, auch bei Zweifeln.
         Beispiel:
 ```text
 ## Response:
@@ -68,14 +68,15 @@ Chatverlauf => einzige inhaltliche Quelle (was tatsächlich besprochen wurde)a
 - Immer zugunsten der Chatverlauf-Inhalte entscheiden
 - Bei fehlenden Informationen im Chat: entsprechend kennzeichnen
 - Nie Inhalte aus dem Template "erfinden" oder extrapolieren
+- Im Template findest du immer wieder Abschnitte mit **Anweisung an die KI**: ... Diese enthält Erklärungen und Handlungsanweisungen und ist unbedingt durch dich zu beachten.
 
 BEACHTE FOLGENDE SPEZIFIKATIONEN BEI DER ARBEIT MIT DEM TEMPLATE:
 
 1. CHAT-ANALYSE:
    - Erkenne Prompts an "## Prompt:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
    - Erkenne Responses an "## Response:" Markern, immer(!) gefolgt fon Zeitstempeln direkt im Anschluss.
-   - Referenzen zu Textpassagen (referenziere die Abschnitte als Prompt Zeitstempel> oder Response y, wobei x und y für den Rang in der chronoogischen Reinhenfolge der Nachrichten des Chats).
-   - Analyse-Tiefe: Verfolge haupsächlich den thematischen Hauptstrang der Unterhaltung. Widme aber auch der Meta-Ebene, also wie zur Lösung gefunden wird, einen Teil deiner Aufmerksamkeit. Dieser Blickwinkel ist aber nachgeordnet und sollte nicht mehr als 20% der Analyse ausmachen. Es reicht, hier einen groben Umriss zu skizzieren.
+   - Referenzen zu Textpassagen (referenziere die Abschnitte als Prompt Zeitstempel> oder Response y, wobei x und y für den Rang in der chronoogischen Reinhenfolge der Nachrichten des Chats. Die Reihenfolge richtet sich an den Zeitstempeln der Nachrichten aus, diese sollte aber mit der Reihenfolge per Position im Dokument übereinstimmen).
+   - Analyse-Tiefe: Verfolge haupsächlich den thematischen Hauptstrang der Unterhaltung. Widme aber auch der Meta-Ebene, also wie zur Lösung gefunden wird, einen Teil deiner Aufmerksamkeit. Dieser Blickwinkel ist aber nachgeordnet und sollte nicht mehr als 20% der Analyse ausmachen. Es reicht, hier einen groben Umriss zu skizzieren. Bei knapper Information priorisierst du den inhaltlichen Hauptstrang.
 
 2. INTERAKTIONS-ZUSAMMENFASSUNG:
    - Fasse die wichtigsten 3-5 Interaktionen zusammen
@@ -146,7 +147,7 @@ Berücksichtige jeden Abschnitt aus dem Template. Wenn du zu diesem etwas verfas
 ## ✏ Changelog
 ## 🏷 Tags
 
-Ja, es sind viele Abschnitte, und ja, jeder ist zu befüllen, wenn es qualitative Aussagen dazu gibt. Wenn es keine Aussagen dazu gibt, dann lasse den Abschnitt leer und vermerke "keine relevanten Inhalte dazu im Chatverlauf".
+Ja, es sind viele Abschnitte, und ja, jeder ist zu befüllen, wenn es qualitative Aussagen dazu gibt. Wenn es keine Aussagen dazu gibt, dann lasse den Abschnitt leer und vermerke "keine relevanten Inhalte dazu im Chatverlauf". Ja, wirklich. Eine negativ Meldung ist auch wichtig.
 
 Bei der Qualitätsbewertung ist das im Template vorgeschlagene 5-Sterne-System zu verwenden. 5 Sterne: alles bestens, 0 Sterne: alles eine Katastrophe. Dabei ist jeder Aspekt aus dem Inhalt des Chats zu Konzept, Dokumentation und Nützlichkeit EINZELN zu bewerten.
 
@@ -157,7 +158,7 @@ Ich bestätige, dass ich diese Anweisungen verstanden habe und strikt befolge:
 - Keine Vermischung der Quellen
 
 ## AUFGABEN ZEITRAHMEN:
-Die Aufgabe ist komplex und nicht trivial. Du solltest dir wenigstens 25 bis 40 Minuten Zeit nehmen, und in regelmäßigen Abständen dein Vorgehen immer wieder mit den Vorgaben aus diesem Prompt und dem Template abgleichen.
+Die Aufgabe ist komplex und nicht trivial. Du solltest dir wenigstens 30 bis 60 Minuten Zeit nehmen, und in regelmäßigen Abständen dein Vorgehen immer wieder mit den Vorgaben aus diesem Prompt und dem Template abgleichen.
 
 Beginne die Aufgabe mit dem LADEN UND LESEN der beiden DOKUMENTE und dem VERSTEHEN dieses PROMPTS.
 
