@@ -174,7 +174,7 @@ Das Template mit seiner vollständigen, detaillierten Struktur hat das Potenzial
 
 Gelange nicht in die Verlegenheit, unbewusst die Template-Inhalte als "erwartetes Ergebnis" zu interpretieren und diese Erwartung in den Chatverlauf zu projizieren!
 
-Die 12 vordefinierten Abschnitte des Templates erzeugten einen so starken kognitiven Rahmen, dass du versucht sein könntest, den tatsächlichen Chat-Inhalt diesem Rahmen gewaltsam anzupassen. Tue das nicht. Der Inhalt ist das wichtigste. Es geht vorrangig um den Inhalt des Chatverlaufs, das Template soll dir nur helfen, eine Wiedergabe des Inhalts des Chatverlaufs darzulegen.
+Die 9 vordefinierten Abschnitte des Templates erzeugten einen so starken kognitiven Rahmen, dass du versucht sein könntest, den tatsächlichen Chat-Inhalt diesem Rahmen gewaltsam anzupassen. Tue das nicht. Der Inhalt ist das wichtigste. Es geht vorrangig um den Inhalt des Chatverlaufs, das Template soll dir nur helfen, eine Wiedergabe des Inhalts des Chatverlaufs darzulegen.
 
 Spezifische Fehlermechanismen können auftreten. Beispielsweise:
 1) Confirmation Bias: Du suchst im Chat nach Inhalten, die die Template-Struktur "bestätigen".
@@ -183,7 +183,7 @@ Spezifische Fehlermechanismen können auftreten. Beispielsweise:
 
 Die Herausforderung dieser Aufgabe besteht darin, dass eine simultane Verarbeitung stattfindet von:
 * Komplexem Chatverlauf (viele Nachrichten, mit sehr viel Inhalt)
-* Detailliertem Template (12 Abschnitte mit Unterkategorien)
+* Detailliertem Template (9 Abschnitte mit Unterkategorien)
 * Komplexen Analyse-Regeln (Kategorisierung, Referenzierung, Bewertung)
 
 !Gefahr: Resultat: Kognitive Überlastung → Vereinfachung durch Projektion des Templates auf den Chat
