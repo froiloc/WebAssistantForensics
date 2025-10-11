@@ -1,7 +1,7 @@
 #!/bin/bash
 # ./run-webserver [root path] [port]
 
-root_path="${1:-"/opt/WebAssistentForensics/src"}"
+root_path="${1:-"/opt/WebAssistantForensics/src"}"
 port=${2:-9999}
 log_file="${3:-"webserver.log"}"
 

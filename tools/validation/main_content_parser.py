@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DOM Parser for WebAssistentForensics main content
+DOM Parser for WebAssistantForensics main content
 Extracts structure from index.html <main> section for validation
 """
 

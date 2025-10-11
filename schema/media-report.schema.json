@@ -1,67 +1,87 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/froiloc/WebAssistentForensics/media-report.schema.json",
+  "$id": "https://github.com/froiloc/WebAssistantForensics/media-report.schema.json",
+  "version": "2.0.0",
   "title": "Media Validation Report Schema",
-  "description": "Schema for the missing media files report output",
+  "description": "Schema for the missing media files report output. Extended to support all 6 media types: screenshot, annotated, video, audio, diagram, image.",
   "type": "array",
   "items": {
     "type": "object",
     "properties": {
       "id": {
         "type": "integer",
-        "description": "Unique identifier for the media item"
+        "description": "Unique identifier for the media item",
+        "minimum": 1
       },
       "title": {
         "type": "string",
-        "description": "Descriptive title for the media item"
+        "description": "Descriptive title for the media item",
+        "minLength": 1,
+        "maxLength": 200
       },
       "type": {
         "type": "string",
-        "enum": ["screenshot", "annotated", "video"],
-        "description": "Type of media file"
+        "enum": [
+          "screenshot",
+          "annotated",
+          "video",
+          "audio",
+          "diagram",
+          "image"
+        ],
+        "description": "Type of media file (extended in v2.0 to include audio, diagram, image)"
       },
       "context": {
         "type": "string",
-        "description": "CSS selector or context path where media is used"
+        "description": "CSS selector or context path where media is used (e.g., '#section-intro figure img')",
+        "minLength": 1
       },
       "snippet": {
         "type": "string",
-        "description": "Relevant text snippet near the media reference"
+        "description": "Relevant text snippet near the media reference (truncated to ~150 characters)",
+        "minLength": 0
       },
       "filePath": {
         "type": "string",
-        "description": "Relative path to the missing media file"
+        "description": "Relative path to the missing media file (e.g., 'media/screenshots/test.png')",
+        "minLength": 1,
+        "pattern": "^media/(screenshots|annotated|videos|audio|other)/.*\\.(png|jpg|jpeg|svg|mp4|webm|avi|mp3|wav|ogg|m4a)$"
       },
       "altText": {
         "type": "string",
-        "description": "Alternative text or description for the media"
+        "description": "Alternative text or description for the media (from alt attribute or fallback)",
+        "minLength": 0
       },
       "similarFiles": {
         "type": "array",
-        "description": "List of existing files with similar names",
+        "description": "List of existing files with similar names (for typo detection)",
         "items": {
           "type": "object",
           "properties": {
             "name": {
               "type": "string",
-              "description": "Filename of similar file"
+              "description": "Filename of similar file",
+              "minLength": 1
             },
             "distance": {
               "type": "integer",
-              "description": "Levenshtein distance from target filename"
+              "description": "Levenshtein distance from target filename (lower = more similar)",
+              "minimum": 0
             }
           },
-          "required": ["name", "distance"]
+          "required": ["name", "distance"],
+          "additionalProperties": false
         }
       },
       "completed": {
         "type": "boolean",
-        "description": "Whether the media file has been marked as completed"
+        "description": "Whether the media file has been marked as completed in the UI",
+        "default": false
       }
     },
     "required": [
       "id",
-      "title", 
+      "title",
       "type",
       "context",
       "snippet",
@@ -69,6 +89,67 @@
       "altText",
       "similarFiles",
       "completed"
-    ]
-  }
+    ],
+    "additionalProperties": false
+  },
+  "minItems": 0,
+  "uniqueItems": true,
+  
+  "definitions": {
+    "mediaTypeDetails": {
+      "screenshot": {
+        "description": "Unmodified screenshot from application interface",
+        "directory": "media/screenshots/",
+        "extensions": ["png", "jpg", "jpeg"],
+        "icon": "📷",
+        "color": "#27ae60"
+      },
+      "annotated": {
+        "description": "Modified screenshot with annotations (arrows, highlights, labels)",
+        "directory": "media/annotated/",
+        "extensions": ["png", "jpg", "jpeg"],
+        "icon": "🖊️",
+        "color": "#e67e22"
+      },
+      "video": {
+        "description": "Video tutorials, demonstrations, or recordings",
+        "directory": "media/videos/",
+        "extensions": ["mp4", "webm", "avi"],
+        "icon": "🎥",
+        "color": "#9b59b6"
+      },
+      "audio": {
+        "description": "Audio files (voice explanations, podcasts, sound effects)",
+        "directory": "media/audio/",
+        "extensions": ["mp3", "wav", "ogg", "m4a"],
+        "icon": "🎵",
+        "color": "#3498db"
+      },
+      "diagram": {
+        "description": "Schematic representations (flowcharts, UML, decision trees)",
+        "directory": "media/other/",
+        "extensions": ["png", "svg"],
+        "icon": "📊",
+        "color": "#e74c3c"
+      },
+      "image": {
+        "description": "Generic images (icons, graphics, photos)",
+        "directory": "media/other/",
+        "extensions": ["png", "jpg", "jpeg", "svg"],
+        "icon": "🖼️",
+        "color": "#16a085"
+      }
+    },
+    
+    "pathPatterns": {
+      "screenshot": "^media/screenshots/.*\\.(png|jpg|jpeg)$",
+      "annotated": "^media/annotated/.*\\.(png|jpg|jpeg)$",
+      "video": "^media/videos/.*\\.(mp4|webm|avi)$",
+      "audio": "^media/audio/.*\\.(mp3|wav|ogg|m4a)$",
+      "diagram": "^media/other/.*\\.(png|svg)$",
+      "image": "^media/other/.*\\.(png|jpg|jpeg|svg)$"
+    }
+  },
+  
+  "$comment": "Version 2.0.0 - Extended to support audio, diagram, and image media types. Aligned with main-content.schema.json v2.0 and template.html v2.0."
 }

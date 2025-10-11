@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Media Validation Script for WebAssistentForensics
+Media Validation Script for WebAssistantForensics (v2.0)
 Generates a report of missing media files referenced in HTML and JSON files.
+
+v2.0 Changes:
+- Added support for audio, diagram, and image media types
+- Improved type detection using data-media-type attribute
+- Better path pattern matching for all 6 media types
 """
 
 import json
@@ -12,7 +17,6 @@ from typing import List, Dict, Any, Optional
 from urllib.parse import urljoin
 import html
 from bs4 import BeautifulSoup
-import pdb
 
 try:
     import Levenshtein
@@ -25,10 +29,15 @@ class MediaValidator:
     def __init__(self, base_dir: str = "."):
         self.base_dir = Path(base_dir).resolve()
         self.src_dir = self.base_dir / "../../src"
+        
+        # Extended media directories for all 6 types
         self.media_dirs = {
             "screenshot": self.src_dir / "media" / "screenshots",
-            "annotated": self.src_dir / "media" / "annotated", 
-            "video": self.src_dir / "media" / "videos"
+            "annotated": self.src_dir / "media" / "annotated",
+            "video": self.src_dir / "media" / "videos",
+            "audio": self.src_dir / "media" / "audio",
+            "diagram": self.src_dir / "media" / "other",
+            "image": self.src_dir / "media" / "other"
         }
         
         self.media_items = []
@@ -52,7 +61,7 @@ class MediaValidator:
         if Levenshtein is None:
             return similar
             
-        for existing_file in self.existing_files[media_type]:
+        for existing_file in self.existing_files.get(media_type, []):
             distance = Levenshtein.distance(target_filename.lower(), existing_file.lower())
             if distance < threshold and distance > 0:  # Exclude exact matches
                 similar.append({"name": existing_file, "distance": distance})
@@ -61,17 +70,47 @@ class MediaValidator:
         similar.sort(key=lambda x: x["distance"])
         return similar
     
-    def _determine_media_type(self, file_path: str) -> str:
-        """Determine media type from file path."""
+    def _determine_media_type(self, element, file_path: str) -> str:
+        """
+        Determine media type from element and file path.
+        Priority: data-media-type attribute > path heuristics > file extension
+        """
+        # PRIORITY 1: Check data-media-type attribute
+        if hasattr(element, 'get'):
+            data_media_type = element.get('data-media-type')
+            if data_media_type and data_media_type in ['screenshot', 'annotated', 'video', 'audio', 'diagram', 'image']:
+                return data_media_type
+        
+        # PRIORITY 2: Path-based detection
         file_path_lower = file_path.lower()
-        if "annotated" in file_path_lower:
-            return "annotated"
-        elif "screenshot" in file_path_lower or any(file_path_lower.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif']):
-            return "screenshot" 
-        elif any(file_path_lower.endswith(ext) for ext in ['.mp4', '.avi', '.mov', '.webm']):
-            return "video"
-        else:
-            return "screenshot"  # Default fallback
+        
+        if 'annotated' in file_path_lower or '/annotated/' in file_path_lower:
+            return 'annotated'
+        elif 'screenshots' in file_path_lower or '/screenshots/' in file_path_lower:
+            return 'screenshot'
+        elif 'videos' in file_path_lower or '/videos/' in file_path_lower:
+            return 'video'
+        elif 'audio' in file_path_lower or '/audio/' in file_path_lower:
+            return 'audio'
+        elif '/other/' in file_path_lower:
+            # For files in 'other' directory, check extension
+            if file_path_lower.endswith(('.png', '.svg')) and 'diagram' in file_path_lower:
+                return 'diagram'
+            elif file_path_lower.endswith(('.png', '.jpg', '.jpeg', '.svg')):
+                return 'image'
+        
+        # PRIORITY 3: Extension-based fallback
+        if any(file_path_lower.endswith(ext) for ext in ['.mp4', '.avi', '.mov', '.webm']):
+            return 'video'
+        elif any(file_path_lower.endswith(ext) for ext in ['.mp3', '.wav', '.ogg', '.m4a']):
+            return 'audio'
+        elif file_path_lower.endswith('.svg'):
+            return 'diagram'
+        elif any(file_path_lower.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif']):
+            return 'screenshot'
+        
+        # Final fallback
+        return 'screenshot'
     
     def _extract_media_from_html(self) -> List[Dict[str, Any]]:
         """Extract media references from index.html."""
@@ -85,16 +124,15 @@ class MediaValidator:
         
         media_items = []
         
-        # Find images
+        # Find images (including screenshots, annotated, diagrams, and generic images)
         for img in soup.find_all('img'):
             src = img.get('src', '')
             if src.startswith('media/'):
-                media_type = self._determine_media_type(src)
+                media_type = self._determine_media_type(img, src)
                 alt_text = img.get('alt', 'No alt text provided')
                 
-                # Find context - closest section or meaningful parent
-                context_element = img.find_parent(['section', 'div', 'article'])
-                context = self._generate_css_selector(img) if context_element else "unknown"
+                # Find context
+                context = self._generate_css_selector(img)
                 
                 # Find snippet text
                 snippet = self._find_snippet_text(img)
@@ -118,13 +156,36 @@ class MediaValidator:
                     src = source.get('src', '')
             
             if src.startswith('media/'):
-                media_type = "video"
+                media_type = self._determine_media_type(video, src)
                 alt_text = video.get('title') or "Video content"
                 
-                context_element = video.find_parent(['section', 'div', 'article'])
-                context = self._generate_css_selector(video) if context_element else "unknown"
-                
+                context = self._generate_css_selector(video)
                 snippet = self._find_snippet_text(video)
+                
+                media_items.append({
+                    "file_path": src,
+                    "media_type": media_type,
+                    "alt_text": alt_text,
+                    "context": context,
+                    "snippet": snippet,
+                    "source": "html"
+                })
+        
+        # NEW: Find audio elements
+        for audio in soup.find_all('audio'):
+            src = audio.get('src', '')
+            if not src:
+                # Check source tags inside audio
+                source = audio.find('source')
+                if source:
+                    src = source.get('src', '')
+            
+            if src.startswith('media/'):
+                media_type = self._determine_media_type(audio, src)
+                alt_text = audio.get('title') or "Audio content"
+                
+                context = self._generate_css_selector(audio)
+                snippet = self._find_snippet_text(audio)
                 
                 media_items.append({
                     "file_path": src,
@@ -139,80 +200,56 @@ class MediaValidator:
     
     def _generate_css_selector(self, element) -> str:
         """Generate a CSS selector from the closest section parent to the media element."""
-        # Find the closest section ancestor
-        section_ancestor = element.find_parent('section')
-        if not section_ancestor:
+        # Find the closest content section
+        section = element.find_parent('section', class_='content-section')
+        if not section:
+            section = element.find_parent(['section', 'article', 'main'])
+        
+        if not section:
             return "unknown"
-
-        #pdb.set_trace()
-
-        # Build the path from section to element
-        path = []
-        current = element
-
-        # Traverse up to section, collecting each element
-        while current and current != section_ancestor:
-            path.append(current)
-            current = current.parent
-
-        # Add the section itself
-        path.append(section_ancestor)
-
-        # Reverse so we have [section, ..., element]
-        path.reverse()
-
+        
+        # Build CSS selector path
         selector_parts = []
-
-        for i, elem in enumerate(path):
-            if i == 0:  # Section element
-                # For section, use ID if available
-                elem_id = elem.get('id')
-                if elem_id:
-                    selector_parts.append(f"#{elem_id}")
-                else:
-                    # If no ID, use section with nth-of-type
-                    if elem.parent:
-                        siblings = elem.parent.find_all(elem.name, recursive=False)
-                        if len(siblings) > 1:
-                            index = siblings.index(elem) + 1
-                            selector_parts.append(f"{elem.name}:nth-of-type({index})")
-                        else:
-                            selector_parts.append(elem.name)
-                    else:
-                        selector_parts.append(elem.name)
+        
+        # Add section ID
+        if section.get('id'):
+            selector_parts.append(f"#{section.get('id')}")
+        
+        # Traverse from section to element
+        current = element
+        path_parts = []
+        
+        while current and current != section:
+            tag = current.name
+            classes = current.get('class', [])
+            nth = 1
+            
+            # Count siblings of same type
+            for sibling in current.find_previous_siblings(tag):
+                if sibling.get('class') == classes:
+                    nth += 1
+            
+            # Build selector for this element
+            if classes:
+                class_str = '.'.join(classes)
+                part = f"{tag}.{class_str}"
             else:
-                # For other elements
-                elem_id = elem.get('id')
-                if elem_id:
-                    selector_parts.append(f"#{elem_id}")
-                else:
-                    tag_name = elem.name
-                    classes = elem.get('class', [])
-
-                    # Build class selector if classes exist
-                    class_selector = ''
-                    if classes:
-                        if isinstance(classes, list):
-                            class_selector = '.' + '.'.join(classes)
-                        else:
-                            class_selector = '.' + classes
-
-                    # Check if we need nth-of-type
-                    parent = elem.parent
-                    if parent:
-                        siblings = parent.find_all(elem.name, recursive=False)
-                        if len(siblings) > 1:
-                            index = siblings.index(elem) + 1
-                            selector_parts.append(f"{tag_name}{class_selector}:nth-of-type({index})")
-                        else:
-                            selector_parts.append(f"{tag_name}{class_selector}")
-                    else:
-                        selector_parts.append(f"{tag_name}{class_selector}")
-
+                part = tag
+            
+            if nth > 1:
+                part += f":nth-of-type({nth})"
+            
+            path_parts.insert(0, part)
+            current = current.parent
+        
+        # Combine section and path
+        if path_parts:
+            selector_parts.extend(path_parts)
+        
         return ' '.join(selector_parts)
     
     def _find_snippet_text(self, element) -> str:
-        """Find relevant text snippet from the closest parent element of specified types."""
+        """Find relevant text snippet near the media element."""
         # Define the allowed parent tags and classes
         allowed_parents = [
             'p', 'ul', 'ol', 'section',
@@ -224,7 +261,6 @@ class MediaValidator:
         while current_element:
             # Check if current element matches our criteria
             if current_element.name in ['p', 'ul', 'ol', 'section']:
-                # Use get_text with separator to preserve word spacing
                 text = current_element.get_text(separator=' ', strip=True)
                 if text and len(text) > 10:
                     return text[:200] + "..." if len(text) > 200 else text
@@ -233,7 +269,6 @@ class MediaValidator:
             elif current_element.name == 'div':
                 class_attr = current_element.get('class', [])
                 if any(f"detail-level-{i}" in class_attr for i in [1, 2, 3]):
-                    # Use get_text with separator to preserve word spacing
                     text = current_element.get_text(separator=' ', strip=True)
                     if text and len(text) > 10:
                         return text[:200] + "..." if len(text) > 200 else text
@@ -245,8 +280,8 @@ class MediaValidator:
             if current_element and current_element.name == 'body':
                 break
 
-        # Fallback: look for previous siblings of allowed types
-        for sibling in element.find_previous_siblings(allowed_parents[:4]):  # p, ul, ol, section
+        # Fallback: look for previous siblings
+        for sibling in element.find_previous_siblings(allowed_parents[:4]):
             text = sibling.get_text(separator=' ', strip=True)
             if text and len(text) > 10:
                 return text[:200] + "..." if len(text) > 200 else text
@@ -278,10 +313,10 @@ class MediaValidator:
                 show_media = obj.get("showMedia", False)
                 
                 if media_src and show_media and media_src.startswith('media/'):
-                    media_type = self._determine_media_type(media_src)
+                    # Determine type from path (no element available in JSON)
+                    media_type = self._determine_media_type(None, media_src)
                     alt_text = obj.get("altText") or obj.get("title") or "No description"
                     
-                    # Try to find context from the structure
                     context = path if path else "agent-dialog"
                     snippet = obj.get("message") or obj.get("content") or "No content provided"
                     if isinstance(snippet, list):
@@ -366,6 +401,10 @@ class MediaValidator:
                 item_id += 1
         
         print(f"Found {len(report_items)} missing media files")
+        
+        # Store for later use
+        self.media_items = report_items
+        
         return report_items
 
     def generate_report(self, output_file: str = "media-validation-report.html") -> str:
@@ -406,7 +445,7 @@ def main():
     """Main execution function."""
     validator = MediaValidator()
     
-    print("WebAssistentForensics - Media Validation Report Generator")
+    print("WebAssistantForensics - Media Validation Report Generator v2.0")
     print("=" * 60)
     
     report_path = validator.generate_report()
@@ -418,14 +457,34 @@ def main():
     print(f"✅ Report generated successfully: {report_path}")
     print(f"📊 Found {len(validator.media_items)} missing media files")
     
-    # Print summary by type
-    type_counts = {}
+    # Print summary by type (all 6 types)
+    type_counts = {
+        'screenshot': 0,
+        'annotated': 0,
+        'video': 0,
+        'audio': 0,
+        'diagram': 0,
+        'image': 0
+    }
+    
     for item in validator.media_items:
         media_type = item["type"]
-        type_counts[media_type] = type_counts.get(media_type, 0) + 1
+        if media_type in type_counts:
+            type_counts[media_type] += 1
     
+    print("\n📋 Breakdown by type:")
     for media_type, count in type_counts.items():
-        print(f"   - {media_type}: {count} files")
+        if count > 0:
+            icon_map = {
+                'screenshot': '📷',
+                'annotated': '🖊️',
+                'video': '🎥',
+                'audio': '🎵',
+                'diagram': '📊',
+                'image': '🖼️'
+            }
+            icon = icon_map.get(media_type, '📄')
+            print(f"   {icon} {media_type}: {count} files")
     
     return 0
 

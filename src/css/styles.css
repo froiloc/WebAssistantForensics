@@ -144,6 +144,22 @@ body.tips-hidden {
     --tips-footer-height: 0px;
 }
 
+.skip-link {
+    position: absolute;
+    top: -40px; /* Versteckt außerhalb des Viewports */
+    left: 0;
+    background: var(--color-primary);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100;
+    transition: top 0.2s;
+}
+
+.skip-link:focus {
+    top: 0; /* Bei Fokus (Tab-Taste) erscheint der Link */
+}
+
 /* ===== CONTAINER ===== */
 .container {
     max-width: 1200px;
@@ -1429,12 +1445,6 @@ body.notes-open .notes-sidebar {
     outline-offset: -3px;
 }
 
-.sidebar-wrapper.active .sidebar-tab-body {
-    flex: 1;
-    display: flex; /* Bei aktiver Sidebar anzeigen */
-    flex-direction: column; /* ✅ Kinder untereinander */
-}
-
 /* Aktive Sidebar ist sichtbar */
 .sidebar-wrapper.active {
     flex: 1;
@@ -1493,19 +1503,7 @@ body.notes-open .notes-sidebar {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Kritisch */
-
-    /* ✅ NEU: Transition muss VOR Klassenänderung aktiv sein */
-    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
-}
-
-/* ✅ NEU: Collapsing-State für Body */
-.sidebar-tab-body.collapsing {
-    flex-grow: 0 !important;
-    opacity: 0;
     min-height: 0;
-    overflow: hidden;
 }
 
 /* ===== BODY (scrollbarer Content) ===== */
@@ -1521,19 +1519,6 @@ body.notes-open .notes-sidebar {
 
 .sidebar-wrapper.active .sidebar-body {
     animation: slideDown 0.3s ease;
-}
-
-/* ===== NEUE KLASSE: Tab-Body Collapsing Animation ===== */
-.sidebar-tab-body {
-    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
-}
-
-.sidebar-tab-body.collapsing {
-    flex-grow: 0 !important;
-    opacity: 0;
-    min-height: 0;
-    overflow: hidden;
 }
 
 /* ===== FOOTER (Aktionsbereich) ===== */
@@ -1790,9 +1775,14 @@ body.tips-hidden .sidebar-container {
 /* ===== SIDEBAR TAB-HEADER HOVER-EFFEKTE (V09) ===== */
 .sidebar-tab-header,
 .notes-header {
+    /*
     transition: background-color var(--transition-fast),
-    transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+    transform 1.75s var(--sidebar-transition-easing),
+    opacity 1.75s var(--sidebar-transition-easing);
+    */
+    transition: background-color var(--transition-fast),
+        transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+        opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
 }
 
 .sidebar-tab-header:hover,
@@ -1807,6 +1797,7 @@ body.tips-hidden .sidebar-container {
 }
 
 /* Content-Fade beim Tab-Wechsel */
+/*
 .sidebar-tab-body {
     opacity: 1;
     transition: opacity var(--transition-medium) var(--ease-smooth);
@@ -1815,3 +1806,4 @@ body.tips-hidden .sidebar-container {
 .sidebar-tab-body.fading {
     opacity: 0;
 }
+*/

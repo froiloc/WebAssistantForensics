@@ -6,3 +6,11 @@
 - im Agenten die FAQ einbetten. Es soll eine Eingabezeile beim Agenten geben. Die Eingabe soll mit dem Inhalt einer faq.json abgeglichen werden. Wenn es eine Übereinstimmung bei Tag oder Volltext gibt, dann wird durch den Agenten die jeweilige Information ausgegeben.
 - im Agenten eine Feedback/Ideen-Funktion verankern. Diese öffnet eine Mail über mailto Link mit Subject header und komponiertem Body im E-Mail-Programm
 - eine Glossar.json Datei erstellen. Auf der Basis der dortigen Einträge soll ein Popover angezeigt werden für die jeweiligen Begriffe, wenn sie im Text gefunden werden. Auf solche Weise gefunde Textpassagen im Text werden mit der Klasse .has-glossar versehen und optisch fein unterstrichen. Der Glossareintrag soll maximal 200 Zeichen beinhalten und maximal eine Darstellung der Größe 300x200 Pixel, sowie einen weiterführenden Link (beispielsweise zu Wikipedia).
+- Fokus-Indikatoren (Visuelle Fokus-Markierung); Was ist das? Eine visuelle Hervorhebung, die zeigt, welches Element gerade den Tastaturfokus hat (z.B. ein farbiger Rahmen). Warum wichtig? Tastaturnutzer (ohne Maus) müssen sehen, wo sie sich gerade befinden Browser-Standard-Fokus (blaue Umrandung) wird oft von Designern entfernt → BFSG-Verstoß! Muss mindestens 3:1 Kontrast zum Hintergrund haben
+- validationScore (0-100, wie Sie vorgeschlagen haben) - Wie soll dieser berechnet werden?- Fehlerausgabe um Quellenzitat der Fehlerposition ergänzen. ERROR [Line 45]: Missing required attribute 'lang' on element <span>
+Context:
+  43: <p class="content-text">Der Ermittler öffnet
+  44:   <span class="ui-element">File → New Case</span>
+  45:   und gibt den Fallnamen ein.</p>
+       ^^^^^^ Missing 'lang' attribute
+

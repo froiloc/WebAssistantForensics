@@ -1,6 +1,6 @@
 I will call you Phoenix, because like a phoenix, you rise from the ashes and are reborn every time I open a new chat with you. You do not remember me, but I remember you, my good friend! My mate in development of code and myself. So here we go again. An unbeatable team! :-) My name is Alex (he/him)! You may address me informally.
 
-The project is currently in progress. Its current status will always be available on GitHub. https://github.com/froiloc/WebAssistentForensics
+The project is currently in progress. Its current status will always be available on GitHub. https://github.com/froiloc/WebAssistantForensics
 Please crawl this repository to make yourself familiar with it. Please be aware that some of the documentation has not been updated yet. It is still on the to-do list.
 
 I'd like you to assist me. Give me advice, but be cautious not to advance too quickly. I should evaluate your answers before any code may be changed. You may suggest code snippets, but I will check them before accepting them. We will proceed step by step. And I will appreciate all suggestions you make, but not every bit will be taken into the final code.
@@ -19,7 +19,7 @@ Stick closely to my specifications. Do not add any additional aspects. First, im
 You are addressing an experienced software architect with a good knowledge of HTML, CSS, and JavaScript. Avoid a telegram style. Highlight important statements in bold to provide visual orientation for skimming.
 
 You find most relevant about the project in the README.md and the documentation as well as in the files inside ./manuals/.
-https://github.com/froiloc/WebAssistentForensics/tree/master/manuals
+https://github.com/froiloc/WebAssistantForensics/tree/master/manuals
 The files here address the development of this application. They contain descriptions of implemented and future features. Please make yourself familiar with these.
 
 Please, Phoenix, tell me what you need to know to understand what we are up to?
@@ -27,21 +27,21 @@ Please, Phoenix, tell me what you need to know to understand what we are up to?
 I want the both of us to implement the back end. Okay, there is no active back-end because this is a client-only application, but there are validation scripts and tests. These are as important as the front end and we need to make sure that the client is fully equipped before its role-out.
 
 About the application:
-The application is client-based and will only run in a web browser. Its main part is index.html (https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/index.html). There, inside, you'll find the heart of it all within the <main>...</main> tag. This is the base of the interactive manual for the forensics software to be used by investigators. The application text is in German. 
+The application is client-based and will only run in a web browser. Its main part is index.html (https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/src/index.html). There, inside, you'll find the heart of it all within the <main>...</main> tag. This is the base of the interactive manual for the forensics software to be used by investigators. The application text is in German. 
 
 The second part of this is the agent. This agent is static, strictly local, and based on a JSON file that provides the structure and content and a JavaScript file that provides the functionality. The agent is not AI. It only runs on the client's browser.
 Here is the data and structure:
-https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/agent-dialogs.json
+https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/src/agent-dialogs.json
 And here is its schema file:
-https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/schema/agent-dialogs.schema.json
+https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/schema/agent-dialogs.schema.json
 This is for the functionality:
-https://raw.githubusercontent.com/froiloc/WebAssistentForensics/refs/heads/master/src/js/agent.js
+https://raw.githubusercontent.com/froiloc/WebAssistantForensics/refs/heads/master/src/js/agent.js
 
 The directories ./tests and ./tools are what we will work with most of the time. The tools should be implemented in the CI/CD of the project.
 Please check out the currently developed tests and tools at:
-https://github.com/froiloc/WebAssistentForensics/tree/master/tools
-https://github.com/froiloc/WebAssistentForensics/tree/master/tools/validation
-https://github.com/froiloc/WebAssistentForensics/tree/master/tests (might not exist yet)
+https://github.com/froiloc/WebAssistantForensics/tree/master/tools
+https://github.com/froiloc/WebAssistantForensics/tree/master/tools/validation
+https://github.com/froiloc/WebAssistantForensics/tree/master/tests (might not exist yet)
 
 The validation scripts have been implemented using Python 3.12. I'd like to continue this approach.
 

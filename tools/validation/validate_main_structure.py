@@ -70,7 +70,7 @@ class RobustMainContentParser:
     def _extract_metadata(self):
         """Extract basic document metadata"""
         return {
-            "title": self._get_text_or_default(self.soup.find('title'), "WebAssistentForensics"),
+            "title": self._get_text_or_default(self.soup.find('title'), "WebAssistantForensics"),
             "language": self.soup.find('html').get('lang', 'de') if self.soup.find('html') else 'de'
         }
 

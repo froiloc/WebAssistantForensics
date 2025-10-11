@@ -1,79 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAssistentForensics - Missing Media Report</title>
+    <title>Missing Media Report</title>
     <style>
         :root {
             --primary: #2c3e50;
-            --secondary: #34495e;
             --accent: #3498db;
             --success: #27ae60;
             --warning: #f39c12;
             --danger: #e74c3c;
             --light: #ecf0f1;
             --dark: #2c3e50;
+            --text: #34495e;
+            --text-light: #7f8c8d;
+            --border-radius: 8px;
+            
+            /* Media type colors */
             --screenshot-color: #27ae60;
             --annotated-color: #e67e22;
             --video-color: #9b59b6;
-            --text-light: #7f8c8d;
-            --border-radius: 8px;
+            --audio-color: #3498db;
+            --diagram-color: #e74c3c;
+            --image-color: #16a085;
         }
         
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--dark);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 40px 20px;
         }
         
         .report-container {
             max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border-radius: var(--border-radius);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
         
         .header {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
             color: white;
             padding: 40px 30px;
             text-align: center;
         }
         
         .header h1 {
-            font-size: 2.8em;
+            font-size: 2.5em;
             margin-bottom: 10px;
-            font-weight: 300;
-            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
         }
         
         .stats-bar {
-            background: var(--light);
-            padding: 25px 30px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            gap: 0;
+            border-bottom: 2px solid #ddd;
         }
         
         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px 30px;
             text-align: center;
-            transition: transform 0.2s ease;
+            border-right: 1px solid #e0e0e0;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:last-child {
+            border-right: none;
         }
         
         .stat-card:hover {
@@ -97,14 +106,18 @@
         .screenshot-breakdown { color: var(--screenshot-color); }
         .annotated-breakdown { color: var(--annotated-color); }
         .video-breakdown { color: var(--video-color); }
+        .audio-breakdown { color: var(--audio-color); }
+        .diagram-breakdown { color: var(--diagram-color); }
+        .image-breakdown { color: var(--image-color); }
         
         .progress-section {
             background: var(--light);
-            padding: 0 30px 25px;
+            ipadding: 8px;
+            border-radius: 12px;
         }
         
         .progress-bar {
-            height: 12px;
+            height: 24px;
             background: #ddd;
             border-radius: 6px;
             overflow: hidden;
@@ -167,6 +180,9 @@
         .screenshot-filter .filter-icon { border-color: var(--screenshot-color); background: rgba(39, 174, 96, 0.1); }
         .annotated-filter .filter-icon { border-color: var(--annotated-color); background: rgba(230, 126, 34, 0.1); }
         .video-filter .filter-icon { border-color: var(--video-color); background: rgba(155, 89, 182, 0.1); }
+        .audio-filter .filter-icon { border-color: var(--audio-color); background: rgba(52, 152, 219, 0.1); }
+        .diagram-filter .filter-icon { border-color: var(--diagram-color); background: rgba(231, 76, 60, 0.1); }
+        .image-filter .filter-icon { border-color: var(--image-color); background: rgba(22, 160, 133, 0.1); }
         
         .filter-item.active .filter-icon {
             transform: scale(1.1);
@@ -260,6 +276,9 @@
         .type-screenshot { background: rgba(39, 174, 96, 0.1); color: var(--screenshot-color); border: 1px solid var(--screenshot-color); }
         .type-annotated { background: rgba(230, 126, 34, 0.1); color: var(--annotated-color); border: 1px solid var(--annotated-color); }
         .type-video { background: rgba(155, 89, 182, 0.1); color: var(--video-color); border: 1px solid var(--video-color); }
+        .type-audio { background: rgba(52, 152, 219, 0.1); color: var(--audio-color); border: 1px solid var(--audio-color); }
+        .type-diagram { background: rgba(231, 76, 60, 0.1); color: var(--diagram-color); border: 1px solid var(--diagram-color); }
+        .type-image { background: rgba(22, 160, 133, 0.1); color: var(--image-color); border: 1px solid var(--image-color); }
         
         .item-meta {
             display: flex;
@@ -372,49 +391,53 @@
                 <div class="stat-breakdown">
                     <span class="screenshot-breakdown" title="Screenshot files">4📷</span> / 
                     <span class="annotated-breakdown" title="Annotated screenshot files">5🖊️</span> / 
-                    <span class="video-breakdown" title="Video files">3🎥</span>
+                    <span class="video-breakdown" title="Video files">3🎥</span> / 
+                    <span class="audio-breakdown" title="Audio files">2🎵</span> / 
+                    <span class="diagram-breakdown" title="Diagram files">1📊</span> / 
+                    <span class="image-breakdown" title="Image files">1🖼️</span>
                 </div>
             </div>
             <div class="stat-card" title="Number of items marked as completed">
                 <div class="stat-number" id="completed-count">3</div>
                 <div>Completed</div>
                 <div class="stat-breakdown">
-                    <span class="screenshot-breakdown" title="Completed screenshots">1📷</span> / 
-                    <span class="annotated-breakdown" title="Completed annotated screenshots">1🖊️</span> / 
-                    <span class="video-breakdown" title="Completed videos">1🎥</span>
+                    <span class="screenshot-breakdown">1📷</span> / 
+                    <span class="annotated-breakdown">1🖊️</span> / 
+                    <span class="video-breakdown">1🎥</span> / 
+                    <span class="audio-breakdown">0🎵</span> / 
+                    <span class="diagram-breakdown">0📊</span> / 
+                    <span class="image-breakdown">0🖼️</span>
                 </div>
             </div>
-            <div class="stat-card" title="Number of items remaining to be completed">
+            <div class="stat-card" title="Number of remaining items to complete">
                 <div class="stat-number" id="remaining-count">9</div>
                 <div>Remaining</div>
                 <div class="stat-breakdown">
-                    <span class="screenshot-breakdown" title="Remaining screenshots">3📷</span> / 
-                    <span class="annotated-breakdown" title="Remaining annotated screenshots">4🖊️</span> / 
-                    <span class="video-breakdown" title="Remaining videos">2🎥</span>
+                    <span class="screenshot-breakdown">3📷</span> / 
+                    <span class="annotated-breakdown">4🖊️</span> / 
+                    <span class="video-breakdown">2🎥</span> / 
+                    <span class="audio-breakdown">2🎵</span> / 
+                    <span class="diagram-breakdown">1📊</span> / 
+                    <span class="image-breakdown">1🖼️</span>
                 </div>
             </div>
-            <div class="stat-card" title="Overall completion percentage">
+            <div class="stat-card" title="Completion percentage">
                 <div class="stat-number" id="completion-percent">25%</div>
-                <div>Complete</div>
-            </div>
-        </div>
-        
-        <div class="progress-section">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+                <div>Progress</div>
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="controls">
-            <div class="visibility-control">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="show-completed">
-                    Show completed items
-                </label>
-            </div>
-            
             <div class="filter-controls">
-                <span>Filter by type:</span>
+                <label style="font-weight: 600; color: var(--dark);">
+                    <input type="checkbox" id="show-completed" checked> Show Completed
+                </label>
+                
                 <div class="filter-group">
                     <div class="filter-item screenshot-filter active" data-type="screenshot">
                         <div class="filter-icon">📷</div>
@@ -427,6 +450,18 @@
                     <div class="filter-item video-filter active" data-type="video">
                         <div class="filter-icon">🎥</div>
                         <span>Videos</span>
+                    </div>
+                    <div class="filter-item audio-filter active" data-type="audio">
+                        <div class="filter-icon">🎵</div>
+                        <span>Audio</span>
+                    </div>
+                    <div class="filter-item diagram-filter active" data-type="diagram">
+                        <div class="filter-icon">📊</div>
+                        <span>Diagrams</span>
+                    </div>
+                    <div class="filter-item image-filter active" data-type="image">
+                        <div class="filter-icon">🖼️</div>
+                        <span>Images</span>
                     </div>
                 </div>
             </div>
@@ -455,7 +490,10 @@
             showCompleted: true,
             screenshot: true,
             annotated: true,
-            video: true
+            video: true,
+            audio: true,
+            diagram: true,
+            image: true
             };
             
             this.init();
@@ -493,7 +531,17 @@
             div.setAttribute('data-id', item.id);
             
             const typeClass = `type-${item.type}`;
-            const typeIcon = item.type === 'screenshot' ? '📷' : item.type === 'annotated' ? '🖊️' : '🎥';
+            
+            // Extended icon mapping
+            const typeIconMap = {
+                'screenshot': '📷',
+                'annotated': '🖊️',
+                'video': '🎥',
+                'audio': '🎵',
+                'diagram': '📊',
+                'image': '🖼️'
+            };
+            const typeIcon = typeIconMap[item.type] || '📄';
             
             div.innerHTML = `
             <div class="item-content">
@@ -504,28 +552,26 @@
                     <div class="item-type ${typeClass}">${typeIcon} ${item.type}</div>
                 </div>
                 <div class="item-meta">
-                    <span>Context: <code>${item.context}</code></span>
+                    <span>📍 Context: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.9em;">${item.context}</code></span>
                 </div>
-                <div class="snippet-text">${item.snippet}</div>
                 <div class="file-path">
-                    <div class="file-icon">${typeIcon}</div>
+                    <div class="file-icon">📁</div>
                     <div class="file-info">
                     <div class="path">${item.filePath}</div>
-                    <div class="alt-text">${item.altText}</div>
+                    ${item.altText ? `<div style="font-size: 0.9em; color: var(--text-light); margin-top: 4px;">Alt: "${item.altText}"</div>` : ''}
                     </div>
                 </div>
-                ${item.similarFiles.length > 0 ? `
+                ${item.snippet ? `<div class="snippet-text">"${item.snippet}"</div>` : ''}
+                ${item.similarFiles && item.similarFiles.length > 0 ? `
                     <div class="similar-files">
-                    🔍 Similar files: 
-                    ${item.similarFiles.map(sf => 
-                        `<span class="similar-file">${sf.name}</span> (distance: ${sf.distance})`
-                    ).join(', ')}
+                    <strong>⚠️ Similar files found:</strong><br>
+                    ${item.similarFiles.map(f => `<span class="similar-file">${f.name}</span> (distance: ${f.distance})`).join('<br>')}
                     </div>
                 ` : ''}
                 <div class="completion-control">
                     <label class="checkbox-label">
-                    <input type="checkbox" class="completed-checkbox" ${item.completed ? 'checked' : ''}>
-                    Mark as completed
+                    <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="window.mediaReport.toggleCompleted(${item.id})">
+                    <span>✅ Mark as completed</span>
                     </label>
                 </div>
                 </div>
@@ -536,135 +582,129 @@
         }
         
         setupEventListeners() {
-            // Filter toggles
-            this.filterItems.forEach(filter => {
-                filter.addEventListener('click', () => {
-                    const type = filter.dataset.type;
-                    filter.classList.toggle('active');
-                    this.filters[type] = filter.classList.contains('active');
-                    this.updateDisplay();
-                });
-            });
-
             // Show completed toggle
-            this.showCompletedCheckbox.addEventListener('change', (e) => {
-                this.filters.showCompleted = e.target.checked;
-                this.toggleShowCompleted(e.target.checked); // Only handle show-if-completed
+            this.showCompletedCheckbox.addEventListener('change', () => {
+            this.filters.showCompleted = this.showCompletedCheckbox.checked;
+            this.applyFilters();
             });
             
-            // Delegate completion checkbox events
-            document.getElementById('media-list').addEventListener('change', (e) => {
-                if (e.target.classList.contains('completed-checkbox')) {
-                    const itemElement = e.target.closest('.media-item');
-                    const itemId = parseInt(itemElement.getAttribute('data-id'));
-                    this.toggleCompletion(itemId, e.target.checked); // Only handle marked-completed
-                }
+            // Type filters
+            this.filterItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.getAttribute('data-type');
+                this.filters[type] = !this.filters[type];
+                item.classList.toggle('active');
+                this.applyFilters();
             });
-            }
-        
-        updateDisplay() {
-            this.applyFilters();
-            this.updateStats();
+            });
         }
         
         applyFilters() {
             const items = document.querySelectorAll('.media-item');
             
             items.forEach(item => {
-                const type = item.getAttribute('data-type');
-                const typeVisible = this.filters[type];
-                
-                if (!typeVisible) {
-                    item.classList.add('filtered');
-                } else {
-                    item.classList.remove('filtered');
+            const type = item.getAttribute('data-type');
+            const completed = item.getAttribute('data-completed') === 'true';
+            
+            const typeMatch = this.filters[type];
+            const completedMatch = this.filters.showCompleted || !completed;
+            
+            if (typeMatch && completedMatch) {
+                item.classList.remove('filtered');
+                if (completed && this.filters.showCompleted) {
+                item.classList.add('show-if-completed');
                 }
-            });
-        }
-        
-        toggleShowCompleted(status) {
-            const items = document.querySelectorAll('.media-item');
-            items.forEach(item => {
-                if (status) {
-                    item.classList.add('show-if-completed');
-                } else {
-                    item.classList.remove('show-if-completed');
-                }
-            });
-        }
-        
-        toggleCompletion(itemId, completed) {
-            const item = this.mediaItems.find(i => i.id === itemId);
-            if (item) {
-                item.completed = completed;
-                
-                const itemElement = document.querySelector(`.media-item[data-id="${itemId}"]`);
-                if (itemElement) {
-                    // Only handle marked-completed class - nothing else
-                    if (completed) {
-                        setTimeout(() => {
-                            itemElement.classList.add('marked-completed');
-                        }, 800);
-                    } else {
-                        itemElement.classList.remove('marked-completed');
-                    }
-                    
-                    itemElement.setAttribute('data-completed', completed);
-                }
-                
-                this.updateStats();
+            } else {
+                item.classList.add('filtered');
+                item.classList.remove('show-if-completed');
             }
-        }        
+            });
+        }
+        
+        toggleCompleted(id) {
+            const item = this.mediaItems.find(i => i.id === id);
+            if (item) {
+            item.completed = !item.completed;
+            
+            // Update DOM
+            const itemElement = document.querySelector(`.media-item[data-id="${id}"]`);
+            if (itemElement) {
+                itemElement.setAttribute('data-completed', item.completed);
+                if (item.completed) {
+                itemElement.classList.add('marked-completed');
+                } else {
+                itemElement.classList.remove('marked-completed');
+                }
+            }
+            
+            this.updateStats();
+            this.applyFilters();
+            }
+        }
+        
+        updateDisplay() {
+            this.updateStats();
+            this.applyFilters();
+        }
         
         updateStats() {
             const total = this.mediaItems.length;
-            const completed = this.mediaItems.filter(item => item.completed).length;
+            const completed = this.mediaItems.filter(i => i.completed).length;
             const remaining = total - completed;
             const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
             
-            // Count by type
-            const typeCounts = { screenshot: 0, annotated: 0, video: 0 };
-            const completedTypeCounts = { screenshot: 0, annotated: 0, video: 0 };
-            
-            this.mediaItems.forEach(item => {
-            typeCounts[item.type]++;
-            if (item.completed) completedTypeCounts[item.type]++;
-            });
-            
-            // Update main stats
             this.statsElements.total.textContent = total;
             this.statsElements.completed.textContent = completed;
             this.statsElements.remaining.textContent = remaining;
-            this.statsElements.percent.textContent = percent + '%';
-            this.statsElements.progress.style.width = percent + '%';
+            this.statsElements.percent.textContent = `${percent}%`;
+            this.statsElements.progress.style.width = `${percent}%`;
             
-            // Update breakdowns in stats cards
-            this.updateStatBreakdowns(typeCounts, completedTypeCounts, completed);
-        }
-        
-        updateStatBreakdowns(typeCounts, completedTypeCounts, totalCompleted) {
-            // Update total breakdown
-            const totalBreakdown = `${typeCounts.screenshot}📷 / ${typeCounts.annotated}🖊️ / ${typeCounts.video}🎥`;
+            // Update type counts
+            const typeCounts = {
+                screenshot: 0,
+                annotated: 0,
+                video: 0,
+                audio: 0,
+                diagram: 0,
+                image: 0
+            };
             
-            // Update completed breakdown  
-            const completedBreakdown = `${completedTypeCounts.screenshot}📷 / ${completedTypeCounts.annotated}🖊️ / ${completedTypeCounts.video}🎥`;
+            const completedTypeCounts = {
+                screenshot: 0,
+                annotated: 0,
+                video: 0,
+                audio: 0,
+                diagram: 0,
+                image: 0
+            };
             
-            // Update remaining breakdown
-            const remainingBreakdown = `${typeCounts.screenshot - completedTypeCounts.screenshot}📷 / ${typeCounts.annotated - completedTypeCounts.annotated}🖊️ / ${typeCounts.video - completedTypeCounts.video}🎥`;
+            this.mediaItems.forEach(item => {
+                if (typeCounts.hasOwnProperty(item.type)) {
+                    typeCounts[item.type]++;
+                    if (item.completed) {
+                        completedTypeCounts[item.type]++;
+                    }
+                }
+            });
             
-            // Find and update the breakdown elements (simplified - in real implementation would target specific elements)
+            // Update breakdown in stats
+            const totalBreakdown = `${typeCounts.screenshot}📷 / ${typeCounts.annotated}🖊️ / ${typeCounts.video}🎥 / ${typeCounts.audio}🎵 / ${typeCounts.diagram}📊 / ${typeCounts.image}🖼️`;
+            const completedBreakdown = `${completedTypeCounts.screenshot}📷 / ${completedTypeCounts.annotated}🖊️ / ${completedTypeCounts.video}🎥 / ${completedTypeCounts.audio}🎵 / ${completedTypeCounts.diagram}📊 / ${completedTypeCounts.image}🖼️`;
+            const remainingBreakdown = `${typeCounts.screenshot - completedTypeCounts.screenshot}📷 / ${typeCounts.annotated - completedTypeCounts.annotated}🖊️ / ${typeCounts.video - completedTypeCounts.video}🎥 / ${typeCounts.audio - completedTypeCounts.audio}🎵 / ${typeCounts.diagram - completedTypeCounts.diagram}📊 / ${typeCounts.image - completedTypeCounts.image}🖼️`;
+            
+            // Update breakdown elements
             const breakdownElements = document.querySelectorAll('.stat-breakdown');
             if (breakdownElements.length >= 3) {
-                breakdownElements[0].innerHTML = `<span class="screenshot-breakdown" title="Screenshot files">${typeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Annotated screenshot files">${typeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Video files">${typeCounts.video}🎥</span>`;
-                breakdownElements[1].innerHTML = `<span class="screenshot-breakdown" title="Completed screenshots">${completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Completed annotated screenshots">${completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Completed videos">${completedTypeCounts.video}🎥</span>`;
-                breakdownElements[2].innerHTML = `<span class="screenshot-breakdown" title="Remaining screenshots">${typeCounts.screenshot - completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown" title="Remaining annotated screenshots">${typeCounts.annotated - completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown" title="Remaining videos">${typeCounts.video - completedTypeCounts.video}🎥</span>`;
+                breakdownElements[0].innerHTML = `<span class="screenshot-breakdown">${typeCounts.screenshot}📷</span> / <span class="annotated-breakdown">${typeCounts.annotated}🖊️</span> / <span class="video-breakdown">${typeCounts.video}🎥</span> / <span class="audio-breakdown">${typeCounts.audio}🎵</span> / <span class="diagram-breakdown">${typeCounts.diagram}📊</span> / <span class="image-breakdown">${typeCounts.image}🖼️</span>`;
+                breakdownElements[1].innerHTML = `<span class="screenshot-breakdown">${completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown">${completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown">${completedTypeCounts.video}🎥</span> / <span class="audio-breakdown">${completedTypeCounts.audio}🎵</span> / <span class="diagram-breakdown">${completedTypeCounts.diagram}📊</span> / <span class="image-breakdown">${completedTypeCounts.image}🖼️</span>`;
+                breakdownElements[2].innerHTML = `<span class="screenshot-breakdown">${typeCounts.screenshot - completedTypeCounts.screenshot}📷</span> / <span class="annotated-breakdown">${typeCounts.annotated - completedTypeCounts.annotated}🖊️</span> / <span class="video-breakdown">${typeCounts.video - completedTypeCounts.video}🎥</span> / <span class="audio-breakdown">${typeCounts.audio - completedTypeCounts.audio}🎵</span> / <span class="diagram-breakdown">${typeCounts.diagram - completedTypeCounts.diagram}📊</span> / <span class="image-breakdown">${typeCounts.image - completedTypeCounts.image}🖼️</span>`;
             }
         }
     }
         
     // Initialize the report when the page loads
     document.addEventListener('DOMContentLoaded', () => {
-        new MediaReport();
+        window.mediaReport = new MediaReport();
     });
     </script>
 
@@ -673,34 +713,67 @@
         window.mediaData = [
   {
     "id": 1,
-    "title": "HTML Annotated Axiom Menu Marked Thumb",
-    "type": "annotated",
-    "context": "#section-workflow div.detail-level-3:nth-of-type(3) figure.media-figure:nth-of-type(1) img.media-thumbnail",
-    "snippet": "Benutzeroberfläche im Detail Hauptmenü-Pfad: Der vollständige Menüpfad führt von der Hauptmenüleiste über \"Datei\" zum Untermenü \"Bericht/Export erstellen\". Dieser Weg ist standardisiert und funktionie...",
-    "filePath": "media/annotated/axiom-menu-marked-thumb.png",
-    "altText": "AXIOM Hauptmenü mit nummerierten Schritten: 1. Datei-Menü, 2. Bericht/Export erstellen",
+    "title": "HTML Screenshot Axiom Report Menu",
+    "type": "screenshot",
+    "context": "#section-template-selection div.detail-level-1 figure img",
+    "snippet": "Grundlegende Schritte Öffnen Sie die Report-Erstellung über File → Create Report/Export oder durch Rechtsklick in der Artifact-Ansicht und Auswahl von \"Create Report/Export\" . Report-Erstellung über d...",
+    "filePath": "media/screenshots/axiom-report-menu.png",
+    "altText": "AXIOM Examine Report-Menü mit hervorgehobener Create Report Option",
     "similarFiles": [],
     "completed": false
   },
   {
     "id": 2,
-    "title": "HTML Screenshot Format Selection Thumb",
-    "type": "screenshot",
-    "context": "#section-step2 div.detail-level-2:nth-of-type(2) figure.media-figure img.media-thumbnail",
-    "snippet": "Im Dialog \"Export / report format\" wählen Sie HTML aus den\n                        verfügbaren Optionen (Excel, XML, HTML, PST, PDF, CSV, JSON, Load File, Portable Case). 🐕‍🦺 Warum HTML? Export-Dialog...",
-    "filePath": "media/screenshots/format-selection-thumb.png",
-    "altText": "AXIOM Export-Dialog mit Format-Auswahl, HTML ist hervorgehoben",
+    "title": "HTML Annotated Axiom Filter Panel Marked",
+    "type": "annotated",
+    "context": "#section-artifact-filtering div.detail-level-1 figure img",
+    "snippet": "Filter-Interface öffnen und nutzen Öffnen Sie das Filter-Panel über das Funnel-Symbol in der Toolbar oder über View → Filters . Das Panel erscheint auf der linken Seite der Artifact-Ansicht. Filter-Pa...",
+    "filePath": "media/annotated/axiom-filter-panel-marked.png",
+    "altText": "AXIOM Examine Filter-Panel mit markierten Bereichen: Artifact-Kategorien, Datum-Filter, Tag-Filter",
     "similarFiles": [],
     "completed": false
   },
   {
     "id": 3,
-    "title": "HTML Video Export Workflow",
+    "title": "HTML Diagram Export Format Decision Tree",
+    "type": "diagram",
+    "context": "#section-export-formats div.detail-level-1 figure img",
+    "snippet": "Format-Übersicht AXIOM Examine bietet vier Hauptformate für den Report-Export. Jedes Format hat spezifische Stärken und Einsatzgebiete. Entscheidungsbaum: Welches Format für welchen Zweck? Die vier Ha...",
+    "filePath": "media/other/export-format-decision-tree.png",
+    "altText": "Entscheidungsbaum für Export-Format-Auswahl: Technische Analyse führt zu CSV/Excel, Präsentation zu HTML, Archivierung zu PDF",
+    "similarFiles": [],
+    "completed": false
+  },
+  {
+    "id": 4,
+    "title": "HTML Annotated Filter Mistake Comparison",
+    "type": "annotated",
+    "context": "#section-common-mistakes div.detail-level-1 figure img",
+    "snippet": "Die drei häufigsten Fehler Aus der Praxis haben sich drei Fehlerquellen herauskristallisiert, die bei über 70% der fehlerhaften Reports auftreten. Fehler 1: Falsche oder fehlende Filterung Der mit Abs...",
+    "filePath": "media/annotated/filter-mistake-comparison.png",
+    "altText": "Vergleich: Links überladener Report ohne Filter (500 MB), rechts gefiltert und übersichtlich (15 MB)",
+    "similarFiles": [],
+    "completed": false
+  },
+  {
+    "id": 5,
+    "title": "HTML Video Axiom Export Formats Tutorial",
     "type": "video",
-    "context": "#section-workflow div.detail-level-3:nth-of-type(3) figure.media-figure:nth-of-type(2) video.media-video",
-    "snippet": "Benutzeroberfläche im Detail Hauptmenü-Pfad: Der vollständige Menüpfad führt von der Hauptmenüleiste über \"Datei\" zum Untermenü \"Bericht/Export erstellen\". Dieser Weg ist standardisiert und funktionie...",
-    "filePath": "media/videos/export-workflow.mp4",
+    "context": "#section-export-formats div.detail-level-2 figure video",
+    "snippet": "Format-spezifische Optionen Jedes Export-Format bietet spezifische Konfigurationsoptionen, die das Ergebnis maßgeblich beeinflussen. HTML-Export-Optionen Wichtigste Konfigurationen: Embed Media: Medie...",
+    "filePath": "media/videos/axiom-export-formats-tutorial.mp4",
     "altText": "Video content",
+    "similarFiles": [],
+    "completed": false
+  },
+  {
+    "id": 6,
+    "title": "HTML Audio Media Embedding Explained",
+    "type": "audio",
+    "context": "#section-common-mistakes div.detail-level-1 figure audio",
+    "snippet": "Die drei häufigsten Fehler Aus der Praxis haben sich drei Fehlerquellen herauskristallisiert, die bei über 70% der fehlerhaften Reports auftreten. Fehler 1: Falsche oder fehlende Filterung Der mit Abs...",
+    "filePath": "media/audio/media-embedding-explained.mp3",
+    "altText": "Audio content",
     "similarFiles": [],
     "completed": false
   }

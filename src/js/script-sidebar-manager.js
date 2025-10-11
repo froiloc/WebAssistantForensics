@@ -79,15 +79,7 @@
             return;
         }
 
-        sidebar.classList.remove('active');
-        sidebar.classList.add('closing');
-
-        setTimeout(() => {
-            sidebar.style.display = 'none';
-            sidebar.classList.remove('closing');
-        }, 300);
-
-        // StateManager verwenden
+        // StateManager verwenden - VOR der Animation
         let sidebarsOpen;
         if (window.StateManager) {
             sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
@@ -95,28 +87,48 @@
             window.StateManager.set('ui.sidebarsOpen', sidebarsOpen);
         }
 
+        // ✅ FALL 1: Letzte verbleibende Sidebar wird geschlossen
         if (sidebarsOpen.length === 0) {
-            // ✅ NEU: Closing-Animation für den Container
+            LOG(MODULE, 'Closing last sidebar - animating container only');
+
+            // Keine innere Animation - nur Container schließen
+            sidebar.classList.remove('active');
+
+            // Container-Closing-Animation
             container.classList.add('closing');
 
             setTimeout(() => {
-                container.classList.remove('open');
-                container.classList.remove('closing');
-            }, 350); // Wartet auf CSS-Transition-Dauer
+                container.classList.remove('open', 'closing');
+                sidebar.style.display = 'none';
 
-            if (window.StateManager) {
-                window.StateManager.set('ui.activeSidebarTab', null);
-            }
-            LOG(MODULE, 'All sidebars closed, container hidden');
+                if (window.StateManager) {
+                    window.StateManager.set('ui.activeSidebarTab', null);
+                }
+
+                LOG(MODULE, 'Container closed');
+            }, 350); // ✅ Normale Geschwindigkeit
+
         } else {
+            // ✅ FALL 2: Weitere Sidebars bleiben sichtbar
+            LOG(MODULE, 'Closing sidebar - other sidebars remain');
+
+            // VEREINFACHUNG: Erstmal OHNE Animation der inneren Sidebar
+            // Nur direkt verstecken und nächste aktivieren
+
+            sidebar.classList.remove('active');
+            sidebar.style.display = 'none';
+
+            // Nächste Sidebar aktivieren
             const firstRemaining = sidebarsOpen[0];
             const firstSidebar = document.getElementById(`sidebar-${firstRemaining}`);
             if (firstSidebar) {
                 firstSidebar.classList.add('active');
                 firstSidebar.style.display = 'flex';
+
                 if (window.StateManager) {
                     window.StateManager.set('ui.activeSidebarTab', firstRemaining);
                 }
+
                 LOG(MODULE, `Auto-activated remaining sidebar: ${firstRemaining}`);
             }
         }

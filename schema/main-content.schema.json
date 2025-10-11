@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/froiloc/WebAssistentForensics/schema/main-content.schema.json",
-  "title": "WebAssistentForensics Main Content Structure",
+  "$id": "https://github.com/froiloc/WebAssistantForensics/schema/main-content.schema.json",
+  "title": "WebAssistantForensics Main Content Structure",
   "description": "Schema for validating the structure and semantics of content within index.html <main> section - Focused on semantic HTML and meaningful accessibility",
   "type": "object",
   "properties": {

@@ -1,0 +1,165 @@
+diff --git a/src/css/styles.css b/src/css/styles.css
+index 42d14db..72936bf 100644
+--- a/src/css/styles.css
++++ b/src/css/styles.css
+@@ -1429,12 +1429,6 @@ body.notes-open .notes-sidebar {
+     outline-offset: -3px;
+ }
+ 
+-.sidebar-wrapper.active .sidebar-tab-body {
+-    flex: 1;
+-    display: flex; /* Bei aktiver Sidebar anzeigen */
+-    flex-direction: column; /* ✅ Kinder untereinander */
+-}
+-
+ /* Aktive Sidebar ist sichtbar */
+ .sidebar-wrapper.active {
+     flex: 1;
+@@ -1493,19 +1487,7 @@ body.notes-open .notes-sidebar {
+     flex: 1;
+     display: flex;
+     flex-direction: column;
+-    min-height: 0; /* Kritisch */
+-
+-    /* ✅ NEU: Transition muss VOR Klassenänderung aktiv sein */
+-    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+-}
+-
+-/* ✅ NEU: Collapsing-State für Body */
+-.sidebar-tab-body.collapsing {
+-    flex-grow: 0 !important;
+-    opacity: 0;
+     min-height: 0;
+-    overflow: hidden;
+ }
+ 
+ /* ===== BODY (scrollbarer Content) ===== */
+@@ -1523,19 +1505,6 @@ body.notes-open .notes-sidebar {
+     animation: slideDown 0.3s ease;
+ }
+ 
+-/* ===== NEUE KLASSE: Tab-Body Collapsing Animation ===== */
+-.sidebar-tab-body {
+-    transition: flex-grow var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+-}
+-
+-.sidebar-tab-body.collapsing {
+-    flex-grow: 0 !important;
+-    opacity: 0;
+-    min-height: 0;
+-    overflow: hidden;
+-}
+-
+ /* ===== FOOTER (Aktionsbereich) ===== */
+ .sidebar-footer {
+     padding: 10px 15px;
+@@ -1790,9 +1759,14 @@ body.tips-hidden .sidebar-container {
+ /* ===== SIDEBAR TAB-HEADER HOVER-EFFEKTE (V09) ===== */
+ .sidebar-tab-header,
+ .notes-header {
++    /*
++    transition: background-color var(--transition-fast),
++    transform 1.75s var(--sidebar-transition-easing),
++    opacity 1.75s var(--sidebar-transition-easing);
++    */
+     transition: background-color var(--transition-fast),
+-    transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
+-    opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
++        transform var(--sidebar-transition-duration) var(--sidebar-transition-easing),
++        opacity var(--sidebar-transition-duration) var(--sidebar-transition-easing);
+ }
+ 
+ .sidebar-tab-header:hover,
+@@ -1807,6 +1781,7 @@ body.tips-hidden .sidebar-container {
+ }
+ 
+ /* Content-Fade beim Tab-Wechsel */
++/*
+ .sidebar-tab-body {
+     opacity: 1;
+     transition: opacity var(--transition-medium) var(--ease-smooth);
+@@ -1815,3 +1790,4 @@ body.tips-hidden .sidebar-container {
+ .sidebar-tab-body.fading {
+     opacity: 0;
+ }
++*/
+diff --git a/src/js/script-sidebar-manager.js b/src/js/script-sidebar-manager.js
+index dc22cde..66f2882 100644
+--- a/src/js/script-sidebar-manager.js
++++ b/src/js/script-sidebar-manager.js
+@@ -79,15 +79,7 @@
+             return;
+         }
+ 
+-        sidebar.classList.remove('active');
+-        sidebar.classList.add('closing');
+-
+-        setTimeout(() => {
+-            sidebar.style.display = 'none';
+-            sidebar.classList.remove('closing');
+-        }, 300);
+-
+-        // StateManager verwenden
++        // StateManager verwenden - VOR der Animation
+         let sidebarsOpen;
+         if (window.StateManager) {
+             sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
+@@ -95,28 +87,48 @@
+             window.StateManager.set('ui.sidebarsOpen', sidebarsOpen);
+         }
+ 
++        // ✅ FALL 1: Letzte verbleibende Sidebar wird geschlossen
+         if (sidebarsOpen.length === 0) {
+-            // ✅ NEU: Closing-Animation für den Container
++            LOG(MODULE, 'Closing last sidebar - animating container only');
++
++            // Keine innere Animation - nur Container schließen
++            sidebar.classList.remove('active');
++
++            // Container-Closing-Animation
+             container.classList.add('closing');
+ 
+             setTimeout(() => {
+-                container.classList.remove('open');
+-                container.classList.remove('closing');
+-            }, 350); // Wartet auf CSS-Transition-Dauer
++                container.classList.remove('open', 'closing');
++                sidebar.style.display = 'none';
++
++                if (window.StateManager) {
++                    window.StateManager.set('ui.activeSidebarTab', null);
++                }
++
++                LOG(MODULE, 'Container closed');
++            }, 350); // ✅ Normale Geschwindigkeit
+ 
+-            if (window.StateManager) {
+-                window.StateManager.set('ui.activeSidebarTab', null);
+-            }
+-            LOG(MODULE, 'All sidebars closed, container hidden');
+         } else {
++            // ✅ FALL 2: Weitere Sidebars bleiben sichtbar
++            LOG(MODULE, 'Closing sidebar - other sidebars remain');
++
++            // VEREINFACHUNG: Erstmal OHNE Animation der inneren Sidebar
++            // Nur direkt verstecken und nächste aktivieren
++
++            sidebar.classList.remove('active');
++            sidebar.style.display = 'none';
++
++            // Nächste Sidebar aktivieren
+             const firstRemaining = sidebarsOpen[0];
+             const firstSidebar = document.getElementById(`sidebar-${firstRemaining}`);
+             if (firstSidebar) {
+                 firstSidebar.classList.add('active');
+                 firstSidebar.style.display = 'flex';
++
+                 if (window.StateManager) {
+                     window.StateManager.set('ui.activeSidebarTab', firstRemaining);
+                 }
++
+                 LOG(MODULE, `Auto-activated remaining sidebar: ${firstRemaining}`);
+             }
+         }

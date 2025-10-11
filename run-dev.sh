@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# WebAssistentForensics - Development Environment Setup & Test Runner
+# WebAssistantForensics - Development Environment Setup & Test Runner
 set -e # Exit immediately if a command fails
 
-echo "🧪 Phoenix: Starting WebAssistentForensics development environment..."
+echo "🧪 Phoenix: Starting WebAssistantForensics development environment..."
 
 # Check for Node.js
 if ! command -v node &> /dev/null; then
