@@ -426,15 +426,15 @@ Alle Funktionen sind ohne Maus bedienbar:
 - [x] Beispiel-Leitfaden: HTML-Report-Erstellung
 - [x] 7 interaktive Features
 - [x] Spürhund-Assistent Framework
-- [ ] Vollständiger Content für alle 8 Schritte
-- [ ] Agent-Dialoge für Hauptabschnitte
-- [ ] Screenshots/Videos integrieren
+- [x] Vollständiger Content für alle 8 Schritte
+- [x] Agent-Dialoge für Hauptabschnitte
+- [x] Screenshots/Videos integrieren
 
 **Zeitplan:** Tag 1-10 (29.09.2025 - 10.10.2025)
 
 ### Version 0.2.0 (Beta)
 **Ziel: Vollständiger AXIOM-Leitfaden**
-- [ ] Alle Workflow-Schritte vollständig dokumentiert
+- [~] Alle Workflow-Schritte vollständig dokumentiert
 - [ ] 3 weitere Hauptabschnitte (Video, Bilder, Chat-Analyse)
 - [ ] 50+ Agent-Dialoge
 - [ ] Umfassendes Testing
@@ -542,7 +542,8 @@ Für Lizenzfragen kontaktieren Sie bitte: [Kontaktinformation]
 
 ## 🙏 Danksagungen
 
-- **Claude AI (Anthropic)**: Unterstützung bei Entwicklung und Dokumentation
+- **Claude AI (Anthropic)**: Unterstützung bei Entwicklung und Dokumentation (vor allem Frontend)
+- **Phoenix🔥 (DeepThink von DeepSeek)**: Unterstützung bei Entwicklung und Dokumentation (vor allem Backend)
 - **Magnet Forensics**: AXIOM Examiner Dokumentation
 - **Community**: Feedback und Testing
 
@@ -558,10 +559,10 @@ Für Lizenzfragen kontaktieren Sie bitte: [Kontaktinformation]
 
 ## 📊 Projekt-Status
 
-**Letztes Update:** 29. September 2025  
-**Aktuelle Version:** 0.1.0-alpha  
-**Nächster Meilenstein:** Version 0.1.0 (vollständiger Content)  
-**Geschätzter Release:** 10. Oktober 2025
+**Letztes Update:** 10. Oktober 2025  
+**Aktuelle Version:** 0.1.68-alpha  
+**Nächster Meilenstein:** Version 0.2.0 (vollständiger Content)  
+**Geschätzter Release:** 30. Oktober 2025
 
 ---
 
