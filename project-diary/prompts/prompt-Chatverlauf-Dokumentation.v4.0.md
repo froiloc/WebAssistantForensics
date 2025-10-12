@@ -126,7 +126,7 @@ Kategorisiere jede Idee/Verbesserung strikt nach der folgenden Liste:
 
 Berücksichtige jeden der folgenden Abschnitte aus dem Template. Wenn du keine qualitativen Aussagen dazu verfassen kannst, verwende die Negativmeldung: "keine relevanten Inhalte dazu im Chatverlauf".
 
-- **Abschnittsliste:** `Prompt Metadata`, `📝 Chat-Interaktionen`, `💡 Ideen & Entscheidungen`, `🏆 Zusammenfassung des Chatverlaufs`, `📊 Generierte Artifacts`, `🔗 Verknüpfungen`, `🎓 Lessons Learned`, `📊 Qualitätsbewertung`, `💭 Kommentare & Notizen`, `📎 Anhänge`, `✏ Changelog`, `🏷 Tags`.
+- **Abschnittsliste:** `Prompt Metadata`, `🕑 Chronologische Reihenfolge`, `💡 Ideen & Entscheidungen`, `🏆 Zusammenfassung des Chatverlaufs`, `📊 Generierte Artifacts`, `🎓 Lessons Learned`, `📊 Qualitätsbewertung`, `💭 Kommentare & Notizen`, `🏷 Tags`.
 
 ### 2. Qualitätsbewertung (0 bis 5 Sterne)
 
