@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webassistant-forensics.org/schemas/phase0.5a-topics.schema.json",
+  "title": "Phase 0.5a: Topic Definition Schema",
+  "description": "Schema für die Topic-Ebene Gliederung (Phase 0.5a Output)",
+  "type": "object",
+  "required": ["schemaVersion", "projectMetadata", "topics", "qualityMetrics"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema-Version (SemVer Format)",
+      "examples": ["1.0.0"]
+    },
+    "projectMetadata": {
+      "type": "object",
+      "required": ["projectName", "toolName", "toolVersion", "targetAudience", "createdAt", "createdBy"],
+      "properties": {
+        "projectName": {
+          "type": "string",
+          "description": "Vollständiger Projekt-Name",
+          "examples": ["WebAssistant Forensics - AXIOM Examine Guide"]
+        },
+        "toolName": {
+          "type": "string",
+          "description": "Name der beschriebenen Software",
+          "examples": ["Magnet AXIOM Examine"]
+        },
+        "toolVersion": {
+          "type": "string",
+          "description": "Version(en) der Software",
+          "examples": ["7.0-7.5", "7.x"]
+        },
+        "targetAudience": {
+          "type": "string",
+          "description": "Primäre Zielgruppe des Handbuchs",
+          "examples": ["IT-ferne Polizei-Ermittler (Mittlere Reife, niedrige IT-Kenntnisse)"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Erstellungszeitpunkt (ISO-8601)",
+          "examples": ["2025-10-13T18:30:00Z"]
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Ersteller (KI-Modell oder Person)",
+          "examples": ["Claude Sonnet 4.5", "Max Mustermann"]
+        }
+      }
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 15,
+      "description": "Liste aller Topics (Haupt-Gliederungsebene)",
+      "items": {
+        "type": "object",
+        "required": ["topicId", "title", "learningObjective", "keyContent", "estimatedChapters", "estimatedSections"],
+        "properties": {
+          "topicId": {
+            "type": "string",
+            "pattern": "^topic-\\d+$",
+            "description": "Eindeutige Topic-ID",
+            "examples": ["topic-1", "topic-2"]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 100,
+            "description": "Deutscher Topic-Titel",
+            "examples": ["Vorbereitung & Case-Setup", "Export & Reporting"]
+          },
+          "learningObjective": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 500,
+            "description": "Was soll der Anwender nach diesem Topic können? (Präzise, messbar)",
+            "examples": ["Ermittler können eigenständig Cases in AXIOM vorbereiten, korrekt anlegen und häufige Fehler bei der Case-Erstellung vermeiden."]
+          },
+          "keyContent": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 8,
+            "description": "Hauptthemen des Topics (3-8 Stichpunkte)",
+            "items": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 150
+            },
+            "examples": [
+              ["Installation und Erstkonfiguration", "Case-Erstellung und Metadaten", "Evidence-Quellen hinzufügen"]
+            ]
+          },
+          "estimatedChapters": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 8,
+            "description": "Geschätzte Anzahl Chapters in diesem Topic"
+          },
+          "estimatedSections": {
+            "type": "integer",
+            "minimum": 18,
+            "maximum": 120,
+            "description": "Geschätzte Anzahl Sections in diesem Topic (= Summe aller Chapters)"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Optionale Begründung: Warum wurde dieser Umfang/diese Struktur gewählt?",
+            "examples": ["Topic fokussiert auf Fehlerprävention, daher mehr Sections für kritische Schritte."]
+          }
+        }
+      }
+    },
+    "qualityMetrics": {
+      "type": "object",
+      "required": ["totalTopics", "totalEstimatedChapters", "totalEstimatedSections", "averageSectionsPerTopic"],
+      "description": "Automatisch berechnete Metriken zur Qualitätssicherung",
+      "properties": {
+        "totalTopics": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Gesamtanzahl Topics"
+        },
+        "totalEstimatedChapters": {
+          "type": "integer",
+          "minimum": 3,
+          "description": "Summe aller geschätzten Chapters (über alle Topics)"
+        },
+        "totalEstimatedSections": {
+          "type": "integer",
+          "minimum": 18,
+          "description": "Summe aller geschätzten Sections (über alle Topics)"
+        },
+        "averageSectionsPerTopic": {
+          "type": "number",
+          "minimum": 6,
+          "description": "Durchschnittliche Sections pro Topic"
+        },
+        "balanceAssessment": {
+          "type": "string",
+          "enum": ["BALANCED", "SLIGHTLY_UNBALANCED", "UNBALANCED"],
+          "description": "Sind Topics ähnlich groß? (KI-Selbsteinschätzung)"
+        }
+      }
+    },
+    "aiSelfReview": {
+      "type": "object",
+      "description": "KI dokumentiert eigene Unsicherheiten und Entscheidungen",
+      "properties": {
+        "confidence": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"],
+          "description": "Wie sicher ist die KI mit dieser Gliederung?"
+        },
+        "uncertainties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Liste von Punkten, bei denen KI unsicher war",
+          "examples": [
+            ["Topic 3 könnte zu klein sein (nur 12 Sections)", "Unklar: Soll 'Performance-Optimierung' eigenes Topic werden?"]
+          ]
+        },
+        "alternativeApproaches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Andere mögliche Gliederungen, die KI erwogen hat",
+          "examples": [
+            ["Alternative: Topic 3 aufteilen in 'Troubleshooting' und 'Performance'"]
+          ]
+        }
+      }
+    }
+  }
+}

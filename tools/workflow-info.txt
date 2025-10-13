@@ -1,0 +1,17 @@
+1. Skript generiert Prompt für Phase 0.5a
+   → Output: prompts/prompt-phase0.5a-generated.md
+
+2. Maintainer gibt Prompt an KI
+   → KI generiert JSON
+
+3. Maintainer speichert als: output/output-phase0.5a-topics.json
+
+4. Skript validiert JSON gegen Schema
+   → Bei Fehler: Abbruch
+   → Bei Erfolg: Weiter zu Phase 0.5b
+
+5-7. Analog für Phase 0.5b (3× für 3 Topics)
+
+8-9. Phase 0.5c (Dummy-Review, automatisch)
+
+10. Fertig! Alle Dateien in output/

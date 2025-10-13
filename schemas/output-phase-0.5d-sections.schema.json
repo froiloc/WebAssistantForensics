@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webassistant-forensics.org/schemas/phase0.5d-sections.schema.json",
+  "title": "Phase 0.5d: Section Definition Schema",
+  "description": "Schema für vollständige Section-Definitionen eines Topics (Phase 0.5d Output)",
+  "type": "object",
+  "required": ["schemaVersion", "topicReference", "sections", "qualityMetrics"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "topicReference": {
+      "type": "object",
+      "required": ["topicId", "title", "phase0_5b_approved"],
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "pattern": "^topic-\\d+$"
+        },
+        "title": {"type": "string"},
+        "phase0_5b_approved": {"type": "boolean", "const": true},
+        "phase0_5c_reviewed": {"type": "boolean", "default": false}
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 18,
+      "maxItems": 120,
+      "items": {
+        "type": "object",
+        "required": [
+          "sectionId", "chapterId", "title", "learningObjective", 
+          "keyTopics", "shortDescription", "complexity", 
+          "estimatedWordCount", "estimatedReadingTimeL2", "estimatedReadingTimeL3",
+          "estimatedMedia", "predecessorSection", "successorSection",
+          "prerequisites", "dependencies", "difficultyLevel"
+        ],
+        "properties": {
+          "sectionId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "description": "Eindeutige Section-ID (Format: [tool]-[aktion]-[objekt], z.B. axiom-case-creation, xways-export-data)",
+            "examples": ["axiom-case-creation", "xways-export-data", "cellebrite-parse-logs"]
+          },
+          "chapterId": {
+            "type": "string",
+            "pattern": "^chapter-\\d+-\\d+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 15,
+            "maxLength": 100
+          },
+          "learningObjective": {
+            "type": "string",
+            "minLength": 30,
+            "maxLength": 300
+          },
+          "keyTopics": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 100
+            }
+          },
+          "shortDescription": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 400
+          },
+          "complexity": {
+            "type": "string",
+            "enum": ["Einfach", "Standard", "Komplex"]
+          },
+          "estimatedWordCount": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 2500
+          },
+          "estimatedReadingTimeL2": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 15
+          },
+          "estimatedReadingTimeL3": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 30
+          },
+          "estimatedMedia": {
+            "type": "object",
+            "required": ["screenshots", "videos", "annotations", "diagrams", "infoBoxes"],
+            "properties": {
+              "screenshots": {"type": "integer", "minimum": 0},
+              "videos": {"type": "integer", "minimum": 0},
+              "annotations": {"type": "integer", "minimum": 0},
+              "diagrams": {"type": "integer", "minimum": 0},
+              "infoBoxes": {"type": "integer", "minimum": 0}
+            }
+          },
+          "predecessorSection": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "description": "Vorgänger-Section-ID (null = erste Section)"
+          },
+          "successorSection": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "description": "Nachfolger-Section-ID (null = letzte Section)"
+          },
+          "prerequisites": {
+            "type": "object",
+            "required": ["contentual", "technical", "knowledge"],
+            "properties": {
+              "contentual": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+                },
+                "description": "Section-IDs, die vorher durchgearbeitet sein sollten"
+              },
+              "technical": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "knowledge": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+            }
+          },
+          "difficultyLevel": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"]
+          },
+          "crossReferences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["sectionId", "reason"],
+              "properties": {
+                "sectionId": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 10,
+                  "maxLength": 200
+                },
+                "relevanceScore": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                }
+              }
+            },
+            "maxItems": 5
+          },
+          "rationale": {"type": "string"}
+        }
+      }
+    },
+    "qualityMetrics": {
+      "type": "object",
+      "required": [
+        "totalSections", "totalEstimatedWordCount", 
+        "averageWordCountPerSection", "readingTimeDistribution",
+        "complexityDistribution", "difficultyDistribution",
+        "comparisonToPhase0_5b"
+      ],
+      "properties": {
+        "totalSections": {"type": "integer", "minimum": 18},
+        "totalEstimatedWordCount": {"type": "integer"},
+        "averageWordCountPerSection": {"type": "number"},
+        "readingTimeDistribution": {
+          "type": "object",
+          "properties": {
+            "under5min": {"type": "integer"},
+            "5to10min": {"type": "integer"},
+            "10to15min": {"type": "integer"},
+            "over15min": {"type": "integer"}
+          }
+        },
+        "complexityDistribution": {
+          "type": "object",
+          "properties": {
+            "Einfach": {"type": "integer"},
+            "Standard": {"type": "integer"},
+            "Komplex": {"type": "integer"}
+          }
+        },
+        "difficultyDistribution": {
+          "type": "object",
+          "properties": {
+            "Beginner": {"type": "integer"},
+            "Intermediate": {"type": "integer"},
+            "Advanced": {"type": "integer"}
+          }
+        },
+        "comparisonToPhase0_5b": {
+          "type": "object",
+          "required": ["estimatedDifference", "explanation"],
+          "properties": {
+            "estimatedDifference": {"type": "integer"},
+            "explanation": {"type": "string"}
+          }
+        },
+        "balanceAssessment": {
+          "type": "string",
+          "enum": ["BALANCED", "SLIGHTLY_UNBALANCED", "UNBALANCED"]
+        }
+      }
+    },
+    "crossTopicConnectionsSummary": {
+      "type": "array",
+      "description": "Zusammenfassung aller Cross-Topic-Verknüpfungen",
+      "items": {
+        "type": "object",
+        "required": ["fromSection", "toTopic", "toSection", "reason"],
+        "properties": {
+          "fromSection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+          },
+          "toTopic": {
+            "type": "string",
+            "pattern": "^topic-\\d+$"
+          },
+          "toSection": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+            "description": "Konkrete Ziel-Section (falls bekannt) oder null"
+          },
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "aiSelfReview": {
+      "type": "object",
+      "properties": {
+        "confidence": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"]
+        },
+        "uncertainties": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "potentialIssues": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "suggestedMerges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sections": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "reason": {"type": "string"}
+            }
+          }
+        },
+        "suggestedSplits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "section": {"type": "string"},
+              "reason": {"type": "string"},
+              "suggestedNewSections": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["createdAt", "createdBy"],
+      "properties": {
+        "createdAt": {"type": "string", "format": "date-time"},
+        "createdBy": {"type": "string"},
+        "inputFiles": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}

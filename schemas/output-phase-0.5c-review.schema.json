@@ -1,0 +1,293 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webassistant-forensics.org/schemas/phase0.5c-review.schema.json",
+  "title": "Phase 0.5c: Konsistenz-Review Schema",
+  "description": "Schema für KI-gestütztes Konsistenz-Review nach Chapter-Definition (Phase 0.5c Output)",
+  "type": "object",
+  "required": ["schemaVersion", "reviewMetadata", "overallAssessment", "detailedFindings"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema-Version",
+      "examples": ["1.0.0"]
+    },
+    "reviewMetadata": {
+      "type": "object",
+      "required": ["reviewedAt", "reviewedBy", "inputFiles"],
+      "properties": {
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Zeitpunkt des Reviews"
+        },
+        "reviewedBy": {
+          "type": "string",
+          "description": "KI-Modell, das Review durchgeführt hat",
+          "examples": ["Claude Sonnet 4.5"]
+        },
+        "inputFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Liste aller reviewten Dateien",
+          "examples": [["output-phase0.5a-topics.json", "output-phase0.5b-topic-1-chapters.json", "output-phase0.5b-topic-2-chapters.json", "output-phase0.5b-topic-3-chapters.json"]]
+        },
+        "isDummyReview": {
+          "type": "boolean",
+          "description": "Ist dies ein Dummy-Review? (nur für Entwicklung, gibt immer 'alles optimal' zurück)",
+          "default": false
+        }
+      }
+    },
+    "overallAssessment": {
+      "type": "object",
+      "required": ["completeness", "balance", "coherence", "overallScore"],
+      "description": "Gesamtbewertung über alle Topics/Chapters hinweg",
+      "properties": {
+        "completeness": {
+          "type": "string",
+          "enum": ["EXCELLENT", "GOOD", "ACCEPTABLE", "INSUFFICIENT"],
+          "description": "Decken Chapters die Topic-Lernziele vollständig ab?"
+        },
+        "balance": {
+          "type": "string",
+          "enum": ["EXCELLENT", "GOOD", "ACCEPTABLE", "UNBALANCED"],
+          "description": "Sind Topics/Chapters ähnlich groß (keine extremen Ausreißer)?"
+        },
+        "coherence": {
+          "type": "string",
+          "enum": ["EXCELLENT", "GOOD", "ACCEPTABLE", "INCONSISTENT"],
+          "description": "Passen Topics/Chapters logisch zusammen? Keine Widersprüche?"
+        },
+        "overallScore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Gesamtscore (0-100). Berechnung: (Completeness + Balance + Coherence) / 3, gemapped auf 0-100"
+        },
+        "recommendation": {
+          "type": "string",
+          "enum": ["APPROVE", "MINOR_REVISIONS", "MAJOR_REVISIONS", "REJECT"],
+          "description": "Empfehlung an Maintainer"
+        }
+      }
+    },
+    "detailedFindings": {
+      "type": "object",
+      "required": ["gaps", "redundancies", "inconsistencies", "crossTopicConnections"],
+      "description": "Detaillierte Findings pro Kategorie",
+      "properties": {
+        "gaps": {
+          "type": "array",
+          "description": "Identifizierte Lücken (fehlt etwas Wichtiges?)",
+          "items": {
+            "type": "object",
+            "required": ["location", "issue", "severity", "suggestion"],
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "Wo ist die Lücke? (Topic-ID oder Chapter-ID)",
+                "examples": ["topic-2", "chapter-1-3"]
+              },
+              "issue": {
+                "type": "string",
+                "description": "Was fehlt?",
+                "examples": ["Kein Chapter zu 'Export-Fehlerbehandlung' in Topic 2"]
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+                "description": "Wie schwerwiegend ist die Lücke?"
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "Konkreter Vorschlag zur Behebung",
+                "examples": ["Chapter 2-7 ergänzen: 'Häufige Export-Probleme lösen'"]
+              },
+              "affectedLearningObjectives": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Welche Lernziele sind durch diese Lücke gefährdet?",
+                "examples": [["Ermittler können Export-Fehler selbstständig beheben"]]
+              }
+            }
+          }
+        },
+        "redundancies": {
+          "type": "array",
+          "description": "Identifizierte Redundanzen (behandeln 2 Chapters/Topics das Gleiche?)",
+          "items": {
+            "type": "object",
+            "required": ["locations", "overlap", "severity", "suggestion"],
+            "properties": {
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Welche Chapters/Topics überschneiden sich?",
+                "examples": [["chapter-1-3", "chapter-2-1"]]
+              },
+              "overlap": {
+                "type": "string",
+                "description": "Was wird doppelt behandelt?",
+                "examples": ["Beide behandeln 'Metadaten-Auswahl'"]
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+                "description": "Wie problematisch ist die Redundanz?"
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "Wie kann Redundanz aufgelöst werden?",
+                "examples": ["Klarer abgrenzen: Chapter 1-3 = Metadaten bei Import, Chapter 2-1 = Metadaten bei Export"]
+              }
+            }
+          }
+        },
+        "inconsistencies": {
+          "type": "array",
+          "description": "Identifizierte Inkonsistenzen (Widersprüche, Terminologie, etc.)",
+          "items": {
+            "type": "object",
+            "required": ["type", "locations", "issue", "severity", "suggestion"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["TERMINOLOGY", "STRUCTURE", "DIFFICULTY", "SCOPE", "OTHER"],
+                "description": "Art der Inkonsistenz"
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Wo tritt die Inkonsistenz auf?",
+                "examples": [["chapter-1-2", "chapter-2-5"]]
+              },
+              "issue": {
+                "type": "string",
+                "description": "Was ist inkonsistent?",
+                "examples": ["Chapter 1-2 verwendet 'Evidenzquelle', Chapter 2-5 verwendet 'Datenquelle'"]
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "Wie kann Inkonsistenz behoben werden?",
+                "examples": ["Einheitlich 'Evidenzquelle' verwenden (siehe Terminologie-Entscheidungsliste)"]
+              }
+            }
+          }
+        },
+        "crossTopicConnections": {
+          "type": "array",
+          "description": "Validierte/ergänzte Cross-Topic-Verknüpfungen",
+          "items": {
+            "type": "object",
+            "required": ["fromLocation", "toLocation", "reason", "confidence", "status"],
+            "properties": {
+              "fromLocation": {
+                "type": "string",
+                "description": "Ausgangs-Chapter oder -Topic",
+                "examples": ["chapter-1-2"]
+              },
+              "toLocation": {
+                "type": "string",
+                "description": "Ziel-Chapter oder -Topic",
+                "examples": ["topic-3"]
+              },
+              "reason": {
+                "type": "string",
+                "description": "Warum ist diese Verknüpfung sinnvoll?",
+                "examples": ["Case-Erstellung kann fehlschlagen → Troubleshooting nötig"]
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["HIGH", "MEDIUM", "LOW"]
+              },
+              "status": {
+                "type": "string",
+                "enum": ["CONFIRMED", "NEW", "REJECTED"],
+                "description": "CONFIRMED = war bereits in 0.5b identifiziert, NEW = neu entdeckt, REJECTED = fälschlicherweise in 0.5b vorgeschlagen"
+              },
+              "suggestedInPhase": {
+                "type": "string",
+                "description": "In welcher Phase sollte Cross-Reference implementiert werden?",
+                "examples": ["Phase 0.5d (bei Section-Definition)", "Phase 1 (bei Content-Erstellung)"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "statisticalAnalysis": {
+      "type": "object",
+      "description": "Statistische Auswertung der Gliederung",
+      "properties": {
+        "totalTopics": {
+          "type": "integer"
+        },
+        "totalChapters": {
+          "type": "integer"
+        },
+        "totalEstimatedSections": {
+          "type": "integer"
+        },
+        "averageChaptersPerTopic": {
+          "type": "number"
+        },
+        "averageSectionsPerChapter": {
+          "type": "number"
+        },
+        "topicSizeDistribution": {
+          "type": "object",
+          "description": "Sections pro Topic",
+          "examples": [{"topic-1": 33, "topic-2": 28, "topic-3": 15}]
+        },
+        "difficultyDistribution": {
+          "type": "object",
+          "description": "Anzahl Chapters pro Schwierigkeitsgrad",
+          "examples": [{"Beginner": 7, "Intermediate": 6, "Advanced": 2}]
+        }
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "description": "Priorisierte Empfehlungen für Maintainer",
+      "items": {
+        "type": "object",
+        "required": ["priority", "category", "recommendation"],
+        "properties": {
+          "priority": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+            "description": "Priorität der Empfehlung"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["GAP", "REDUNDANCY", "INCONSISTENCY", "STRUCTURE", "OTHER"],
+            "description": "Kategorie der Empfehlung"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "Konkrete Handlungsempfehlung",
+            "examples": ["CRITICAL: Chapter 2-7 zu 'Export-Fehlerbehandlung' ergänzen (aktuell fehlend)"]
+          },
+          "estimatedEffort": {
+            "type": "string",
+            "enum": ["MINOR", "MODERATE", "SIGNIFICANT"],
+            "description": "Geschätzter Aufwand zur Umsetzung"
+          }
+        }
+      }
+    }
+  }
+}

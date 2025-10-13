@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0.0",
+  "topicReference": {
+    "topicId": "topic-1",
+    "title": "Vorbereitung & Case-Setup",
+    "phase0_5a_approved": true,
+    "estimatedChaptersFromPhase0_5a": 5
+  },
+  "chapters": [
+    {
+      "chapterId": "chapter-1-1",
+      "title": "Grundlagen der AXIOM-Umgebung",
+      "shortDescription": "Dieses Chapter führt in die AXIOM Examine-Oberfläche ein und erklärt die wichtigsten Menüpunkte. Anwender lernen, sich in der Software zu orientieren, Hilfe-Systeme zu nutzen und grundlegende Konzepte (Cases, Artifacts, Evidence) zu verstehen.",
+      "keyContent": [
+        "AXIOM Examine Installation und Lizenzierung",
+        "UI-Übersicht: Hauptbereiche und Navigation",
+        "Wichtige Menüpunkte und Tastenkombinationen",
+        "Hilfe-Systeme und Dokumentation nutzen",
+        "Grundlegende AXIOM-Konzepte verstehen (Cases, Artifacts, Evidence)"
+      ],
+      "estimatedSections": 6,
+      "rationale": "Umfangreicher als ursprünglich gedacht (Phase 0.5a: 4 Sections). Nach Detaillierung zeigte sich: Installation, UI-Orientierung und Konzepte brauchen mehr Raum. Zielgruppe ist IT-fern → viele Erklärungen nötig.",
+      "expectedDifficulty": "Beginner",
+      "relatedTopics": []
+    },
+    {
+      "chapterId": "chapter-1-2",
+      "title": "Case-Erstellung Schritt für Schritt",
+      "shortDescription": "Anwender lernen, neue Cases in AXIOM korrekt anzulegen, die richtigen Templates auszuwählen und wichtige Metadaten zu erfassen. Fokus auf Fehlerprävention: Häufige Anfängerfehler werden erklärt und vermieden.",
+      "keyContent": [
+        "New Case Dialog öffnen und verstehen",
+        "Case-Namen und Beschreibung eingeben (Best Practices)",
+        "Examiner-Informationen korrekt erfassen",
+        "Speicherort für Case-Dateien festlegen",
+        "Case-Templates auswählen (Standard, Custom)",
+        "Häufige Fehler vermeiden (ungültige Zeichen, fehlende Metadaten)"
+      ],
+      "estimatedSections": 7,
+      "rationale": "Kritisches Chapter für Case-Qualität. Fehler hier multiplizieren sich später. Daher mehr Sections als ursprünglich geplant (Phase 0.5a: 5 Sections). Besonderer Focus auf Fehlerprävention (2 dedizierte Sections: Best Practices + Häufige Fehler).",
+      "expectedDifficulty": "Beginner",
+      "relatedTopics": ["topic-3"]
+    },
+    {
+      "chapterId": "chapter-1-3",
+      "title": "Evidence-Quellen hinzufügen",
+      "shortDescription": "Anwender lernen, verschiedene Evidence-Quellen (Devices, Disk Images, Cloud-Daten) zu einem Case hinzuzufügen. Sie verstehen die Unterschiede zwischen Evidence-Typen und können die richtigen Import-Optionen auswählen.",
+      "keyContent": [
+        "Evidence-Typen verstehen (Physical Device, Disk Image, Logical Evidence)",
+        "Physical Devices verbinden und auswählen",
+        "Disk Images importieren (E01, DD, AFF)",
+        "Cloud-Daten als Evidence hinzufügen (iOS Backup, Google Takeout)",
+        "Import-Optionen konfigurieren (Hash berechnen, Metadaten extrahieren)",
+        "Mehrere Evidence-Quellen pro Case verwalten"
+      ],
+      "estimatedSections": 8,
+      "rationale": "Umfangreichstes Chapter in Topic 1. Evidence-Import ist komplex, viele verschiedene Typen. Zielgruppe braucht detaillierte Anleitungen für jeden Typ. Ursprünglich 6 Sections geplant (Phase 0.5a), aber nach Detaillierung: 8 Sections nötig (je 1 pro Evidence-Typ + Überblick + Multi-Evidence-Management).",
+      "expectedDifficulty": "Intermediate",
+      "relatedTopics": ["topic-2"]
+    },
+    {
+      "chapterId": "chapter-1-4",
+      "title": "Case-Organisation und Best Practices",
+      "shortDescription": "Anwender lernen, Cases sinnvoll zu strukturieren, Naming Conventions anzuwenden und Best Practices für Case-Management zu nutzen. Fokus auf Wiederauffindbarkeit und Team-Zusammenarbeit.",
+      "keyContent": [
+        "Naming Conventions für Cases (einheitlich, nachvollziehbar)",
+        "Case-Ordnerstruktur organisieren",
+        "Tags und Labels nutzen (Case-Kategorisierung)",
+        "Case-Favoriten und Bookmarks setzen",
+        "Best Practices für Team-Zusammenarbeit (wenn mehrere Ermittler)"
+      ],
+      "estimatedSections": 6,
+      "rationale": "Ursprünglich als Teil von Chapter 1-2 geplant, aber zu umfangreich. Daher eigenes Chapter. Wichtig für Langzeit-Organisation und wenn viele Cases parallel bearbeitet werden. Fokus auf praktische Tipps statt theoretischem Wissen.",
+      "expectedDifficulty": "Intermediate",
+      "relatedTopics": []
+    },
+    {
+      "chapterId": "chapter-1-5",
+      "title": "Case-Vorbereitung abschließen und prüfen",
+      "shortDescription": "Anwender lernen, vor dem Start der Analyse zu prüfen, ob der Case korrekt vorbereitet ist. Checklisten und Validierungs-Schritte sichern Qualität. Dieses Chapter ist der Abschluss der Vorbereitungsphase.",
+      "keyContent": [
+        "Checkliste: Ist Case vollständig vorbereitet?",
+        "Metadaten validieren (sind alle Pflichtfelder ausgefüllt?)",
+        "Evidence-Integrität prüfen (Hashes korrekt?)",
+        "Case-Einstellungen reviewen (Template, Processing-Optionen)",
+        "Wann ist Case bereit für Analyse? (Go/No-Go-Entscheidung)"
+      ],
+      "estimatedSections": 6,
+      "rationale": "Abschluss-Chapter für Topic 1. Wichtig, um Qualität zu sichern bevor Analyse startet. Fehler hier werden später teuer (Zeit-/Ressourcenverschwendung). Checklisten-Ansatz hilft IT-fernen Anwendern, nichts zu vergessen.",
+      "expectedDifficulty": "Beginner",
+      "relatedTopics": []
+    }
+  ],
+  "qualityMetrics": {
+    "totalChapters": 5,
+    "totalEstimatedSections": 33,
+    "averageSectionsPerChapter": 6.6,
+    "comparisonToPhase0_5a": {
+      "estimatedDifference": 11,
+      "explanation": "Phase 0.5a schätzte 22 Sections für Topic 1. Nach Detaillierung: 33 Sections. Grund: Detaillierung zeigte, dass Installation (Chapter 1-1), Evidence-Import (Chapter 1-3) und Fehlerprävention (Chapter 1-2) mehr Raum brauchen als ursprünglich angenommen. +11 Sections = +50% (signifikant!)."
+    },
+    "balanceAssessment": "BALANCED"
+  },
+  "crossTopicConnections": [
+    {
+      "fromChapter": "chapter-1-2",
+      "toTopic": "topic-3",
+      "reason": "Case-Erstellung (Chapter 1-2) kann zu Fehlern führen (z.B. 'Case konnte nicht erstellt werden'). Ermittler sollten dann zu Topic 3 (Troubleshooting) wechseln.",
+      "confidence": "HIGH"
+    },
+    {
+      "fromChapter": "chapter-1-3",
+      "toTopic": "topic-2",
+      "reason": "Evidence-Import (Chapter 1-3) erzeugt Metadaten, die später beim Export (Topic 2) wichtig sind. Cross-Reference sinnvoll.",
+      "confidence": "MEDIUM"
+    }
+  ],
+  "aiSelfReview": {
+    "confidence": "MEDIUM",
+    "uncertainties": [
+      "Chapter 1-3 ist mit 8 Sections das größte Chapter. Eventuell aufteilen in 1-3a (Physical Devices + Disk Images) und 1-3b (Cloud-Daten + Multi-Evidence)?",
+      "Chapter 1-4 (Best Practices) könnte optional sein. Ist es kritisch genug für Anfänger? Oder eher für Fortgeschrittene?",
+      "Gesamtanzahl: 33 Sections statt 22 (Phase 0.5a). Ist das noch akzeptabel? Oder zu umfangreich für Topic 1?"
+    ],
+    "alternativeStructures": [
+      "Alternative 1: Chapter 1-3 aufteilen → 6 Chapters statt 5, aber Chapter 1-3a und 1-3b wären kleiner (je 4-5 Sections).",
+      "Alternative 2: Chapter 1-4 (Best Practices) mit Chapter 1-5 (Checkliste) zusammenlegen → 4 Chapters, aber Chapter 1-5 wäre sehr groß (11 Sections).",
+      "Alternative 3: Installation aus Chapter 1-1 rausnehmen und als eigenes Chapter 1-0 (Vorbereitung) voranstellen → 6 Chapters, aber klare Trennung Installation vs. UI-Orientierung."
+    ],
+    "potentialIssues": [
+      "Überschneidung: Chapter 1-2 behandelt 'Metadaten erfassen', Chapter 1-5 behandelt 'Metadaten validieren'. Abgrenzung muss klar sein (Erfassung vs. Prüfung).",
+      "Terminology: 'Evidence' vs. 'Evidenzquelle' vs. 'Datenquelle' – muss konsistent verwendet werden. Terminologie-Entscheidungsliste prüfen!"
+    ]
+  },
+  "metadata": {
+    "createdAt": "2025-10-13T19:15:00Z",
+    "createdBy": "Claude Sonnet 4.5",
+    "inputFiles": [
+      "strategiedokument-axiom-v1.0.1.md",
+      "output-phase0.5a-topics.json"
+    ]
+  }
+}

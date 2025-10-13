@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "1.0.0",
+  "topicReference": {
+    "topicId": "topic-1",
+    "title": "Vorbereitung & Case-Setup",
+    "phase0_5b_approved": true,
+    "phase0_5c_reviewed": true
+  },
+  "sections": [
+    {
+      "sectionId": "axiom-installation",
+      "chapterId": "chapter-1-1",
+      "title": "AXIOM Examine installieren und lizenzieren",
+      "learningObjective": "Ermittler können AXIOM Examine eigenständig installieren, eine Lizenz aktivieren und die Installation auf Korrektheit prüfen.",
+      "keyTopics": [
+        "Systemvoraussetzungen prüfen (Windows, RAM, Speicherplatz)",
+        "AXIOM Examine Installer herunterladen und ausführen",
+        "Lizenzschlüssel eingeben und aktivieren",
+        "Installationstest durchführen (Beispiel-Case öffnen)"
+      ],
+      "shortDescription": "Diese Section führt Schritt für Schritt durch die Installation von AXIOM Examine. Ermittler lernen, Systemvoraussetzungen zu prüfen, die Software zu installieren und zu lizenzieren. Ein Installationstest stellt sicher, dass alles funktioniert.",
+      "complexity": "Einfach",
+      "estimatedWordCount": 1000,
+      "estimatedReadingTimeL2": 7,
+      "estimatedReadingTimeL3": 14,
+      "estimatedMedia": {
+        "screenshots": 4,
+        "videos": 0,
+        "annotations": 2,
+        "diagrams": 0,
+        "infoBoxes": 2
+      },
+      "predecessorSection": null,
+      "successorSection": "axiom-ui-overview",
+      "prerequisites": {
+        "contentual": [],
+        "technical": [
+          "Windows 10 oder 11 (64-Bit)",
+          "Administrator-Rechte auf dem PC",
+          "Internetverbindung für Lizenzaktivierung"
+        ],
+        "knowledge": [
+          "Grundlegende Windows-Kenntnisse (Programme installieren)",
+          "Zugriff auf AXIOM-Lizenzschlüssel"
+        ]
+      },
+      "dependencies": [
+        "axiom-ui-overview",
+        "axiom-case-creation"
+      ],
+      "difficultyLevel": "Beginner",
+      "crossReferences": [
+        {
+          "sectionId": "axiom-troubleshooting-installation",
+          "reason": "Falls Installation fehlschlägt oder Lizenz nicht aktiviert werden kann",
+          "relevanceScore": 4
+        }
+      ],
+      "rationale": "Erste Section im gesamten Handbuch. Muss sehr einfach und klar sein. Zielgruppe ist IT-fern, daher viele Screenshots und explizite Systemvoraussetzungen. Lizenzierung ist kritisch (ohne Lizenz keine Nutzung), daher eigene Section."
+    },
+    {
+      "sectionId": "axiom-ui-overview",
+      "chapterId": "chapter-1-1",
+      "title": "AXIOM-Oberfläche verstehen und navigieren",
+      "learningObjective": "Ermittler können sich in der AXIOM-Oberfläche orientieren, die wichtigsten Bereiche (Case Dashboard, Artifacts Explorer, Search) identifizieren und zwischen ihnen navigieren.",
+      "keyTopics": [
+        "Hauptbereiche der Oberfläche (Dashboard, Explorer, Search, Settings)",
+        "Menüleiste und wichtige Menüpunkte",
+        "Tastenkombinationen für häufige Aktionen",
+        "Workspace anpassen (Layout, Spalten, Filter)"
+      ],
+      "shortDescription": "Diese Section gibt einen Überblick über die AXIOM-Oberfläche. Ermittler lernen die Hauptbereiche kennen und können zwischen ihnen navigieren. Wichtige Menüpunkte und Tastenkombinationen werden erklärt.",
+      "complexity": "Standard",
+      "estimatedWordCount": 1200,
+      "estimatedReadingTimeL2": 8,
+      "estimatedReadingTimeL3": 16,
+      "estimatedMedia": {
+        "screenshots": 5,
+        "videos": 1,
+        "annotations": 3,
+        "diagrams": 1,
+        "infoBoxes": 1
+      },
+      "predecessorSection": "axiom-installation",
+      "successorSection": "axiom-help-systems",
+      "prerequisites": {
+        "contentual": ["axiom-installation"],
+        "technical": ["AXIOM Examine installiert und lizenziert"],
+        "knowledge": []
+      },
+      "dependencies": [
+        "axiom-case-creation",
+        "axiom-artifacts-overview"
+      ],
+      "difficultyLevel": "Beginner",
+      "crossReferences": [
+        {
+          "sectionId": "axiom-workspace-customization",
+          "reason": "Für fortgeschrittene UI-Anpassungen",
+          "relevanceScore": 2
+        }
+      ],
+      "rationale": "UI-Orientierung ist kritisch für IT-ferne Zielgruppe. Ohne Verständnis der Oberfläche können spätere Sections nicht durchgeführt werden. Video sinnvoll, da Navigation schwer in Screenshots zu zeigen. Diagramm für Überblick über Hauptbereiche."
+    },
+    {
+      "sectionId": "axiom-case-creation",
+      "chapterId": "chapter-1-2",
+      "title": "Neuen Fall in AXIOM anlegen",
+      "learningObjective": "Ermittler können eigenständig einen neuen Fall in AXIOM erstellen, korrekte Metadaten eingeben und häufige Fehler bei der Case-Erstellung vermeiden.",
+      "keyTopics": [
+        "New Case Dialog öffnen (File → New Case)",
+        "Fall-Namen und Beschreibung eingeben (Best Practices)",
+        "Examiner-Informationen und Fallnummer erfassen",
+        "Speicherort für Case-Dateien festlegen (Performance-Überlegungen)"
+      ],
+      "shortDescription": "Diese Section führt Schritt für Schritt durch die Erstellung eines neuen Falls. Ermittler lernen, wie der New Case Dialog aufgerufen wird, welche Metadaten Pflicht sind und worauf bei der Namensgebung zu achten ist. Häufige Fehler werden angesprochen.",
+      "complexity": "Standard",
+      "estimatedWordCount": 1400,
+      "estimatedReadingTimeL2": 9,
+      "estimatedReadingTimeL3": 18,
+      "estimatedMedia": {
+        "screenshots": 6,
+        "videos": 0,
+        "annotations": 4,
+        "diagrams": 0,
+        "infoBoxes": 3
+      },
+      "predecessorSection": "axiom-help-systems",
+      "successorSection": "axiom-case-metadata",
+      "prerequisites": {
+        "contentual": ["axiom-installation", "axiom-ui-overview"],
+        "technical": ["AXIOM Examine geöffnet"],
+        "knowledge": ["Fallnummer des zu untersuchenden Falls"]
+      },
+      "dependencies": [
+        "axiom-evidence-sources-physical",
+        "axiom-case-management"
+      ],
+      "difficultyLevel": "Beginner",
+      "crossReferences": [
+        {
+          "sectionId": "axiom-troubleshooting-case-creation",
+          "reason": "Falls 'Case konnte nicht erstellt werden' Fehler auftritt",
+          "relevanceScore": 5
+        },
+        {
+          "sectionId": "axiom-case-templates",
+          "reason": "Für fortgeschrittene Nutzer: Templates verwenden statt manuell anlegen",
+          "relevanceScore": 3
+        }
+      ],
+      "rationale": "Zentrale Section für Topic 1. Case-Erstellung ist Ausgangspunkt aller Analysen. Fehler hier multiplizieren sich. Daher viele Info-Boxen (Warnungen vor häufigen Fehlern). Mehr Worte als erwartet, da Best Practices ausführlich erklärt werden müssen (Naming Conventions, Speicherort-Wahl)."
+    }
+  ],
+  "qualityMetrics": {
+    "totalSections": 33,
+    "totalEstimatedWordCount": 42500,
+    "averageWordCountPerSection": 1288,
+    "readingTimeDistribution": {
+      "under5min": 3,
+      "5to10min": 20,
+      "10to15min": 9,
+      "over15min": 1
+    },
+    "complexityDistribution": {
+      "Einfach": 8,
+      "Standard": 21,
+      "Komplex": 4
+    },
+    "difficultyDistribution": {
+      "Beginner": 15,
+      "Intermediate": 14,
+      "Advanced": 4
+    },
+    "comparisonToPhase0_5b": {
+      "estimatedDifference": 0,
+      "explanation": "Phase 0.5b schätzte 33 Sections für Topic 1. Nach Detaillierung genau getroffen. Keine Anpassungen nötig."
+    },
+    "balanceAssessment": "BALANCED"
+  },
+  "crossTopicConnectionsSummary": [
+    {
+      "fromSection": "axiom-case-creation",
+      "toTopic": "topic-3",
+      "toSection": "axiom-troubleshooting-case-creation",
+      "reason": "Case-Erstellung kann fehlschlagen → Troubleshooting"
+    },
+    {
+      "fromSection": "axiom-evidence-sources-cloud",
+      "toTopic": "topic-2",
+      "toSection": null,
+      "reason": "Cloud-Evidence erzeugt spezielle Metadaten → relevant für Export (genaue Section noch unklar)"
+    }
+  ],
+  "aiSelfReview": {
+    "confidence": "HIGH",
+    "uncertainties": [
+      "Section 'axiom-workspace-customization' (15 Sections im Chapter 1-1) könnte zu fortgeschritten für Beginner sein. Eventuell als 'Advanced' markieren oder in separates Chapter verschieben?"
+    ],
+    "potentialIssues": [],
+    "suggestedMerges": [
+      {
+        "sections": ["axiom-help-online", "axiom-help-documentation"],
+        "reason": "Beide behandeln Hilfe-Systeme, könnten kombiniert werden (→ 1 Section statt 2)"
+      }
+    ],
+    "suggestedSplits": []
+  },
+  "metadata": {
+    "createdAt": "2025-10-13T21:00:00Z",
+    "createdBy": "Claude Sonnet 4.5",
+    "inputFiles": [
+      "strategiedokument-axiom-v1.0.1.md",
+      "output-phase0.5a-topics.json",
+      "output-phase0.5b-topic-1-chapters.json",
+      "output-phase0.5c-review.json"
+    ]
+  }
+}

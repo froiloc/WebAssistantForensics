@@ -100,7 +100,7 @@
           },
           "estimatedSections": {
             "type": "integer",
-            "minimum": 6,
+            "minimum": 18,
             "maximum": 120,
             "description": "Geschätzte Anzahl Sections in diesem Topic (= Summe aller Chapters)"
           },

@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://webassistant-forensics.org/schemas/phase0.5b-chapters.schema.json",
+  "title": "Phase 0.5b: Chapter Definition Schema",
+  "description": "Schema für die Chapter-Ebene Gliederung eines Topics (Phase 0.5b Output)",
+  "type": "object",
+  "required": ["schemaVersion", "topicReference", "chapters", "qualityMetrics"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema-Version (SemVer Format)",
+      "examples": ["1.0.0"]
+    },
+    "topicReference": {
+      "type": "object",
+      "required": ["topicId", "title", "phase0_5a_approved"],
+      "description": "Referenz zum Parent-Topic (aus Phase 0.5a)",
+      "properties": {
+        "topicId": {
+          "type": "string",
+          "pattern": "^topic-\\d+$",
+          "description": "ID des Topics (aus Phase 0.5a)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Titel des Topics (zur Orientierung)"
+        },
+        "phase0_5a_approved": {
+          "type": "boolean",
+          "description": "Wurde Phase 0.5a vom Maintainer approved?",
+          "const": true
+        },
+        "estimatedChaptersFromPhase0_5a": {
+          "type": "integer",
+          "description": "Ursprüngliche Schätzung aus Phase 0.5a (zum Vergleich)"
+        }
+      }
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "description": "Liste aller Chapters in diesem Topic",
+      "items": {
+        "type": "object",
+        "required": ["chapterId", "title", "shortDescription", "keyContent", "estimatedSections"],
+        "properties": {
+          "chapterId": {
+            "type": "string",
+            "pattern": "^chapter-\\d+-\\d+$",
+            "description": "Eindeutige Chapter-ID (Format: chapter-TOPIC_NUM-CHAPTER_NUM)",
+            "examples": ["chapter-1-1", "chapter-1-2", "chapter-2-1"]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 15,
+            "maxLength": 100,
+            "description": "Deutscher Chapter-Titel",
+            "examples": ["Grundlagen der AXIOM-Umgebung", "Case-Erstellung Schritt für Schritt"]
+          },
+          "shortDescription": {
+            "type": "string",
+            "minLength": 50,
+            "maxLength": 300,
+            "description": "2-3 Sätze: Was behandelt dieses Chapter? Warum wichtig?",
+            "examples": ["Dieses Chapter führt in die AXIOM-Oberfläche ein und erklärt die wichtigsten Menüpunkte. Anwender lernen, sich in der Software zu orientieren und Hilfe-Systeme zu nutzen."]
+          },
+          "keyContent": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 6,
+            "description": "Hauptthemen des Chapters (3-6 Stichpunkte)",
+            "items": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 120
+            },
+            "examples": [
+              ["UI-Übersicht und Navigation", "Wichtige Menüpunkte kennenlernen", "Hilfe-Systeme und Dokumentation nutzen"]
+            ]
+          },
+          "estimatedSections": {
+            "type": "integer",
+            "minimum": 6,
+            "maximum": 15,
+            "description": "Geschätzte Anzahl Sections in diesem Chapter"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Optional: Begründung für Umfang/Struktur dieses Chapters",
+            "examples": ["Viele Sections nötig, da UI-Orientierung für IT-ferne Zielgruppe kritisch."]
+          },
+          "expectedDifficulty": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"],
+            "description": "Überwiegende Schwierigkeit der Sections in diesem Chapter"
+          },
+          "relatedTopics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^topic-\\d+$"
+            },
+            "description": "Optionale Liste von anderen Topics, zu denen dieses Chapter Bezug hat",
+            "examples": [["topic-2", "topic-3"]]
+          }
+        }
+      }
+    },
+    "qualityMetrics": {
+      "type": "object",
+      "required": ["totalChapters", "totalEstimatedSections", "averageSectionsPerChapter", "comparisonToPhase0_5a"],
+      "description": "Automatisch berechnete Metriken",
+      "properties": {
+        "totalChapters": {
+          "type": "integer",
+          "minimum": 3,
+          "description": "Anzahl Chapters in diesem Topic"
+        },
+        "totalEstimatedSections": {
+          "type": "integer",
+          "minimum": 18,
+          "maximum": 120,
+          "description": "Summe aller estimatedSections in diesem Topic"
+        },
+        "averageSectionsPerChapter": {
+          "type": "number",
+          "minimum": 6,
+          "maximum": 15,
+          "description": "Durchschnittliche Sections pro Chapter"
+        },
+        "comparisonToPhase0_5a": {
+          "type": "object",
+          "required": ["estimatedDifference", "explanation"],
+          "description": "Vergleich zur ursprünglichen Schätzung aus Phase 0.5a",
+          "properties": {
+            "estimatedDifference": {
+              "type": "integer",
+              "description": "Differenz: totalEstimatedSections - estimatedSectionsFromPhase0_5a (kann negativ sein)"
+            },
+            "explanation": {
+              "type": "string",
+              "description": "Warum weicht die aktuelle Schätzung ab?",
+              "examples": ["Nach Detaillierung ergaben sich 2 Sections mehr: 'UI-Tastenkombinationen' und 'Workspace anpassen'."]
+            }
+          }
+        },
+        "balanceAssessment": {
+          "type": "string",
+          "enum": ["BALANCED", "SLIGHTLY_UNBALANCED", "UNBALANCED"],
+          "description": "Sind Chapters ähnlich groß?"
+        }
+      }
+    },
+    "crossTopicConnections": {
+      "type": "array",
+      "description": "Identifizierte Verknüpfungen zu anderen Topics (für spätere Cross-References)",
+      "items": {
+        "type": "object",
+        "required": ["fromChapter", "toTopic", "reason"],
+        "properties": {
+          "fromChapter": {
+            "type": "string",
+            "pattern": "^chapter-\\d+-\\d+$",
+            "description": "Chapter-ID (aus diesem Topic)"
+          },
+          "toTopic": {
+            "type": "string",
+            "pattern": "^topic-\\d+$",
+            "description": "Ziel-Topic-ID"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Warum ist diese Verknüpfung relevant?",
+            "examples": ["Chapter 1-2 (Case-Erstellung) muss auf Topic 3 (Troubleshooting) verweisen, falls Case-Erstellung fehlschlägt."]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LOW"],
+            "description": "Wie sicher ist KI, dass diese Verknüpfung sinnvoll ist?"
+          }
+        }
+      }
+    },
+    "aiSelfReview": {
+      "type": "object",
+      "description": "KI dokumentiert Unsicherheiten und Entscheidungen",
+      "properties": {
+        "confidence": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"],
+          "description": "Gesamtconfidence für diese Chapter-Gliederung"
+        },
+        "uncertainties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Konkrete Zweifel oder offene Fragen",
+          "examples": [
+            ["Chapter 1-3 könnte zu groß sein (15 Sections). Eventuell aufteilen in 1-3a und 1-3b?"]
+          ]
+        },
+        "alternativeStructures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Alternative Chapter-Aufteilungen, die KI erwogen hat",
+          "examples": [
+            ["Alternative: Chapter 1-2 und 1-3 zusammenlegen → insgesamt 4 statt 5 Chapters"]
+          ]
+        },
+        "potentialIssues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Mögliche Probleme, die Maintainer beachten sollte",
+          "examples": [
+            ["Überschneidung: Chapter 1-2 und Chapter 1-4 behandeln beide 'Metadaten'. Abgrenzung unklar."]
+          ]
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["createdAt", "createdBy"],
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Erstellungszeitpunkt"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Ersteller (KI-Modell)",
+          "examples": ["Claude Sonnet 4.5"]
+        },
+        "inputFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Liste der Input-Dateien, die KI verwendet hat",
+          "examples": [["strategiedokument-axiom.md", "output-phase0.5a-topics.json"]]
+        }
+      }
+    }
+  }
+}
