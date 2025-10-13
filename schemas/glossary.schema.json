@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/froiloc/WebAssistentForensics/schema/glossary.schema.json",
+  "title": "Glossary Terms Schema",
+  "description": "Schema for glossary terms used in the WebAssistentForensics application",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "term",
+      "shortDefinition",
+      "whitePatterns"
+    ],
+    "properties": {
+      "term": {
+        "type": "string",
+        "description": "The canonical term in German as it should be displayed to users",
+        "minLength": 1
+      },
+      "shortDefinition": {
+        "type": "string",
+        "description": "Brief explanation for tooltip display (max 150 characters)",
+        "maxLength": 150
+      },
+      "extendedExplanation": {
+        "type": "string",
+        "description": "Optional detailed explanation for expanded view"
+      },
+      "whitePatterns": {
+        "type": "array",
+        "description": "Array of string patterns that trigger glossary highlighting. These will be treated as case-insensitive word-boundary matches.",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minItems": 1
+      },
+      "blackPatterns": {
+        "type": "array",
+        "description": "Array of regular expression patterns that prevent highlighting even if whitePattern matches. These support full regex syntax.",
+        "items": {
+          "type": "string"
+        }
+      },
+      "media": {
+        "type": "object",
+        "description": "Optional media file to enhance understanding of the term",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path to media file following pattern: ./media/glossary/{term_id}.{png|jpg|jpeg|gif}",
+            "pattern": "^\\./media/glossary/[a-z0-9_]+(?:_(?:[2-9]|[1-9][0-9]+))?\\.(png|jpg|jpeg|gif)$"
+          },
+          "alt": {
+            "type": "string",
+            "description": "Accessible alternative text describing the media content (BFSG requirement)",
+            "minLength": 1
+          },
+          "caption": {
+            "type": "string",
+            "description": "Optional caption displayed below the media"
+          }
+        },
+        "required": [
+          "path",
+          "alt"
+        ],
+        "additionalProperties": false
+      },
+      "relatedTerms": {
+        "type": "array",
+        "description": "Array of generated term IDs that are related to this term",
+        "items": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+(?:_(?:[2-9]|[1-9][0-9]+))?$"
+        }
+      },
+      "categories": {
+        "type": "array",
+        "description": "Categories for organizing and filtering terms",
+        "items": {
+          "type": "string",
+          "enum": [
+            "technical",
+            "legal", 
+            "process",
+            "tool-specific"
+          ]
+        },
+        "uniqueItems": true
+      }
+    },
+    "additionalProperties": false
+  }
+}

@@ -8,8 +8,8 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '068',
-    buildDate: '2025-10-07', // 7. Oktober 2025
+    version: '070',
+    buildDate: '2025-10-13', // 7. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };
 

@@ -1,0 +1,366 @@
+{
+  "terms": {
+    "axiom_examine": {
+      "term": "AXIOM Examine",
+      "shortDefinition": "Forensische Analyse-Software von Magnet Forensics zur Untersuchung digitaler Beweismittel.",
+      "hasExtended": "AXIOM Examine ist die Hauptanwendung für die forensische Analyse in der Magnet-Forensics-Produktfamilie. Es ermöglicht die Untersuchung von Artifacts aus verschiedenen Datenquellen wie Festplatten, Mobilgeräten und Cloud-Diensten. Die Software bietet umfangreiche Filter-, Such- und Visualisierungsfunktionen für forensische Ermittlungen.",
+      "hasMedia": true,
+      "categories": [
+        "technical",
+        "tool-specific"
+      ]
+    },
+    "template": {
+      "term": "Template",
+      "shortDefinition": "Vorgefertigte Vorlage für die Struktur und das Layout von forensischen Reports.",
+      "hasExtended": "Templates in AXIOM Examine definieren, wie der finale HTML- oder PDF-Report aufgebaut ist. Sie legen fest, welche Sections enthalten sind, wie die Navigation aussieht und welche Metadaten angezeigt werden. Es gibt Standard-Templates für häufige Anwendungsfälle und Custom Templates für spezielle Anforderungen.",
+      "hasMedia": true,
+      "categories": [
+        "technical",
+        "tool-specific"
+      ]
+    },
+    "artifact": {
+      "term": "Artifact",
+      "shortDefinition": "Einzelnes digitales Beweisstück oder Informationselement in der forensischen Analyse.",
+      "hasExtended": "Artifacts sind die grundlegenden Informationseinheiten in AXIOM Examine. Dies können Chat-Nachrichten, E-Mails, Bilder, Dateien, Browser-Verlauf oder andere digitale Spuren sein. Jedes Artifact enthält Metadaten wie Zeitstempel, Quelle und Inhalt. Die Gesamtheit aller Artifacts bildet den forensischen Case.",
+      "hasMedia": true,
+      "categories": [
+        "technical"
+      ]
+    },
+    "filterung": {
+      "term": "Filterung",
+      "shortDefinition": "Selektive Auswahl von Artifacts basierend auf definierten Kriterien.",
+      "hasExtended": "Die Filterung in AXIOM Examine ermöglicht es, aus großen Datenmengen gezielt die relevanten Artifacts für den Report auszuwählen. Filter können nach Kategorien, Zeiträumen, Tags oder anderen Kriterien angewendet werden. Eine korrekte Filterung ist essentiell für aussagekräftige und handhabbare Reports.",
+      "hasMedia": true,
+      "categories": [
+        "technical",
+        "process"
+      ]
+    },
+    "html_report": {
+      "term": "HTML-Report",
+      "shortDefinition": "Interaktiver Bericht im HTML-Format mit Navigations- und Suchfunktionen.",
+      "hasExtended": "HTML-Reports in AXIOM Examine sind interaktive Webseiten, die im Browser geöffnet werden können. Sie bieten Navigation zwischen verschiedenen Sections, Suchfunktionen und können Medien direkt einbetten. Ideal für technische Ermittler, da keine zusätzliche Software benötigt wird.",
+      "hasMedia": true,
+      "categories": [
+        "technical"
+      ]
+    },
+    "standard_templates": {
+      "term": "Standard-Templates",
+      "shortDefinition": "Vordefinierte Report-Vorlagen für häufige forensische Anwendungsfälle.",
+      "hasExtended": "Standard-Templates sind in AXIOM Examine vorinstallierte Vorlagen für typische Report-Anforderungen. Dazu gehören 'Case Summary' für Fallübersichten, 'Evidence Overview' für Beweismittel-Übersichten und 'Timeline Report' für chronologische Darstellungen. Diese Templates sind sofort einsatzbereit und erfordern keine Konfiguration.",
+      "hasMedia": false,
+      "categories": [
+        "technical",
+        "tool-specific"
+      ]
+    },
+    "custom_templates": {
+      "term": "Custom Templates",
+      "shortDefinition": "Benutzerdefinierte Report-Vorlagen für spezielle Anforderungen.",
+      "hasExtended": "Custom Templates sind individuell angepasste Vorlagen, die spezifische Anforderungen erfüllen, wie behördenspezifische Layouts, internationale Standards oder spezielle Artifact-Gruppierungen. Sie können eigene Logos, Metadaten-Felder und Section-Strukturen enthalten.",
+      "hasMedia": true,
+      "categories": [
+        "technical",
+        "tool-specific"
+      ]
+    },
+    "pdf_report": {
+      "term": "PDF-Report",
+      "shortDefinition": "Statischer Report im PDF-Format für Archivierung und offizielle Übergabe.",
+      "hasExtended": "PDF-Reports in AXIOM Examine sind statische Dokumente, die für Archivierungszwecke und offizielle Übergabe an Staatsanwaltschaften oder Gerichte geeignet sind. Sie sind universell lesbar, aber nicht interaktiv. Die PDF-Generierung kann bei großen Reports erheblich länger dauern als HTML-Exports.",
+      "hasMedia": false,
+      "categories": [
+        "technical"
+      ]
+    },
+    "metadaten": {
+      "term": "Metadaten",
+      "shortDefinition": "Zusatzinformationen zu einem Artifact oder Fall, die den Kontext beschreiben.",
+      "hasExtended": "Metadaten in AXIOM Examine umfassen Informationen wie Aktenzeichen, Ermittlername, Erstellungsdatum und Fallbeschreibung. Sie sind wichtig für die Nachvollziehbarkeit und sollten in jedem Report enthalten sein. Metadaten können in Templates konfiguriert und als Variablen wiederverwendet werden.",
+      "hasMedia": true,
+      "categories": [
+        "technical",
+        "process"
+      ]
+    },
+    "export_format": {
+      "term": "Export-Format",
+      "shortDefinition": "Dateiformat für den Output eines forensischen Reports.",
+      "hasExtended": "AXIOM Examine unterstützt verschiedene Export-Formate: HTML für interaktive Berichte, PDF für Archivierung, CSV/Excel für Datenanalyse. Die Wahl des Formats hängt vom Verwendungszweck ab - interne Analyse, Gerichtsakten oder weitere Verarbeitung.",
+      "hasMedia": true,
+      "categories": [
+        "technical"
+      ]
+    }
+  },
+  "patterns": [
+    {
+      "type": "white",
+      "pattern": "\\bAXIOM\\ Examine\\b",
+      "term_id": "axiom_examine",
+      "original": "AXIOM Examine"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bAXIOM\\b",
+      "term_id": "axiom_examine",
+      "original": "AXIOM"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bMagnet\\ AXIOM\\b",
+      "term_id": "axiom_examine",
+      "original": "Magnet AXIOM"
+    },
+    {
+      "type": "black",
+      "pattern": "AXIOM\\s*[0-9]",
+      "term_id": "axiom_examine",
+      "original": "AXIOM\\s*[0-9]"
+    },
+    {
+      "type": "black",
+      "pattern": "AXIOM\\s*Cloud",
+      "term_id": "axiom_examine",
+      "original": "AXIOM\\s*Cloud"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bTemplate\\b",
+      "term_id": "template",
+      "original": "Template"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bTemplates\\b",
+      "term_id": "template",
+      "original": "Templates"
+    },
+    {
+      "type": "black",
+      "pattern": "template\\s*engine",
+      "term_id": "template",
+      "original": "template\\s*engine"
+    },
+    {
+      "type": "black",
+      "pattern": "template\\s*file",
+      "term_id": "template",
+      "original": "template\\s*file"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bArtifact\\b",
+      "term_id": "artifact",
+      "original": "Artifact"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bArtifacts\\b",
+      "term_id": "artifact",
+      "original": "Artifacts"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bArtifact\\-\\b",
+      "term_id": "artifact",
+      "original": "Artifact-"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bFilterung\\b",
+      "term_id": "filterung",
+      "original": "Filterung"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bFilter\\b",
+      "term_id": "filterung",
+      "original": "Filter"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bFilter\\-Panel\\b",
+      "term_id": "filterung",
+      "original": "Filter-Panel"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bgefiltert\\b",
+      "term_id": "filterung",
+      "original": "gefiltert"
+    },
+    {
+      "type": "black",
+      "pattern": "Filter\\s*[0-9]",
+      "term_id": "filterung",
+      "original": "Filter\\s*[0-9]"
+    },
+    {
+      "type": "black",
+      "pattern": "digital\\s*filter",
+      "term_id": "filterung",
+      "original": "digital\\s*filter"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bHTML\\-Report\\b",
+      "term_id": "html_report",
+      "original": "HTML-Report"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bHTML\\-Reports\\b",
+      "term_id": "html_report",
+      "original": "HTML-Reports"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bHTML\\b",
+      "term_id": "html_report",
+      "original": "HTML"
+    },
+    {
+      "type": "black",
+      "pattern": "HTML\\s*[0-9]",
+      "term_id": "html_report",
+      "original": "HTML\\s*[0-9]"
+    },
+    {
+      "type": "black",
+      "pattern": "HTML\\s*code",
+      "term_id": "html_report",
+      "original": "HTML\\s*code"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bStandard\\-Templates\\b",
+      "term_id": "standard_templates",
+      "original": "Standard-Templates"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bStandard\\-Template\\b",
+      "term_id": "standard_templates",
+      "original": "Standard-Template"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bvorgefertigte\\ Templates\\b",
+      "term_id": "standard_templates",
+      "original": "vorgefertigte Templates"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bCustom\\ Templates\\b",
+      "term_id": "custom_templates",
+      "original": "Custom Templates"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bCustom\\-Templates\\b",
+      "term_id": "custom_templates",
+      "original": "Custom-Templates"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bindividuell\\ angepasste\\ Templates\\b",
+      "term_id": "custom_templates",
+      "original": "individuell angepasste Templates"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bPDF\\-Report\\b",
+      "term_id": "pdf_report",
+      "original": "PDF-Report"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bPDF\\-Reports\\b",
+      "term_id": "pdf_report",
+      "original": "PDF-Reports"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bPDF\\b",
+      "term_id": "pdf_report",
+      "original": "PDF"
+    },
+    {
+      "type": "black",
+      "pattern": "PDF\\s*[0-9]",
+      "term_id": "pdf_report",
+      "original": "PDF\\s*[0-9]"
+    },
+    {
+      "type": "black",
+      "pattern": "PDF\\s*A",
+      "term_id": "pdf_report",
+      "original": "PDF\\s*A"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bMetadaten\\b",
+      "term_id": "metadaten",
+      "original": "Metadaten"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bMetadata\\b",
+      "term_id": "metadaten",
+      "original": "Metadata"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bExport\\-Format\\b",
+      "term_id": "export_format",
+      "original": "Export-Format"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bExport\\-Formate\\b",
+      "term_id": "export_format",
+      "original": "Export-Formate"
+    },
+    {
+      "type": "white",
+      "pattern": "\\bFormat\\b",
+      "term_id": "export_format",
+      "original": "Format"
+    },
+    {
+      "type": "black",
+      "pattern": "format\\s*string",
+      "term_id": "export_format",
+      "original": "format\\s*string"
+    },
+    {
+      "type": "black",
+      "pattern": "date\\s*format",
+      "term_id": "export_format",
+      "original": "date\\s*format"
+    }
+  ],
+  "lookup": {
+    "axiom_examine": 0,
+    "template": 1,
+    "artifact": 2,
+    "filterung": 3,
+    "html_report": 4,
+    "standard_templates": 5,
+    "custom_templates": 6,
+    "pdf_report": 7,
+    "metadaten": 8,
+    "export_format": 9
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "term_count": 10,
+    "build_time": null,
+    "hash": "c6f093e0131aab40ab418e0af77f0645"
+  }
+}

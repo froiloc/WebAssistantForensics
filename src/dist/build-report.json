@@ -1,0 +1,38 @@
+{
+  "build_info": {
+    "glossary_file": "../../schemas/glossary.example.json",
+    "schema_file": "../../schemas/glossary.schema.json",
+    "output_dir": "../../src/dist",
+    "timestamp": null,
+    "index_schema_available": true
+  },
+  "statistics": {
+    "total_terms": 10,
+    "terms_with_media": 8,
+    "terms_with_extended": 10,
+    "terms_with_related": 8,
+    "categories_used": [
+      "process",
+      "tool-specific",
+      "technical"
+    ],
+    "media_coverage": "80.0%",
+    "extended_coverage": "100.0%"
+  },
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "error_count": 0,
+    "warning_count": 0,
+    "index_validation": {
+      "performed": true,
+      "passed": true
+    }
+  },
+  "index_info": {
+    "total_patterns": 41,
+    "white_patterns": 29,
+    "black_patterns": 12,
+    "unique_terms_indexed": 10
+  }
+}

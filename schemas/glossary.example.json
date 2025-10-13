@@ -1,0 +1,231 @@
+[
+  {
+    "term": "AXIOM Examine",
+    "shortDefinition": "Forensische Analyse-Software von Magnet Forensics zur Untersuchung digitaler Beweismittel.",
+    "extendedExplanation": "AXIOM Examine ist die Hauptanwendung für die forensische Analyse in der Magnet-Forensics-Produktfamilie. Es ermöglicht die Untersuchung von Artifacts aus verschiedenen Datenquellen wie Festplatten, Mobilgeräten und Cloud-Diensten. Die Software bietet umfangreiche Filter-, Such- und Visualisierungsfunktionen für forensische Ermittlungen.",
+    "whitePatterns": [
+      "AXIOM Examine",
+      "AXIOM",
+      "Magnet AXIOM"
+    ],
+    "blackPatterns": [
+      "AXIOM\\s*[0-9]",
+      "AXIOM\\s*Cloud"
+    ],
+    "media": {
+      "path": "./media/glossary/axiom_examine.png",
+      "alt": "Screenshot der AXIOM Examine Benutzeroberfläche mit Hauptmenü, Artifact-Ansicht und Filter-Panel",
+      "caption": "AXIOM Examine Benutzeroberfläche mit typischen Arbeitsbereichen"
+    },
+    "categories": [
+      "technical",
+      "tool-specific"
+    ]
+  },
+  {
+    "term": "Template",
+    "shortDefinition": "Vorgefertigte Vorlage für die Struktur und das Layout von forensischen Reports.",
+    "extendedExplanation": "Templates in AXIOM Examine definieren, wie der finale HTML- oder PDF-Report aufgebaut ist. Sie legen fest, welche Sections enthalten sind, wie die Navigation aussieht und welche Metadaten angezeigt werden. Es gibt Standard-Templates für häufige Anwendungsfälle und Custom Templates für spezielle Anforderungen.",
+    "whitePatterns": [
+      "Template",
+      "Templates"
+    ],
+    "blackPatterns": [
+      "template\\s*engine",
+      "template\\s*file"
+    ],
+    "media": {
+      "path": "./media/glossary/template.png",
+      "alt": "Dialog zur Template-Auswahl in AXIOM Examine mit Standard- und Custom-Templates",
+      "caption": "Template-Auswahl Dialog mit verschiedenen Kategorien"
+    },
+    "categories": [
+      "technical",
+      "tool-specific"
+    ],
+    "relatedTerms": [
+      "standard_templates",
+      "custom_templates"
+    ]
+  },
+  {
+    "term": "Artifact",
+    "shortDefinition": "Einzelnes digitales Beweisstück oder Informationselement in der forensischen Analyse.",
+    "extendedExplanation": "Artifacts sind die grundlegenden Informationseinheiten in AXIOM Examine. Dies können Chat-Nachrichten, E-Mails, Bilder, Dateien, Browser-Verlauf oder andere digitale Spuren sein. Jedes Artifact enthält Metadaten wie Zeitstempel, Quelle und Inhalt. Die Gesamtheit aller Artifacts bildet den forensischen Case.",
+    "whitePatterns": [
+      "Artifact",
+      "Artifacts",
+      "Artifact-"
+    ],
+    "media": {
+      "path": "./media/glossary/artifact.png",
+      "alt": "Diagramm das verschiedene Artifact-Typen in AXIOM Examine zeigt: Chats, Emails, Bilder, Dateien",
+      "caption": "Übersicht der verschiedenen Artifact-Typen und deren Beziehungen"
+    },
+    "categories": [
+      "technical"
+    ],
+    "relatedTerms": [
+      "filterung"
+    ]
+  },
+  {
+    "term": "Filterung",
+    "shortDefinition": "Selektive Auswahl von Artifacts basierend auf definierten Kriterien.",
+    "extendedExplanation": "Die Filterung in AXIOM Examine ermöglicht es, aus großen Datenmengen gezielt die relevanten Artifacts für den Report auszuwählen. Filter können nach Kategorien, Zeiträumen, Tags oder anderen Kriterien angewendet werden. Eine korrekte Filterung ist essentiell für aussagekräftige und handhabbare Reports.",
+    "whitePatterns": [
+      "Filterung",
+      "Filter",
+      "Filter-Panel",
+      "gefiltert"
+    ],
+    "blackPatterns": [
+      "Filter\\s*[0-9]",
+      "digital\\s*filter"
+    ],
+    "media": {
+      "path": "./media/glossary/filterung.png",
+      "alt": "Annotiertes Filter-Panel in AXIOM Examine mit Markierungen für Kategorie-Filter, Datums-Filter und Tag-Filter",
+      "caption": "Filter-Panel mit Erklärungen der verschiedenen Filter-Optionen"
+    },
+    "categories": [
+      "technical",
+      "process"
+    ],
+    "relatedTerms": [
+      "artifact"
+    ]
+  },
+  {
+    "term": "HTML-Report",
+    "shortDefinition": "Interaktiver Bericht im HTML-Format mit Navigations- und Suchfunktionen.",
+    "extendedExplanation": "HTML-Reports in AXIOM Examine sind interaktive Webseiten, die im Browser geöffnet werden können. Sie bieten Navigation zwischen verschiedenen Sections, Suchfunktionen und können Medien direkt einbetten. Ideal für technische Ermittler, da keine zusätzliche Software benötigt wird.",
+    "whitePatterns": [
+      "HTML-Report",
+      "HTML-Reports",
+      "HTML"
+    ],
+    "blackPatterns": [
+      "HTML\\s*[0-9]",
+      "HTML\\s*code"
+    ],
+    "media": {
+      "path": "./media/glossary/html_report.png",
+      "alt": "Vorschau eines HTML-Reports mit Navigations-Sidebar, Suchfunktion und Artifact-Darstellung",
+      "caption": "Beispiel eines fertigen HTML-Reports mit typischer Struktur"
+    },
+    "categories": [
+      "technical"
+    ],
+    "relatedTerms": [
+      "pdf_report",
+      "export_format"
+    ]
+  },
+  {
+    "term": "Standard-Templates",
+    "shortDefinition": "Vordefinierte Report-Vorlagen für häufige forensische Anwendungsfälle.",
+    "extendedExplanation": "Standard-Templates sind in AXIOM Examine vorinstallierte Vorlagen für typische Report-Anforderungen. Dazu gehören 'Case Summary' für Fallübersichten, 'Evidence Overview' für Beweismittel-Übersichten und 'Timeline Report' für chronologische Darstellungen. Diese Templates sind sofort einsatzbereit und erfordern keine Konfiguration.",
+    "whitePatterns": [
+      "Standard-Templates",
+      "Standard-Template",
+      "vorgefertigte Templates"
+    ],
+    "categories": [
+      "technical",
+      "tool-specific"
+    ],
+    "relatedTerms": [
+      "template",
+      "custom_templates"
+    ]
+  },
+  {
+    "term": "Custom Templates",
+    "shortDefinition": "Benutzerdefinierte Report-Vorlagen für spezielle Anforderungen.",
+    "extendedExplanation": "Custom Templates sind individuell angepasste Vorlagen, die spezifische Anforderungen erfüllen, wie behördenspezifische Layouts, internationale Standards oder spezielle Artifact-Gruppierungen. Sie können eigene Logos, Metadaten-Felder und Section-Strukturen enthalten.",
+    "whitePatterns": [
+      "Custom Templates",
+      "Custom-Templates",
+      "individuell angepasste Templates"
+    ],
+    "media": {
+      "path": "./media/glossary/custom_templates.png",
+      "alt": "Editor für Custom Templates in AXIOM Examine mit Konfigurations-Optionen für Sections und Metadaten",
+      "caption": "Custom Template Editor zur Erstellung individueller Report-Vorlagen"
+    },
+    "categories": [
+      "technical",
+      "tool-specific"
+    ],
+    "relatedTerms": [
+      "template",
+      "standard_templates"
+    ]
+  },
+  {
+    "term": "PDF-Report",
+    "shortDefinition": "Statischer Report im PDF-Format für Archivierung und offizielle Übergabe.",
+    "extendedExplanation": "PDF-Reports in AXIOM Examine sind statische Dokumente, die für Archivierungszwecke und offizielle Übergabe an Staatsanwaltschaften oder Gerichte geeignet sind. Sie sind universell lesbar, aber nicht interaktiv. Die PDF-Generierung kann bei großen Reports erheblich länger dauern als HTML-Exports.",
+    "whitePatterns": [
+      "PDF-Report",
+      "PDF-Reports",
+      "PDF"
+    ],
+    "blackPatterns": [
+      "PDF\\s*[0-9]",
+      "PDF\\s*A"
+    ],
+    "categories": [
+      "technical"
+    ],
+    "relatedTerms": [
+      "html_report",
+      "export_format"
+    ]
+  },
+  {
+    "term": "Metadaten",
+    "shortDefinition": "Zusatzinformationen zu einem Artifact oder Fall, die den Kontext beschreiben.",
+    "extendedExplanation": "Metadaten in AXIOM Examine umfassen Informationen wie Aktenzeichen, Ermittlername, Erstellungsdatum und Fallbeschreibung. Sie sind wichtig für die Nachvollziehbarkeit und sollten in jedem Report enthalten sein. Metadaten können in Templates konfiguriert und als Variablen wiederverwendet werden.",
+    "whitePatterns": [
+      "Metadaten",
+      "Metadata"
+    ],
+    "media": {
+      "path": "./media/glossary/metadaten.png",
+      "alt": "Metadaten-Konfigurationsdialog in AXIOM Examine mit Feldern für Aktenzeichen, Ermittler und Fallbeschreibung",
+      "caption": "Konfiguration von Fall-Metadaten für Reports"
+    },
+    "categories": [
+      "technical",
+      "process"
+    ]
+  },
+  {
+    "term": "Export-Format",
+    "shortDefinition": "Dateiformat für den Output eines forensischen Reports.",
+    "extendedExplanation": "AXIOM Examine unterstützt verschiedene Export-Formate: HTML für interaktive Berichte, PDF für Archivierung, CSV/Excel für Datenanalyse. Die Wahl des Formats hängt vom Verwendungszweck ab - interne Analyse, Gerichtsakten oder weitere Verarbeitung.",
+    "whitePatterns": [
+      "Export-Format",
+      "Export-Formate",
+      "Format"
+    ],
+    "blackPatterns": [
+      "format\\s*string",
+      "date\\s*format"
+    ],
+    "media": {
+      "path": "./media/glossary/export_format.png",
+      "alt": "Vergleichsdiagramm der verschiedenen Export-Formate mit Vor- und Nachteilen für verschiedene Anwendungsfälle",
+      "caption": "Übersicht der Export-Formate und deren Einsatzgebiete"
+    },
+    "categories": [
+      "technical"
+    ],
+    "relatedTerms": [
+      "html_report",
+      "pdf_report"
+    ]
+  }
+]

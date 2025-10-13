@@ -1,265 +1,45 @@
-#!/usr/bin/env python3
-"""
-Phase 0.5 Orchestrierungs-Skript
-================================
-Koordiniert den mehrstufigen Gliederungs-Workflow:
-- Phase 0.5a: Topic-Definition
-- Phase 0.5b: Chapter-Definition (pro Topic)
-- Phase 0.5c: Konsistenz-Review (KI-gestützt, aktuell Dummy)
-
-Verwendung:
-    python orchestrate_phase0_5.py --strategy strategiedokument-axiom.md
-"""
-
-import json
-import jsonschema
-import argparse
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional
-import sys
-
 # ============================================================================
-# KONFIGURATION
+# PHASE 0.5d: SECTION-DEFINITION
 # ============================================================================
 
-class Config:
-    """Zentrale Konfiguration für alle Phasen"""
+class Phase0_5d:
+    """Section-Definitionen pro Topic erstellen"""
     
-    # Verzeichnisse
-    BASE_DIR = Path(__file__).parent
-    SCHEMAS_DIR = BASE_DIR / "schemas"
-    OUTPUT_DIR = BASE_DIR / "output"
-    PROMPTS_DIR = BASE_DIR / "prompts"
-    
-    # Schema-Dateien
-    SCHEMA_0_5A = SCHEMAS_DIR / "output-phase0.5a-topics.schema.json"
-    SCHEMA_0_5B = SCHEMAS_DIR / "output-phase0.5b-chapters.schema.json"
-    SCHEMA_0_5C = SCHEMAS_DIR / "output-phase0.5c-review.schema.json"
-    
-    # Output-Dateien
-    OUTPUT_0_5A = OUTPUT_DIR / "output-phase0.5a-topics.json"
-    OUTPUT_0_5B_TEMPLATE = OUTPUT_DIR / "output-phase0.5b-topic-{}-chapters.json"
-    OUTPUT_0_5C = OUTPUT_DIR / "output-phase0.5c-review.json"
-    OUTPUT_0_5_FINAL = OUTPUT_DIR / "output-phase0.5-final.json"
-    
-    # Prompt-Templates
-    PROMPT_0_5A = PROMPTS_DIR / "prompt-phase0.5a-topics.md"
-    PROMPT_0_5B = PROMPTS_DIR / "prompt-phase0.5b-chapters.md"
-    PROMPT_0_5C = PROMPTS_DIR / "prompt-phase0.5c-review.md"
-    
-    # Validierung
-    STRICT_VALIDATION = True  # Bei False: Warnings statt Errors
-    
-    # Dummy-Mode für Phase 0.5c
-    USE_DUMMY_REVIEW = True  # Später auf False setzen für echtes Review
-
-# ============================================================================
-# VALIDIERUNG
-# ============================================================================
-
-class Validator:
-    """JSON-Schema-Validierung"""
-    
-    @staticmethod
-    def load_schema(schema_path: Path) -> Dict:
-        """Lädt JSON-Schema"""
-        try:
-            with open(schema_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print(f"❌ Schema nicht gefunden: {schema_path}")
-            sys.exit(1)
-        except json.JSONDecodeError as e:
-            print(f"❌ Schema ist kein valides JSON: {schema_path}\n{e}")
-            sys.exit(1)
-    
-    @staticmethod
-    def validate_json(data: Dict, schema: Dict, phase: str) -> tuple[bool, List[str]]:
-        """
-        Validiert JSON gegen Schema
-        Returns: (is_valid, error_messages)
-        """
-        errors = []
+    def __init__(self, topics_json: Path, chapters_jsons: List[Path], review_json: Path):
+        self.topics_json = topics_json
+        self.chapters_jsons = chapters_jsons
+        self.review_json = review_json
+        self.schema = Validator.load_schema(Config.SCHEMA_0_5D)
         
-        try:
-            jsonschema.validate(instance=data, schema=schema)
-            print(f"✅ {phase}: JSON ist schema-konform")
-            return True, []
-        except jsonschema.ValidationError as e:
-            error_msg = f"{phase}: Validierungsfehler - {e.message}"
-            if e.path:
-                error_msg += f" (Pfad: {' → '.join(str(p) for p in e.path)})"
-            errors.append(error_msg)
-            
-            if Config.STRICT_VALIDATION:
-                print(f"❌ {error_msg}")
-                return False, errors
-            else:
-                print(f"⚠️  {error_msg} (WARNING - fortgesetzt)")
-                return True, errors
-        except jsonschema.SchemaError as e:
-            print(f"❌ {phase}: Schema selbst ist fehlerhaft - {e.message}")
-            return False, [str(e)]
-
-# ============================================================================
-# PHASE 0.5a: TOPIC-DEFINITION
-# ============================================================================
-
-class Phase0_5a:
-    """Topic-Ebene Gliederung erstellen"""
-    
-    def __init__(self, strategy_doc_path: Path):
-        self.strategy_doc_path = strategy_doc_path
-        self.schema = Validator.load_schema(Config.SCHEMA_0_5A)
-    
-    def prepare_prompt(self) -> str:
-        """
-        Erstellt Prompt für KI (Phase 0.5a)
-        Kombiniert: Prompt-Template + Strategiedokument + Schema
-        """
-        print("\n📋 Phase 0.5a: Erstelle Prompt...")
-        
-        # Strategiedokument laden
-        try:
-            with open(self.strategy_doc_path, 'r', encoding='utf-8') as f:
-                strategy_content = f.read()
-        except FileNotFoundError:
-            print(f"❌ Strategiedokument nicht gefunden: {self.strategy_doc_path}")
-            sys.exit(1)
-        
-        # Prompt-Template laden (falls vorhanden)
-        if Config.PROMPT_0_5A.exists():
-            with open(Config.PROMPT_0_5A, 'r', encoding='utf-8') as f:
-                prompt_template = f.read()
-        else:
-            # Fallback: Minimaler Prompt
-            prompt_template = """
-# Phase 0.5a: Topic-Definition
-
-## Aufgabe
-Erstelle eine Topic-Ebene Gliederung basierend auf dem Strategiedokument.
-
-## Strategiedokument
-{strategy_content}
-
-## Output-Format
-Erstelle ein valides JSON gemäß dem bereitgestellten Schema.
-
-## Schema
-{schema}
-
-## Hinweise
-- Berechne qualityMetrics selbst
-- Fülle aiSelfReview aus (Unsicherheiten dokumentieren)
-- Validiere JSON bevor du ausgibst
-"""
-        
-        # Prompt zusammenbauen
-        prompt = prompt_template.format(
-            strategy_content=strategy_content,
-            schema=json.dumps(self.schema, indent=2, ensure_ascii=False)
-        )
-        
-        # Prompt speichern (für Nachvollziehbarkeit)
-        prompt_output = Config.OUTPUT_DIR / "prompt-phase0.5a-generated.md"
-        with open(prompt_output, 'w', encoding='utf-8') as f:
-            f.write(prompt)
-        
-        print(f"✅ Prompt gespeichert: {prompt_output}")
-        return prompt
-    
-    def validate_output(self, output_path: Path) -> bool:
-        """Validiert KI-Output gegen Schema"""
-        print(f"\n🔍 Phase 0.5a: Validiere Output...")
-        
-        try:
-            with open(output_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except FileNotFoundError:
-            print(f"❌ Output-Datei nicht gefunden: {output_path}")
-            return False
-        except json.JSONDecodeError as e:
-            print(f"❌ Output ist kein valides JSON: {output_path}\n{e}")
-            return False
-        
-        is_valid, errors = Validator.validate_json(data, self.schema, "Phase 0.5a")
-        
-        if is_valid:
-            # Zusätzliche Checks
-            self._additional_checks(data)
-        
-        return is_valid
-    
-    def _additional_checks(self, data: Dict):
-        """Zusätzliche Plausibilitätsprüfungen"""
-        print("\n🔍 Zusätzliche Checks...")
-        
-        # Check: Sind qualityMetrics korrekt berechnet?
-        topics = data.get("topics", [])
-        calc_total_chapters = sum(t.get("estimatedChapters", 0) for t in topics)
-        calc_total_sections = sum(t.get("estimatedSections", 0) for t in topics)
-        
-        metrics = data.get("qualityMetrics", {})
-        stated_chapters = metrics.get("totalEstimatedChapters", 0)
-        stated_sections = metrics.get("totalEstimatedSections", 0)
-        
-        if calc_total_chapters != stated_chapters:
-            print(f"⚠️  Warnung: totalEstimatedChapters ({stated_chapters}) stimmt nicht mit Summe überein ({calc_total_chapters})")
-        else:
-            print(f"✅ totalEstimatedChapters korrekt: {stated_chapters}")
-        
-        if calc_total_sections != stated_sections:
-            print(f"⚠️  Warnung: totalEstimatedSections ({stated_sections}) stimmt nicht mit Summe überein ({calc_total_sections})")
-        else:
-            print(f"✅ totalEstimatedSections korrekt: {stated_sections}")
-        
-        # Check: Sind Topics im Rahmen der Vorgaben? (3-8 Chapters, 18-120 Sections pro Topic)
-        for topic in topics:
-            tid = topic.get("topicId")
-            chapters = topic.get("estimatedChapters", 0)
-            sections = topic.get("estimatedSections", 0)
-            
-            if not (3 <= chapters <= 8):
-                print(f"⚠️  {tid}: estimatedChapters ({chapters}) außerhalb Vorgaben (3-8)")
-            
-            if not (18 <= sections <= 120):
-                print(f"⚠️  {tid}: estimatedSections ({sections}) außerhalb Vorgaben (18-120)")
-
-# ============================================================================
-# PHASE 0.5b: CHAPTER-DEFINITION
-# ============================================================================
-
-class Phase0_5b:
-    """Chapter-Ebene Gliederung pro Topic erstellen"""
-    
-    def __init__(self, topics_json_path: Path):
-        self.topics_json_path = topics_json_path
-        self.schema = Validator.load_schema(Config.SCHEMA_0_5B)
-        
-        # Topics laden
-        with open(topics_json_path, 'r', encoding='utf-8') as f:
+        # Daten laden
+        with open(topics_json, 'r', encoding='utf-8') as f:
             self.topics_data = json.load(f)
+        
+        self.chapters_data = {}
+        for path in chapters_jsons:
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                topic_id = data["topicReference"]["topicId"]
+                self.chapters_data[topic_id] = data
+        
+        with open(review_json, 'r', encoding='utf-8') as f:
+            self.review_data = json.load(f)
     
     def prepare_prompts(self) -> List[tuple[str, Path]]:
-        """
-        Erstellt Prompts für alle Topics
-        Returns: Liste von (prompt_text, output_path) Tupeln
-        """
-        print("\n📋 Phase 0.5b: Erstelle Prompts für alle Topics...")
+        """Erstellt Prompts für alle Topics (Section-Definitionen)"""
+        print("\n📋 Phase 0.5d: Erstelle Section-Definition-Prompts...")
         
         prompts = []
-        topics = self.topics_data.get("topics", [])
         
-        for topic in topics:
+        for topic in self.topics_data["topics"]:
             topic_id = topic["topicId"]
             topic_num = topic_id.split("-")[1]
             
-            prompt = self._create_prompt_for_topic(topic)
-            output_path = Path(str(Config.OUTPUT_0_5B_TEMPLATE).format(topic_num))
+            prompt = self._create_prompt_for_topic(topic_id)
+            output_path = Config.OUTPUT_DIR / f"output-phase0.5d-topic-{topic_num}-sections.json"
             
             # Prompt speichern
-            prompt_file = Config.OUTPUT_DIR / f"prompt-phase0.5b-topic-{topic_num}-generated.md"
+            prompt_file = Config.OUTPUT_DIR / f"prompt-phase0.5d-topic-{topic_num}-generated.md"
             with open(prompt_file, 'w', encoding='utf-8') as f:
                 f.write(prompt)
             
@@ -268,43 +48,175 @@ class Phase0_5b:
         
         return prompts
     
-    def _create_prompt_for_topic(self, topic: Dict) -> str:
-        """Erstellt Prompt für ein spezifisches Topic"""
+    def _create_prompt_for_topic(self, topic_id: str) -> str:
+        """Erstellt Prompt für Section-Definitionen eines Topics"""
         
-        # Minimaler Prompt (kann später aus Template geladen werden)
+        # Chapter-Daten für dieses Topic laden
+        chapters = self.chapters_data[topic_id]
+        
+        # Review-Findings für dieses Topic extrahieren
+        review_findings = self._extract_review_findings_for_topic(topic_id)
+        
         prompt = f"""
-# Phase 0.5b: Chapter-Definition für {topic['topicId']}
+# Phase 0.5d: Section-Definition für {topic_id}
 
-## Topic-Informationen (aus Phase 0.5a)
-- **Topic-ID:** {topic['topicId']}
-- **Titel:** {topic['title']}
-- **Lernziel:** {topic['learningObjective']}
-- **Key Content:** {', '.join(topic['keyContent'])}
-- **Geschätzte Chapters:** {topic['estimatedChapters']}
-- **Geschätzte Sections:** {topic['estimatedSections']}
+## Input-Daten
+
+### Topic (aus Phase 0.5a)
+{json.dumps(self._get_topic_data(topic_id), indent=2, ensure_ascii=False)}
+
+### Chapters (aus Phase 0.5b)
+{json.dumps(chapters, indent=2, ensure_ascii=False)}
+
+### Review-Findings (aus Phase 0.5c)
+{json.dumps(review_findings, indent=2, ensure_ascii=False)}
 
 ## Aufgabe
-Detailliere dieses Topic in Chapters. Erstelle {topic['estimatedChapters']} Chapters mit insgesamt ~{topic['estimatedSections']} Sections.
+
+Erstelle vollständige Section-Definitionen für alle Chapters in diesem Topic.
+
+**Pro Section benötigt:**
+- sectionId (Format: axiom-[aktion]-[objekt])
+- title, learningObjective, keyTopics (3-5), shortDescription
+- complexity, estimatedWordCount, readingTimeL2, readingTimeL3
+- estimatedMedia (screenshots, videos, annotations, diagrams, infoBoxes)
+- predecessorSection, successorSection (Section-IDs für Verkettung)
+- prerequisites (contentual: Section-IDs, technical, knowledge)
+- dependencies (Section-IDs, die auf dieser aufbauen)
+- difficultyLevel (Beginner/Intermediate/Advanced)
+- crossReferences (max. 5, mit reason und relevanceScore 1-5)
+
+**Wichtige Richtwerte:**
+- Wortumfang: 1000-1600 Worte (Level 2)
+- Lesedauer L2: 5-15 Min, L3: 10-30 Min
+- Lesetempo: 150-180 wpm
+- Max. Konzentrationsdauer: 15 Min
 
 ## Output-Format
+
 Erstelle valides JSON gemäß Schema (siehe unten).
 
 ## Schema
 {json.dumps(self.schema, indent=2, ensure_ascii=False)}
 
-## Wichtige Hinweise
-- Pro Chapter: 6-15 Sections
-- estimatedSections sollte nahe an {topic['estimatedSections']} sein (±10% OK)
-- Fülle comparisonToPhase0_5a aus (erkläre Abweichungen)
-- Identifiziere crossTopicConnections (zu anderen Topics)
-- Fülle aiSelfReview aus
+## Zusätzliche Hinweise
+
+### Predecessor/Successor-Verkettung
+- Erste Section eines Topics: predecessorSection = null
+- Letzte Section eines Topics: successorSection = null
+- Alle anderen: Korrekte Verkettung sicherstellen (lückenlos)
+
+### Cross-References
+- Max. 5 pro Section
+- relevanceScore: 1=optional, 5=kritisch
+- Nur Cross-References zu anderen Sections (nicht Predecessor/Successor)
+- Cross-Topic-References möglich (zu anderen Topics)
+
+### Prerequisites
+- contentual: Nur Section-IDs (aus früheren Sections)
+- technical: Konkret (z.B. "AXIOM Examine v7.5", "Evidenzdatei verfügbar")
+- knowledge: Allgemein (z.B. "Grundlegende Windows-Kenntnisse")
+
+### Dependencies
+- Section-IDs, die auf dieser Section aufbauen (Forward-Links)
+- Hilft Phase 1 zu verstehen: "Welche späteren Sections nutzen diese Info?"
+
+### AI Self-Review
+- Dokumentiere Unsicherheiten
+- Schlage Merges vor (wenn 2 Sections zu ähnlich)
+- Schlage Splits vor (wenn 1 Section zu groß)
+
+### Terminologie
+- Konsultiere terminologie-entscheidungsliste.md
+- Bei neuen Begriffen: Status "Proposed" eintragen
+- Konsistenz über alle Sections hinweg sichern
+
+## Review-Findings beachten
+
+{self._format_review_findings(review_findings)}
+
+---
+
+**Viel Erfolg!** 🚀
 """
         
         return prompt
     
+    def _get_topic_data(self, topic_id: str) -> Dict:
+        """Extrahiert Topic-Daten aus topics.json"""
+        for topic in self.topics_data["topics"]:
+            if topic["topicId"] == topic_id:
+                return topic
+        return {}
+    
+    def _extract_review_findings_for_topic(self, topic_id: str) -> Dict:
+        """Extrahiert relevante Review-Findings für ein Topic"""
+        findings = {
+            "gaps": [],
+            "redundancies": [],
+            "inconsistencies": [],
+            "crossTopicConnections": []
+        }
+        
+        # Gaps filtern
+        for gap in self.review_data.get("detailedFindings", {}).get("gaps", []):
+            if topic_id in gap.get("location", ""):
+                findings["gaps"].append(gap)
+        
+        # Redundancies filtern
+        for red in self.review_data.get("detailedFindings", {}).get("redundancies", []):
+            locations = red.get("locations", [])
+            if any(topic_id in loc for loc in locations):
+                findings["redundancies"].append(red)
+        
+        # Inconsistencies filtern
+        for inc in self.review_data.get("detailedFindings", {}).get("inconsistencies", []):
+            locations = inc.get("locations", [])
+            if any(topic_id in loc for loc in locations):
+                findings["inconsistencies"].append(inc)
+        
+        # Cross-Topic-Connections filtern
+        for conn in self.review_data.get("detailedFindings", {}).get("crossTopicConnections", []):
+            if topic_id in conn.get("fromLocation", "") or topic_id in conn.get("toLocation", ""):
+                findings["crossTopicConnections"].append(conn)
+        
+        return findings
+    
+    def _format_review_findings(self, findings: Dict) -> str:
+        """Formatiert Review-Findings für Prompt"""
+        output = ""
+        
+        if findings["gaps"]:
+            output += "**Identifizierte Lücken:**\n"
+            for gap in findings["gaps"]:
+                output += f"- {gap['issue']} (Severity: {gap['severity']})\n"
+                output += f"  → Vorschlag: {gap['suggestion']}\n"
+        
+        if findings["redundancies"]:
+            output += "\n**Identifizierte Redundanzen:**\n"
+            for red in findings["redundancies"]:
+                output += f"- {red['overlap']}\n"
+                output += f"  → Vorschlag: {red['suggestion']}\n"
+        
+        if findings["inconsistencies"]:
+            output += "\n**Identifizierte Inkonsistenzen:**\n"
+            for inc in findings["inconsistencies"]:
+                output += f"- {inc['issue']} ({inc['type']})\n"
+                output += f"  → Vorschlag: {inc['suggestion']}\n"
+        
+        if findings["crossTopicConnections"]:
+            output += "\n**Relevante Cross-Topic-Connections:**\n"
+            for conn in findings["crossTopicConnections"]:
+                output += f"- {conn['fromLocation']} → {conn['toLocation']}: {conn['reason']}\n"
+        
+        if not output:
+            output = "**Keine Findings für dieses Topic.**"
+        
+        return output
+    
     def validate_output(self, output_path: Path) -> bool:
-        """Validiert Chapter-Definition für ein Topic"""
-        print(f"\n🔍 Phase 0.5b: Validiere {output_path.name}...")
+        """Validiert Section-Definitionen für ein Topic"""
+        print(f"\n🔍 Phase 0.5d: Validiere {output_path.name}...")
         
         try:
             with open(output_path, 'r', encoding='utf-8') as f:
@@ -316,7 +228,7 @@ Erstelle valides JSON gemäß Schema (siehe unten).
             print(f"❌ Kein valides JSON: {output_path}\n{e}")
             return False
         
-        is_valid, errors = Validator.validate_json(data, self.schema, f"Phase 0.5b ({output_path.name})")
+        is_valid, errors = Validator.validate_json(data, self.schema, f"Phase 0.5d ({output_path.name})")
         
         if is_valid:
             self._additional_checks(data)
@@ -327,171 +239,169 @@ Erstelle valides JSON gemäß Schema (siehe unten).
         """Zusätzliche Plausibilitätsprüfungen"""
         print("\n🔍 Zusätzliche Checks...")
         
-        # Check: Stimmt totalEstimatedSections mit Summe überein?
-        chapters = data.get("chapters", [])
-        calc_total = sum(c.get("estimatedSections", 0) for c in chapters)
-        stated_total = data["qualityMetrics"]["totalEstimatedSections"]
+        sections = data.get("sections", [])
         
-        if calc_total != stated_total:
-            print(f"⚠️  totalEstimatedSections ({stated_total}) ≠ Summe ({calc_total})")
+        # Check 1: Sind Section-IDs eindeutig?
+        section_ids = [s["sectionId"] for s in sections]
+        duplicates = [sid for sid in section_ids if section_ids.count(sid) > 1]
+        if duplicates:
+            print(f"❌ KRITISCH: Doppelte Section-IDs: {set(duplicates)}")
         else:
-            print(f"✅ totalEstimatedSections korrekt: {stated_total}")
+            print(f"✅ Alle Section-IDs eindeutig ({len(section_ids)} Sections)")
         
-        # Check: Weicht estimatedSections stark von Phase 0.5a ab?
-        topic_ref = data.get("topicReference", {})
-        original_estimate = topic_ref.get("estimatedSectionsFromPhase0_5a", 0)
-        difference = stated_total - original_estimate
-        
-        if abs(difference) > original_estimate * 0.3:  # >30% Abweichung
-            print(f"⚠️  Große Abweichung von Phase 0.5a: {difference:+d} Sections ({difference/original_estimate*100:+.1f}%)")
+        # Check 2: Ist Predecessor/Successor-Kette konsistent?
+        print("\n🔗 Prüfe Predecessor/Successor-Kette...")
+        chain_valid = self._validate_section_chain(sections)
+        if chain_valid:
+            print("✅ Predecessor/Successor-Kette konsistent")
         else:
-            print(f"✅ Abweichung akzeptabel: {difference:+d} Sections")
-
-# ============================================================================
-# PHASE 0.5c: KONSISTENZ-REVIEW (DUMMY)
-# ============================================================================
-
-class Phase0_5c:
-    """KI-gestütztes Konsistenz-Review (aktuell: Dummy)"""
-    
-    def __init__(self, topics_json: Path, chapters_jsons: List[Path]):
-        self.topics_json = topics_json
-        self.chapters_jsons = chapters_jsons
-        self.schema = Validator.load_schema(Config.SCHEMA_0_5C)
-    
-    def generate_review(self) -> Dict:
-        """Generiert Review (Dummy oder echt, abhängig von Config)"""
-        print("\n📋 Phase 0.5c: Generiere Konsistenz-Review...")
+            print("❌ Predecessor/Successor-Kette inkonsistent!")
         
-        if Config.USE_DUMMY_REVIEW:
-            return self._generate_dummy_review()
+        # Check 3: Verweisen Prerequisites auf existierende Sections?
+        print("\n🔗 Prüfe Prerequisites...")
+        invalid_prereqs = []
+        for section in sections:
+            for prereq_id in section["prerequisites"]["contentual"]:
+                if prereq_id not in section_ids:
+                    invalid_prereqs.append(f"{section['sectionId']} → {prereq_id}")
+        
+        if invalid_prereqs:
+            print(f"⚠️  Warnung: {len(invalid_prereqs)} Prerequisites verweisen auf nicht-existierende Sections:")
+            for inv in invalid_prereqs[:5]:  # Max. 5 anzeigen
+                print(f"   - {inv}")
         else:
-            # Hier würde echtes KI-Review implementiert werden
-            raise NotImplementedError("Echtes Review noch nicht implementiert")
+            print("✅ Alle Prerequisites valide")
+        
+        # Check 4: Verweisen Cross-References auf existierende Sections?
+        print("\n🔗 Prüfe Cross-References...")
+        invalid_crossrefs = []
+        for section in sections:
+            for crossref in section.get("crossReferences", []):
+                ref_id = crossref["sectionId"]
+                if ref_id not in section_ids:
+                    # Könnte Cross-Topic-Reference sein → OK
+                    if not ref_id.startswith("axiom-"):
+                        invalid_crossrefs.append(f"{section['sectionId']} → {ref_id} (ungültiges Format)")
+        
+        if invalid_crossrefs:
+            print(f"⚠️  Warnung: {len(invalid_crossrefs)} Cross-References ungültig:")
+            for inv in invalid_crossrefs[:5]:
+                print(f"   - {inv}")
+        else:
+            print("✅ Cross-References valide (oder Cross-Topic)")
+        
+        # Check 5: Stimmen qualityMetrics?
+        print("\n📊 Prüfe qualityMetrics...")
+        stated_total = data["qualityMetrics"]["totalSections"]
+        actual_total = len(sections)
+        
+        if stated_total != actual_total:
+            print(f"❌ totalSections ({stated_total}) ≠ actual ({actual_total})")
+        else:
+            print(f"✅ totalSections korrekt: {stated_total}")
+        
+        # Check 6: Lesedauer-Verteilung
+        reading_dist = data["qualityMetrics"]["readingTimeDistribution"]
+        over15 = reading_dist.get("over15min", 0)
+        if over15 > 5:  # Max. 5 Sections über 15 Min
+            print(f"⚠️  Warnung: {over15} Sections > 15 Min (Konzentrationsgrenze!)")
+        else:
+            print(f"✅ Lesedauer-Verteilung OK ({over15} Sections > 15 Min)")
     
-    def _generate_dummy_review(self) -> Dict:
-        """Generiert Dummy-Review (gibt immer 'alles optimal' zurück)"""
-        print("🔧 Verwende Dummy-Mode (gibt 'alles optimal' zurück)")
+    def _validate_section_chain(self, sections: List[Dict]) -> bool:
+        """Prüft, ob Predecessor/Successor-Kette konsistent ist"""
+        section_dict = {s["sectionId"]: s for s in sections}
         
-        # Input-Files sammeln
-        input_files = [str(self.topics_json.name)]
-        input_files.extend([str(p.name) for p in self.chapters_jsons])
+        # Finde erste Section (predecessorSection = null)
+        first_sections = [s for s in sections if s["predecessorSection"] is None]
+        if len(first_sections) != 1:
+            print(f"❌ Fehler: {len(first_sections)} erste Sections (erwartet: 1)")
+            return False
         
-        # Dummy-Daten
-        review = {
-            "schemaVersion": "1.0.0",
-            "reviewMetadata": {
-                "reviewedAt": datetime.utcnow().isoformat() + "Z",
-                "reviewedBy": "Claude Sonnet 4.5 (Dummy-Mode)",
-                "inputFiles": input_files,
-                "isDummyReview": True
-            },
-            "overallAssessment": {
-                "completeness": "EXCELLENT",
-                "balance": "EXCELLENT",
-                "coherence": "EXCELLENT",
-                "overallScore": 100,
-                "recommendation": "APPROVE"
-            },
-            "detailedFindings": {
-                "gaps": [],
-                "redundancies": [],
-                "inconsistencies": [],
-                "crossTopicConnections": []
-            },
-            "statisticalAnalysis": {
-                "totalTopics": 3,
-                "totalChapters": 15,
-                "totalEstimatedSections": 76,
-                "averageChaptersPerTopic": 5.0,
-                "averageSectionsPerChapter": 5.1,
-                "topicSizeDistribution": {},
-                "difficultyDistribution": {}
-            },
-            "recommendations": [
-                {
-                    "priority": "LOW",
-                    "category": "OTHER",
-                    "recommendation": "DUMMY-MODE: Alle Inputs als optimal bewertet.",
-                    "estimatedEffort": "MINOR"
-                }
-            ]
-        }
+        # Finde letzte Section (successorSection = null)
+        last_sections = [s for s in sections if s["successorSection"] is None]
+        if len(last_sections) != 1:
+            print(f"❌ Fehler: {len(last_sections)} letzte Sections (erwartet: 1)")
+            return False
         
-        return review
+        # Folge der Kette
+        current = first_sections[0]
+        visited = set()
+        chain_length = 0
+        
+        while current:
+            section_id = current["sectionId"]
+            
+            if section_id in visited:
+                print(f"❌ Fehler: Zyklus entdeckt bei {section_id}")
+                return False
+            
+            visited.add(section_id)
+            chain_length += 1
+            
+            successor_id = current["successorSection"]
+            if successor_id is None:
+                break
+            
+            if successor_id not in section_dict:
+                print(f"❌ Fehler: Successor {successor_id} existiert nicht")
+                return False
+            
+            # Prüfe Rückwärts-Link
+            next_section = section_dict[successor_id]
+            if next_section["predecessorSection"] != section_id:
+                print(f"❌ Fehler: Inkonsistenz bei {section_id} → {successor_id}")
+                return False
+            
+            current = next_section
+        
+        # Prüfe: Wurden alle Sections besucht?
+        if chain_length != len(sections):
+            print(f"❌ Fehler: Kette hat nur {chain_length} Sections, erwartet {len(sections)}")
+            return False
+        
+        return True
+
+# Config ergänzen
+class Config:
+    # ... (vorherige Konfiguration) ...
     
-    def validate_and_save(self, review_data: Dict, output_path: Path) -> bool:
-        """Validiert und speichert Review"""
-        print(f"\n🔍 Phase 0.5c: Validiere Review...")
-        
-        is_valid, errors = Validator.validate_json(review_data, self.schema, "Phase 0.5c")
-        
-        if is_valid:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(review_data, f, indent=2, ensure_ascii=False)
-            print(f"✅ Review gespeichert: {output_path}")
-        
-        return is_valid
+    # Schema für Phase 0.5d
+    SCHEMA_0_5D = SCHEMAS_DIR / "output-phase0.5d-sections.schema.json"
+    
+    # Output für Phase 0.5d
+    OUTPUT_0_5D_TEMPLATE = OUTPUT_DIR / "output-phase0.5d-topic-{}-sections.json"
 
-# ============================================================================
-# MAIN ORCHESTRATION
-# ============================================================================
-
+# Main-Funktion ergänzen
 def main():
-    parser = argparse.ArgumentParser(description="Phase 0.5 Orchestrierung")
-    parser.add_argument("--strategy", required=True, help="Pfad zum Strategiedokument")
-    parser.add_argument("--phase", choices=["0.5a", "0.5b", "0.5c", "all"], default="all",
-                        help="Welche Phase ausführen? (default: all)")
-    args = parser.parse_args()
-    
-    print("=" * 70)
-    print("Phase 0.5 Orchestrierung")
-    print("=" * 70)
-    
-    # Verzeichnisse erstellen
-    Config.OUTPUT_DIR.mkdir(exist_ok=True)
-    Config.PROMPTS_DIR.mkdir(exist_ok=True, parents=True)
-    
-    strategy_path = Path(args.strategy)
+    # ... (vorheriger Code bis Phase 0.5c) ...
     
     # ========================================================================
-    # PHASE 0.5a: TOPICS
+    # PHASE 0.5d: SECTIONS
     # ========================================================================
-    if args.phase in ["0.5a", "all"]:
+    if args.phase in ["0.5d", "all"]:
         print("\n" + "=" * 70)
-        print("PHASE 0.5a: Topic-Definition")
+        print("PHASE 0.5d: Section-Definition")
         print("=" * 70)
         
-        phase0_5a = Phase0_5a(strategy_path)
-        prompt = phase0_5a.prepare_prompt()
+        # Sammle alle Chapter-JSONs
+        chapters_jsons = sorted(Config.OUTPUT_DIR.glob("output-phase0.5b-topic-*-chapters.json"))
         
-        print("\n⏸️  MANUELLER SCHRITT:")
-        print(f"1. Gib den Prompt an KI: {Config.OUTPUT_DIR / 'prompt-phase0.5a-generated.md'}")
-        print(f"2. Speichere KI-Output als: {Config.OUTPUT_0_5A}")
-        print("3. Drücke Enter zum Fortfahren...")
-        input()
-        
-        if not phase0_5a.validate_output(Config.OUTPUT_0_5A):
-            print("\n❌ Phase 0.5a Validierung fehlgeschlagen. Abbruch.")
+        if not chapters_jsons:
+            print("❌ Keine Chapter-JSONs gefunden. Phase 0.5b erst ausführen.")
             sys.exit(1)
         
-        print("\n✅ Phase 0.5a abgeschlossen!")
-    
-    # ========================================================================
-    # PHASE 0.5b: CHAPTERS
-    # ========================================================================
-    if args.phase in ["0.5b", "all"]:
-        print("\n" + "=" * 70)
-        print("PHASE 0.5b: Chapter-Definition")
-        print("=" * 70)
+        if not Config.OUTPUT_0_5C.exists():
+            print("❌ Review-JSON nicht gefunden. Phase 0.5c erst ausführen.")
+            sys.exit(1)
         
-        phase0_5b = Phase0_5b(Config.OUTPUT_0_5A)
-        prompts = phase0_5b.prepare_prompts()
+        phase0_5d = Phase0_5d(Config.OUTPUT_0_5A, chapters_jsons, Config.OUTPUT_0_5C)
+        prompts = phase0_5d.prepare_prompts()
         
         print(f"\n⏸️  MANUELLER SCHRITT: {len(prompts)} Prompts erstellt.")
         for i, (prompt, output_path) in enumerate(prompts, 1):
             print(f"\nTopic {i}:")
-            print(f"  1. Prompt: {Config.OUTPUT_DIR / f'prompt-phase0.5b-topic-{i}-generated.md'}")
+            print(f"  1. Prompt: {Config.OUTPUT_DIR / f'prompt-phase0.5d-topic-{i}-generated.md'}")
             print(f"  2. Output speichern als: {output_path}")
         
         print("\n3. Drücke Enter wenn alle Topics fertig sind...")
@@ -500,51 +410,122 @@ def main():
         # Validiere alle Topic-Outputs
         all_valid = True
         for _, output_path in prompts:
-            if not phase0_5b.validate_output(output_path):
+            if not phase0_5d.validate_output(output_path):
                 all_valid = False
         
         if not all_valid:
-            print("\n❌ Phase 0.5b Validierung fehlgeschlagen. Abbruch.")
+            print("\n❌ Phase 0.5d Validierung fehlgeschlagen. Abbruch.")
             sys.exit(1)
         
-        print("\n✅ Phase 0.5b abgeschlossen!")
+        print("\n✅ Phase 0.5d abgeschlossen!")
     
     # ========================================================================
-    # PHASE 0.5c: REVIEW
-    # ========================================================================
-    if args.phase in ["0.5c", "all"]:
-        print("\n" + "=" * 70)
-        print("PHASE 0.5c: Konsistenz-Review")
-        print("=" * 70)
-        
-        # Sammle alle Chapter-JSONs
-        chapters_jsons = list(Config.OUTPUT_DIR.glob("output-phase0.5b-topic-*-chapters.json"))
-        
-        if not chapters_jsons:
-            print("❌ Keine Chapter-JSONs gefunden. Phase 0.5b erst ausführen.")
-            sys.exit(1)
-        
-        phase0_5c = Phase0_5c(Config.OUTPUT_0_5A, chapters_jsons)
-        review = phase0_5c.generate_review()
-        
-        if not phase0_5c.validate_and_save(review, Config.OUTPUT_0_5C):
-            print("\n❌ Phase 0.5c Validierung fehlgeschlagen. Abbruch.")
-            sys.exit(1)
-        
-        print("\n✅ Phase 0.5c abgeschlossen!")
-    
-    # ========================================================================
-    # ABSCHLUSS
+    # ABSCHLUSS & KONSOLIDIERUNG
     # ========================================================================
     print("\n" + "=" * 70)
-    print("✅ Phase 0.5 erfolgreich abgeschlossen!")
+    print("✅ Phase 0.5 komplett abgeschlossen!")
     print("=" * 70)
-    print("\nGenerierte Dateien:")
-    print(f"  - Topics: {Config.OUTPUT_0_5A}")
-    for p in Config.OUTPUT_DIR.glob("output-phase0.5b-topic-*-chapters.json"):
-        print(f"  - Chapters: {p}")
-    print(f"  - Review: {Config.OUTPUT_0_5C}")
-    print("\nNächster Schritt: Phase 0.5d (Section-Definition)")
+    
+    # Finale Konsolidierung (alle Teile zusammenführen)
+    print("\n📦 Konsolidiere alle Outputs zu Gesamt-Gliederung...")
+    consolidate_final_output()
+    
+    print("\n✅ Fertig! Nächster Schritt: Phase 1 (Section-Content-Erstellung)")
 
-if __name__ == "__main__":
-    main()
+def consolidate_final_output():
+    """Konsolidiert alle Phase-0.5-Outputs zu einem finalen JSON"""
+    print("\n🔧 Erstelle konsolidiertes Gesamt-Output...")
+    
+    # Topics laden
+    with open(Config.OUTPUT_0_5A, 'r', encoding='utf-8') as f:
+        topics_data = json.load(f)
+    
+    # Chapters laden (alle Topics)
+    chapters_by_topic = {}
+    for path in Config.OUTPUT_DIR.glob("output-phase0.5b-topic-*-chapters.json"):
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            topic_id = data["topicReference"]["topicId"]
+            chapters_by_topic[topic_id] = data["chapters"]
+    
+    # Sections laden (alle Topics)
+    sections_by_topic = {}
+    for path in Config.OUTPUT_DIR.glob("output-phase0.5d-topic-*-sections.json"):
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            topic_id = data["topicReference"]["topicId"]
+            sections_by_topic[topic_id] = data["sections"]
+    
+    # Review laden
+    with open(Config.OUTPUT_0_5C, 'r', encoding='utf-8') as f:
+        review_data = json.load(f)
+    
+    # Konsolidiertes Output erstellen
+    final_output = {
+        "schemaVersion": "1.0.0",
+        "projectMetadata": topics_data["projectMetadata"],
+        "createdAt": datetime.utcnow().isoformat() + "Z",
+        "phase0_5_complete": True,
+        "topics": []
+    }
+    
+    # Topics mit Chapters und Sections zusammenführen
+    for topic in topics_data["topics"]:
+        topic_id = topic["topicId"]
+        
+        consolidated_topic = {
+            "topicId": topic_id,
+            "title": topic["title"],
+            "learningObjective": topic["learningObjective"],
+            "chapters": []
+        }
+        
+        # Chapters für dieses Topic
+        if topic_id in chapters_by_topic:
+            for chapter in chapters_by_topic[topic_id]:
+                chapter_id = chapter["chapterId"]
+                
+                # Sections für dieses Chapter filtern
+                chapter_sections = [
+                    s for s in sections_by_topic.get(topic_id, [])
+                    if s["chapterId"] == chapter_id
+                ]
+                
+                consolidated_chapter = {
+                    "chapterId": chapter_id,
+                    "title": chapter["title"],
+                    "sections": chapter_sections
+                }
+                
+                consolidated_topic["chapters"].append(consolidated_chapter)
+        
+        final_output["topics"].append(consolidated_topic)
+    
+    # Review-Zusammenfassung hinzufügen
+    final_output["phase0_5c_review_summary"] = {
+        "overallScore": review_data["overallAssessment"]["overallScore"],
+        "recommendation": review_data["overallAssessment"]["recommendation"],
+        "totalGaps": len(review_data["detailedFindings"]["gaps"]),
+        "totalRedundancies": len(review_data["detailedFindings"]["redundancies"]),
+        "totalInconsistencies": len(review_data["detailedFindings"]["inconsistencies"])
+    }
+    
+    # Statistik berechnen
+    total_sections = sum(len(sections_by_topic.get(t["topicId"], [])) for t in topics_data["topics"])
+    total_chapters = sum(len(chapters_by_topic.get(t["topicId"], [])) for t in topics_data["topics"])
+    
+    final_output["statistics"] = {
+        "totalTopics": len(topics_data["topics"]),
+        "totalChapters": total_chapters,
+        "totalSections": total_sections
+    }
+    
+    # Speichern
+    with open(Config.OUTPUT_0_5_FINAL, 'w', encoding='utf-8') as f:
+        json.dump(final_output, f, indent=2, ensure_ascii=False)
+    
+    print(f"✅ Konsolidiertes Output gespeichert: {Config.OUTPUT_0_5_FINAL}")
+    print(f"\n📊 Statistik:")
+    print(f"   - Topics: {final_output['statistics']['totalTopics']}")
+    print(f"   - Chapters: {final_output['statistics']['totalChapters']}")
+    print(f"   - Sections: {final_output['statistics']['totalSections']}")

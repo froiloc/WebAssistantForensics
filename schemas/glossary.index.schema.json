@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/froiloc/WebAssistantForensics/schema/glossary.index.schema.json",
+  "title": "Glossary Search Index Schema",
+  "description": "Schema for the optimized glossary search index used by the frontend application",
+  "type": "object",
+  "required": ["terms", "patterns", "lookup", "metadata"],
+  "properties": {
+    "terms": {
+      "type": "object",
+      "description": "Optimized term data for quick lookups and filtering",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["term", "shortDefinition", "hasExtended", "hasMedia", "categories"],
+        "properties": {
+          "term": {
+            "type": "string",
+            "description": "The canonical term in German"
+          },
+          "shortDefinition": {
+            "type": "string",
+            "description": "Brief explanation for tooltip display"
+          },
+          "hasExtended": {
+            "type": "boolean",
+            "description": "Indicates if an extended explanation is available"
+          },
+          "hasMedia": {
+            "type": "boolean", 
+            "description": "Indicates if media content is available"
+          },
+          "categories": {
+            "type": "array",
+            "description": "Categories for filtering and organization",
+            "items": {
+              "type": "string",
+              "enum": ["technical", "legal", "process", "tool-specific"]
+            },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "patterns": {
+      "type": "array",
+      "description": "Pre-compiled regex patterns for term matching",
+      "items": {
+        "type": "object",
+        "required": ["type", "pattern", "term_id", "original"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["white", "black"],
+            "description": "Type of pattern: white for inclusion, black for exclusion"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Regular expression pattern string for frontend compilation"
+          },
+          "term_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+(?:_(?:[2-9]|[1-9][0-9]+))?$",
+            "description": "Reference to the term ID this pattern belongs to"
+          },
+          "original": {
+            "type": "string",
+            "description": "Original pattern as defined in the glossary for debugging"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "lookup": {
+      "type": "object",
+      "description": "Mapping from term_id to index position in the full glossary array",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["version", "term_count", "hash"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Semantic version of the index format"
+        },
+        "term_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of terms in the glossary"
+        },
+        "build_time": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "ISO timestamp when the index was built (optional)"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$",
+          "description": "MD5 hash of the glossary data for cache validation"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
