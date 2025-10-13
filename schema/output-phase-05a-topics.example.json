@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectMetadata": {
+    "projectName": "WebAssistant Forensics - AXIOM Examine Guide",
+    "toolName": "Magnet AXIOM Examine",
+    "toolVersion": "7.0-7.5",
+    "targetAudience": "IT-ferne Polizei-Ermittler (Mittlere Reife, niedrige IT-Kenntnisse)",
+    "createdAt": "2025-10-13T18:45:00Z",
+    "createdBy": "Claude Sonnet 4.5"
+  },
+  "topics": [
+    {
+      "topicId": "topic-1",
+      "title": "Vorbereitung & Case-Setup",
+      "learningObjective": "Ermittler können eigenständig Cases in AXIOM Examine anlegen, die richtigen Templates auswählen, Evidence-Quellen korrekt hinzufügen und häufige Fehler bei der Case-Vorbereitung vermeiden. Sie verstehen die Bedeutung korrekter Metadaten für die spätere gerichtliche Verwertbarkeit.",
+      "keyContent": [
+        "Installation und Erstkonfiguration von AXIOM Examine",
+        "AXIOM-Oberfläche verstehen und navigieren",
+        "Cases korrekt anlegen und Metadaten pflegen",
+        "Evidence-Quellen hinzufügen (Devices, Images, Cloud)",
+        "Case-Templates auswählen und anpassen",
+        "Best Practices für Case-Struktur und Organisation",
+        "Häufige Fehler bei der Vorbereitung vermeiden"
+      ],
+      "estimatedChapters": 5,
+      "estimatedSections": 22,
+      "rationale": "Vorbereitung ist kritisch für Erfolg der Analyse. Fehler hier multiplizieren sich später. Daher mehr Sections für Fehlerprävention und Best Practices. Focus auf UI-Orientierung, da Zielgruppe IT-fern."
+    },
+    {
+      "topicId": "topic-2",
+      "title": "Export & Reporting",
+      "learningObjective": "Ermittler können Analyseergebnisse korrekt exportieren, gerichtsverwertbare Reports erstellen und die wichtigsten Export-Einstellungen für verschiedene Szenarien anwenden. Sie verstehen, welche Metadaten für Reports notwendig sind und wie Chain of Custody dokumentiert wird.",
+      "keyContent": [
+        "Export-Grundlagen und verfügbare Formate",
+        "Report-Templates verstehen und auswählen",
+        "Custom Reports erstellen und anpassen",
+        "Export-Filter definieren (relevante Artifacts auswählen)",
+        "Chain of Custody korrekt dokumentieren",
+        "Häufige Export-Fehler beheben",
+        "Reports für Gericht und Staatsanwaltschaft optimieren"
+      ],
+      "estimatedChapters": 6,
+      "estimatedSections": 26,
+      "rationale": "Export ist finaler kritischer Schritt. Fehler hier machen gesamte Analyse unbrauchbar. Viele Sections für verschiedene Export-Szenarien (Standardfall, Custom Filters, gerichtsverwertbare Reports). Mehr Sections als Topic 1, da Export-Optionen sehr vielfältig."
+    },
+    {
+      "topicId": "topic-3",
+      "title": "Troubleshooting & Fehlerbehandlung",
+      "learningObjective": "Ermittler können häufige Fehlermeldungen in AXIOM Examine selbstständig interpretieren und beheben. Sie kennen die wichtigsten Troubleshooting-Strategien und wissen, wann sie Experten-Support kontaktieren sollten. Sie können Performance-Probleme bei großen Cases erkennen und einfache Optimierungen durchführen.",
+      "keyContent": [
+        "Häufige Fehlermeldungen verstehen und beheben",
+        "Case-Korruption erkennen und Recovery durchführen",
+        "Import/Export-Fehler diagnostizieren",
+        "Performance-Probleme bei großen Cases (>500GB)",
+        "Log-Dateien analysieren (Grundlagen)",
+        "Wann Experten-Support kontaktieren?"
+      ],
+      "estimatedChapters": 4,
+      "estimatedSections": 12,
+      "rationale": "Troubleshooting ist wichtig, aber nicht so umfangreich wie Topics 1+2. Fokus auf häufigste Fehler (80/20-Regel). Weniger Sections, da viele Fehler ähnliche Lösungsansätze haben. Performance-Optimierung als Bonus-Thema (optional für Fortgeschrittene)."
+    }
+  ],
+  "qualityMetrics": {
+    "totalTopics": 3,
+    "totalEstimatedChapters": 15,
+    "totalEstimatedSections": 60,
+    "averageSectionsPerTopic": 20.0,
+    "balanceAssessment": "SLIGHTLY_UNBALANCED"
+  },
+  "aiSelfReview": {
+    "confidence": "HIGH",
+    "uncertainties": [
+      "Topic 3 ist kleiner als Topics 1+2 (12 vs. 22/26 Sections). Ist das akzeptabel?",
+      "Unsicher: Soll 'Performance-Optimierung' eigenes Chapter in Topic 3 werden oder in andere Topics integriert?",
+      "Unklar: Wird 'Cloud-Forensik' in Topic 1 behandelt oder separates Topic? Strategiedokument sagt 'ausgeklammert', aber könnte relevant werden."
+    ],
+    "alternativeApproaches": [
+      "Alternative 1: Topic 3 aufteilen in 'Troubleshooting' (8 Sections) und 'Performance & Optimierung' (12 Sections) → würde 4 Topics ergeben",
+      "Alternative 2: Performance-Themen in Topics 1+2 integrieren (z.B. 'Performance-Tipps bei Case-Erstellung' in Topic 1) → Topic 3 bleibt fokussiert auf Fehlerbehandlung",
+      "Alternative 3: Topic 2 aufteilen in 'Basic Export' (12 Sections) und 'Advanced Reporting' (14 Sections) → mehr Granularität, aber eventuell zu viele Topics"
+    ]
+  }
+}
