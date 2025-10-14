@@ -13,6 +13,12 @@
     const CONST = window.APP_CONSTANTS;
     const MODULE = 'GLOSSARY';
 
+    // Check dependencies
+    if (typeof window.LOG === 'undefined') {
+        console.error(`${MODULE}: LOG object not available. Glossary Manager system disabled.`);
+        return;
+    }
+
     LOG.debug(MODULE, 'Glossary Manager: Script loading started');
 
     // Warten auf benötigte Abhängigkeiten

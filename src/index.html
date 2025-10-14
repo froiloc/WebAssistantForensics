@@ -76,6 +76,10 @@
             <span class="menu-icon">🗂️</span>
             Navigation ein/aus
         </button>
+        <button class="menu-item" id="toggle-favorites-sidebar-btn" role="menuitem">
+            <span class="menu-icon">⭐</span>
+            Lesezeichen ein/aus
+        </button>
         <button class="menu-item" id="toggle-tips-footer-btn" role="menuitem">
             <span class="menu-icon">💡</span>
             Tipps ein/aus
@@ -145,6 +149,11 @@
             </div>
         </div>
 
+        <!-- Lesezeichen Sidebar -->
+        <div id="favorites-container" class="sidebar-tab-content" data-tab="favorites" style="display: none;">
+            <!-- Content will be rendered by script-favorites.js -->
+        </div>
+
         <!-- Verlauf Sidebar -->
         <div id="sidebar-history" class="sidebar-wrapper" data-sidebar="history">
             <!-- Tab Header (immer sichtbar) -->
@@ -193,9 +202,11 @@
             </div>
         </div>
 
-        <!-- Weitere Sidebars kommen hier später hinzu (Favoriten, etc.) -->
+        <!-- Weitere Sidebars kommen hier später hinzu -->
 
     </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Main Container -->
     <div class="container" id="main-content" tabindex="-1">
@@ -1387,29 +1398,35 @@
     <!-- 4. Sidebar Manager (MUSS vor den individuellen Sidebars geladen werden) -->
     <script src="js/script-sidebar-manager.js"></script>
 
-    <!-- 5. NAVIGATION - Navigation, Sidebar, Menu, Breadcrumb -->
+    <!-- 5. TOAST - Toast Notifications -->
+    <script src="./js/script-toast.js" defer></script>
+
+    <!-- 6. NAVIGATION - Navigation, Sidebar, Menu, Breadcrumb -->
     <script src="js/script-navigation.js"></script>
 
-    <!-- 6. HISTORY - Section-History Tracking -->
+    <!-- 7. HISTORY - Section-History Tracking -->
     <script src="js/script-history.js"></script>
 
-    <!-- 7. NOTES - Notizen-Feature -->
+    <!-- 8. NOTES - Notizen-Feature -->
     <script src="js/script-notes.js"></script>
 
-    <!-- 8. DETAIL LEVEL - Detail-Level-System -->
+    <!-- 9. DETAIL LEVEL - Detail-Level-System -->
     <script src="js/script-detail-level.js"></script>
 
-    <!-- 9. TIPS - Tips-Footer mit Rotation -->
+    <!-- 10. TIPS - Tips-Footer mit Rotation -->
     <script src="js/script-tips.js"></script>
 
-    <!-- 10. PREFERENCES - User Preferences Management -->
+    <!-- 11. PREFERENCES - User Preferences Management -->
     <script src="js/script-preferences.js"></script>
 
-    <!-- 11. THEME - Theme Management System -->
+    <!-- 12. THEME - Theme Management System -->
     <script src="js/script-theme.js"></script>
 
-    <!-- 12. GLOSSARY - Dynamischer Glossar -->
+    <!-- 13. GLOSSARY - Dynamischer Glossar -->
     <script src="js/script-glossary-manager.js"></script>
+
+    <!-- 14. FAVORITES - User Favorites for bookmarking sections -->
+    <script src="js/script-favorites.js"></script>
 
     <!-- Last INIT - Haupt-Initialisierung (MUSS ZULETZT geladen werden) -->
     <script src="js/script-init.js"></script>
