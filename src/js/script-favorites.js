@@ -26,7 +26,7 @@
     // Configuration
     const CONFIG = {
         selectors: {
-            container: '#favorites-container',
+            container: '#sidebar-favorites',
             list: '.favorites-list',
             folderHeader: '.favorites-folder-header',
             folderList: '.favorites-folder-list',
@@ -61,7 +61,7 @@
 
         // Build HTML structure
         _favoritesContainer.innerHTML = `
-        <div class="favorites-header">
+        <div class="sidebar-header">
         <h3 class="favorites-title">Favoriten</h3>
         <div class="favorites-folder-nav">
         ${renderFolderNavigation(folders)}

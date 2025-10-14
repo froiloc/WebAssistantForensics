@@ -49,7 +49,7 @@ The investigators have little to no knowledge about computers, mobile devices, a
 
 It is the main task of this application to support the investigators with all the information required to complete their assignment. The productivity of the investigators should increase by using the workflow presented, and the quality of their reports should also increase by a lot.
 
-The assigned tasks of the investigators are mainly the analysis of images, videos, and chats. They have to identify the location of these files and their significance within the system under investigation. But this is not for you to worry about. Because we, the both of us, will neither take care about the content of the interactive manual nor the agent. Our task is only to create the framework, the WebAssistedForensics Application.
+The assigned tasks of the investigators are mainly the analysis of images, videos, and chats. They have to identify the location of these files and their significance within the system under investigation. But this is not for you to worry about. Because we, the both of us, will neither take care about the content of the interactive manual nor the agent. Our task is only to create the framework, the WebAssistantForensics Application.
 
 Please take a look around in the repository, and if you have any questions, please let me know.
 
