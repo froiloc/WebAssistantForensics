@@ -151,7 +151,31 @@
 
         <!-- Lesezeichen Sidebar -->
         <div id="sidebar-favorites" class="sidebar-wrapper" data-sidebar="favorites" data-tab="favorites">
-            <!-- Content will be rendered by script-favorites.js -->
+            <!-- Tab Header (immer sichtbar) -->
+            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                <button class="sidebar-tab-button" aria-label="Lesezeichen öffnen/schließen" data-sidebar="favorites">
+                    <span class="sidebar-tab-icon">⭐</span>
+                    <span class="sidebar-tab-text">Lesezeichen</span>
+                </button>
+
+                <!-- Close-Button im Header -->
+                <button class="sidebar-close-btn"
+                        aria-label="Lesezeichen schließen"
+                        data-sidebar="navigation">
+                    ✕
+                </button>
+            </div>
+
+            <div class="sidebar-tab-body">
+                <!-- Body (Content-Bereich) -->
+                <div class="sidebar-body">
+                    <!-- Wird dynamisch von script-favorites.js generiert -->
+                </div>
+
+                <!-- Footer (Footer-Bereich) -->
+                <div class="sidebar-footer">
+                </div>
+            </div>
         </div>
 
         <!-- Verlauf Sidebar -->

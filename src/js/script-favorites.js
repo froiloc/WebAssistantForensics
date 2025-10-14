@@ -26,7 +26,7 @@
     // Configuration
     const CONFIG = {
         selectors: {
-            container: '#sidebar-favorites',
+            container: '#sidebar-favorites .sidebar-tab-body',
             list: '.favorites-list',
             folderHeader: '.favorites-folder-header',
             folderList: '.favorites-folder-list',
@@ -44,8 +44,8 @@
     };
 
     /**
-        * Renders the favorites sidebar content
-        */
+    * Renders the favorites sidebar content
+    */
     function renderFavorites() {
         LOG.debug(MODULE, 'Favorites Manager: Rendering favorites sidebar');
 
@@ -62,13 +62,12 @@
         // Build HTML structure
         _favoritesContainer.innerHTML = `
         <div class="sidebar-header">
-        <h3 class="favorites-title">Favoriten</h3>
-        <div class="favorites-folder-nav">
-        ${renderFolderNavigation(folders)}
-        </div>
+            <div class="favorites-folder-nav">
+                ${renderFolderNavigation(folders)}
+            </div>
         </div>
         <div class="favorites-content">
-        ${favorites.length > 0 ? renderFavoritesList(favorites) : renderEmptyState()}
+            ${favorites.length > 0 ? renderFavoritesList(favorites) : renderEmptyState()}
         </div>
         `;
 
@@ -79,8 +78,8 @@
     }
 
     /**
-        * Renders folder navigation
-        */
+    * Renders folder navigation
+    */
     function renderFolderNavigation(folders) {
         return folders.map(folder => `
         <button class="favorites-folder-tab ${folder.id === _currentFolder ? 'favorites-folder-tab--active' : ''}"
@@ -92,8 +91,8 @@
     }
 
     /**
-        * Renders the favorites list
-        */
+    * Renders the favorites list
+    */
     function renderFavoritesList(favorites) {
         return `
         <ul class="favorites-list" role="list">
@@ -125,8 +124,8 @@
     }
 
     /**
-        * Renders empty state
-        */
+    * Renders empty state
+    */
     function renderEmptyState() {
         return `
         <div class="favorites-empty-state">
@@ -137,8 +136,8 @@
     }
 
     /**
-        * Attaches event listeners to favorites elements
-        */
+    * Attaches event listeners to favorites elements
+    */
     function attachFavoritesEventListeners() {
         // Folder tab clicks
         const folderTabs = _favoritesContainer.querySelectorAll('.favorites-folder-tab');
@@ -169,8 +168,8 @@
     }
 
     /**
-        * Handles folder tab clicks
-        */
+    * Handles folder tab clicks
+    */
     function handleFolderTabClick(event) {
         const folderId = event.currentTarget.getAttribute('data-folder-id');
         LOG.debug(MODULE, `Favorites Manager: Switching to folder: ${folderId}`);
@@ -183,8 +182,8 @@
     }
 
     /**
-        * Handles favorite item clicks (navigation)
-        */
+    * Handles favorite item clicks (navigation)
+    */
     function handleFavoriteClick(event) {
         const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
         LOG.debug(MODULE, `Favorites Manager: Navigating to favorite: ${favoriteId}`);
@@ -206,8 +205,8 @@
     }
 
     /**
-        * Handles edit button clicks
-        */
+    * Handles edit button clicks
+    */
     function handleEditClick(event) {
         const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
         LOG.debug(MODULE, `Favorites Manager: Edit favorite: ${favoriteId}`);
@@ -220,8 +219,8 @@
     }
 
     /**
-        * Handles remove button clicks
-        */
+    * Handles remove button clicks
+    */
     function handleRemoveClick(event) {
         const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
         LOG.debug(MODULE, `Favorites Manager: Remove favorite: ${favoriteId}`);
@@ -238,8 +237,8 @@
     }
 
     /**
-        * Handles keyboard navigation
-        */
+    * Handles keyboard navigation
+    */
     function handleKeyboardNavigation(event) {
         // Implement similar keyboard navigation as navigation sidebar
         if (event.key === 'Enter' || event.key === ' ') {
@@ -252,8 +251,8 @@
     }
 
     /**
-        * Navigates to a section (reusing navigation patterns)
-        */
+    * Navigates to a section (reusing navigation patterns)
+    */
     function navigateToSection(selector, sectionId) {
         LOG.debug(MODULE, `Favorites Manager: Navigating to section: ${sectionId}`);
 
@@ -270,8 +269,8 @@
     }
 
     /**
-        * Formats relative time for display
-        */
+    * Formats relative time for display
+    */
     function formatRelativeTime(isoString) {
         const date = new Date(isoString);
         const now = new Date();
@@ -286,8 +285,8 @@
     }
 
     /**
-        * Escapes HTML to prevent XSS
-        */
+    * Escapes HTML to prevent XSS
+    */
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -295,61 +294,13 @@
     }
 
     /**
-        * Refreshes the favorites display
-        */
+    * Refreshes the favorites display
+    */
     function refresh() {
         if (_isInitialized) {
             renderFavorites();
         }
     }
-
-    // Public API
-    const publicAPI = {
-        /**
-            * Initializes the favorites manager
-            */
-        init() {
-            LOG.debug(MODULE, 'Favorites Manager: init() called');
-
-            if (_isInitialized) {
-                LOG.debug(MODULE, 'Favorites Manager: Already initialized');
-                return true;
-            }
-
-            try {
-                // Get container from SidebarManager
-                _favoritesContainer = document.querySelector(CONFIG.selectors.container);
-
-                if (!_favoritesContainer) {
-                    LOG.error(MODULE, 'Favorites Manager: Favorites container not found');
-                    return false;
-                }
-
-                // Initial render
-                renderFavorites();
-
-                _isInitialized = true;
-                LOG.success(MODULE, 'Favorites Manager initialized successfully');
-                return true;
-
-            } catch (error) {
-                LOG.error(MODULE, 'Favorites Manager: Initialization failed:', error);
-                return false;
-            }
-        },
-
-        /**
-        * Refreshes the favorites display
-        */
-        refresh,
-
-        /**
-        * Returns initialization status
-        */
-        isInitialized() {
-            return _isInitialized;
-        }
-    };
 
     /**
      * Initializes the favorites manager
@@ -364,7 +315,7 @@
 
         try {
             // Get container from the DOM, just like navigation and history do
-            _favoritesContainer = document.getElementById('favorites-container');
+            _favoritesContainer = document.querySelector(CONFIG.selectors.container);
 
             if (!_favoritesContainer) {
                 LOG.error(MODULE, 'Favorites Manager: Favorites container not found');
