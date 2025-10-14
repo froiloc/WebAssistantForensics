@@ -392,7 +392,7 @@
                     LOG.debug(MODULE, `Glossary Manager: Processing ${allMatches.length} raw matches in text node`);
 
                     // Step 1: Filter to keep only longest non-overlapping matches
-                    const filteredMatches = this.filterToLongestNonOverlapping(allMatches);
+                    const filteredMatches = this.filterToLongestNonOverlapping(allMatches, fullText);
 
                     LOG.debug(MODULE, 'Glossary Manager: After filtering:', filteredMatches.map(m =>
                     `${m.matchedText} (${m.start}-${m.end}) for term: ${m.termId}`
@@ -443,61 +443,144 @@
                 * @returns {Array} Filtered matches with no overlaps
                 */
                 // Add this detailed debugging to your filterToLongestNonOverlapping function
-                filterToLongestNonOverlapping(matches) {
+                /**
+                 * Enhanced filtering that combines patterns for the same term before resolving conflicts
+                 */
+                filterToLongestNonOverlapping(matches, fullText) {
                     if (!matches || matches.length === 0) return [];
 
-                    LOG.debug(MODULE, '=== STARTING NUCLEAR FILTERING ===');
-                    LOG.debug(MODULE, 'All matches:', matches.map(m => `${m.matchedText} (${m.start}-${m.end})`));
+                    LOG.debug(MODULE, '=== STARTING TERM-AWARE FILTERING ===');
+                    LOG.debug(MODULE, 'All matches:', matches.map(m => `${m.matchedText} (${m.start}-${m.end}) for ${m.termId}`));
+
+                    // Step 1: Group matches by term ID
+                    const matchesByTerm = {};
+                    matches.forEach(match => {
+                        if (!matchesByTerm[match.termId]) {
+                            matchesByTerm[match.termId] = [];
+                        }
+                        matchesByTerm[match.termId].push(match);
+                    });
+
+                    LOG.debug(MODULE, 'Matches grouped by term:', matchesByTerm);
+
+                    // Step 2: For each term, find the maximum span covered by any combination of its patterns
+                    const optimizedMatches = [];
+
+                    Object.entries(matchesByTerm).forEach(([termId, termMatches]) => {
+                        LOG.debug(MODULE, `Optimizing term: ${termId} with ${termMatches.length} patterns`);
+
+                        if (termMatches.length === 1) {
+                            // Single pattern - just use it as-is
+                            optimizedMatches.push(termMatches[0]);
+                            return;
+                        }
+
+                        // Sort by start position, then by length (longest first for same start)
+                        const sorted = termMatches.sort((a, b) => {
+                            if (a.start !== b.start) return a.start - b.start;
+                            return b.length - a.length;
+                        });
+
+                        LOG.debug(MODULE, `Sorted patterns for ${termId}:`, sorted.map(m => `${m.matchedText} (${m.start}-${m.end})`));
+
+                        // Find the maximum continuous span for this term
+                        let bestMatch = sorted[0];
+                        let currentSpan = { start: sorted[0].start, end: sorted[0].end };
+
+                        for (let i = 1; i < sorted.length; i++) {
+                            const current = sorted[i];
+
+                            // Check if this pattern extends our current span
+                            if (current.start <= currentSpan.end + 1) { // Allow 1 char gap for combined terms
+                                // Extend the span if this pattern goes further
+                                if (current.end > currentSpan.end) {
+                                    currentSpan.end = current.end;
+                                    LOG.debug(MODULE, `Extending span for ${termId}: ${currentSpan.start}-${currentSpan.end}`);
+                                }
+                            } else {
+                                // This pattern doesn't connect to our current span
+                                // For now, we'll keep the longest continuous span
+                                break;
+                            }
+                        }
+
+                        // Create the optimized match for this term
+                        /*
+                        const optimizedMatch = {
+                            termId: termId,
+                            start: currentSpan.start,
+                            end: currentSpan.end,
+                            matchedText: `[${termId} combined span]`, // We'll handle text reconstruction separately
+                            length: currentSpan.end - currentSpan.start + 1,
+                            isCombined: currentSpan.end - currentSpan.start + 1 > bestMatch.length
+                        };
+                        */
+                        const optimizedMatch = {
+                            termId: termId,
+                            start: currentSpan.start,
+                            end: currentSpan.end,
+                            matchedText: fullText.substring(currentSpan.start, currentSpan.end + 1),
+                            length: currentSpan.end - currentSpan.start + 1,
+                            isCombined: true
+                        };
+
+                        optimizedMatches.push(optimizedMatch);
+                        LOG.debug(MODULE, `Term ${termId} optimized: ${currentSpan.start}-${currentSpan.end} (combined: ${optimizedMatch.isCombined})`);
+                    });
+
+                    // Step 3: Now resolve conflicts between different terms
+                    LOG.debug(MODULE, 'Optimized matches before inter-term resolution:', optimizedMatches);
+
+                    const finalMatches = this.resolveInterTermConflicts(optimizedMatches);
+
+                    LOG.debug(MODULE, `=== TERM-AWARE FILTERING COMPLETE: ${matches.length} → ${finalMatches.length} ===`);
+                    return finalMatches;
+                },
+
+                /**
+                * Resolve conflicts between different terms after intra-term optimization
+                */
+                resolveInterTermConflicts(optimizedMatches) {
+                    if (optimizedMatches.length === 0) return [];
 
                     // Sort by start position
-                    const sorted = [...matches].sort((a, b) => a.start - b.start);
+                    const sorted = [...optimizedMatches].sort((a, b) => a.start - b.start);
 
-                    // Group by overlapping regions with STRICT overlap detection
                     const groups = [];
                     let currentGroup = [sorted[0]];
-
-                    LOG.debug(MODULE, `Starting group with: "${sorted[0].matchedText}" (${sorted[0].start}-${sorted[0].end})`);
 
                     for (let i = 1; i < sorted.length; i++) {
                         const current = sorted[i];
                         const lastInGroup = currentGroup[currentGroup.length - 1];
 
-                        LOG.debug(MODULE, `Checking: "${current.matchedText}" (${current.start}-${current.end}) vs last in group: "${lastInGroup.matchedText}" (${lastInGroup.start}-${lastInGroup.end})`);
-
-                        // STRICT OVERLAP DETECTION: Only group if they actually overlap, not just touch
-                        //const hasActualOverlap = current.start < lastInGroup.end;
-                        // SUPER STRICT: Only group if they share at least 1 character of overlap
-                        const hasActualOverlap = current.start <= lastInGroup.end && current.end >= lastInGroup.start;
-
-                        if (hasActualOverlap) {
-                            LOG.debug(MODULE, `→ ACTUAL OVERLAP DETECTED - adding to current group`);
+                        // Check for overlap between DIFFERENT terms
+                        if (current.start < lastInGroup.end) {
+                            LOG.debug(MODULE, `Inter-term conflict: "${current.termId}" (${current.start}-${current.end}) vs "${lastInGroup.termId}" (${lastInGroup.start}-${lastInGroup.end})`);
                             currentGroup.push(current);
                         } else {
-                            LOG.debug(MODULE, `→ NO OVERLAP (or just touching) - starting new group`);
                             groups.push(currentGroup);
                             currentGroup = [current];
                         }
                     }
                     groups.push(currentGroup);
 
-                    LOG.debug(MODULE, `Formed ${groups.length} overlap groups:`, groups.map(g => g.map(m => m.matchedText)));
+                    LOG.debug(MODULE, `Inter-term conflict groups: ${groups.length}`);
 
-                    // From each group, take only the ABSOLUTE longest match by CHARACTER COUNT
+                    // From each conflict group, take only the longest match
                     const filtered = groups.map((group, index) => {
                         const longest = group.reduce((longest, current) => {
-                            // Calculate actual character length from positions
                             const currentLength = current.end - current.start + 1;
                             const longestLength = longest.end - longest.start + 1;
 
-                            LOG.debug(MODULE, `Group ${index}: Comparing "${current.matchedText}" (${currentLength} chars) vs "${longest.matchedText}" (${longestLength} chars)`);
+                            LOG.debug(MODULE, `Conflict group ${index}: Comparing ${current.termId} (${currentLength} chars) vs ${longest.termId} (${longestLength} chars)`);
 
                             return currentLength > longestLength ? current : longest;
                         });
-                        LOG.debug(MODULE, `Group ${index}: FINAL CHOICE "${longest.matchedText}" (${longest.end - longest.start + 1} chars)`);
+
+                        LOG.debug(MODULE, `Conflict group ${index} winner: ${longest.termId}`);
                         return longest;
                     });
 
-                    LOG.debug(MODULE, `=== FILTERING COMPLETE: ${matches.length} → ${filtered.length} ===`);
                     return filtered.sort((a, b) => a.start - b.start);
                 },
 
@@ -511,12 +594,12 @@
                     }
 
                     LOG.debug(MODULE, 'Glossary Manager: Initializing tooltip');
-                    
+
                     _glossaryTooltip = document.createElement('div');
                     _glossaryTooltip.className = CONFIG.tooltipClass;
                     _glossaryTooltip.setAttribute('role', 'tooltip');
                     _glossaryTooltip.setAttribute('aria-hidden', 'true');
-                    
+
                     document.body.appendChild(_glossaryTooltip);
                     LOG.debug(MODULE, 'Glossary Manager: Tooltip created and added to DOM');
                 },
