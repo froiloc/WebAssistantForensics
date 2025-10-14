@@ -25,6 +25,12 @@
     --color-shadow: rgba(0, 0, 0, 0.1);
     --color-shadow-strong: rgba(0, 0, 0, 0.2);
     --color-focus: #ff9900;
+
+    --tooltip-bg: #222222;
+    --tooltip-color: #FFFFFF;
+    --button-bg: #444444;
+    --button-color: #EEEEEE;
+    --button-hover-bg: #666666;
     
     /* Dimensions */
     --top-nav-height: 60px;
@@ -79,7 +85,13 @@
     --color-shadow: rgba(0, 0, 0, 0.3);
     --color-shadow-strong: rgba(0, 0, 0, 0.5);
     --color-focus: #FFB74D;
-}
+
+    --tooltip-bg: #222222;
+    --tooltip-color: #FFFFFF;
+    --button-bg: #444444;
+    --button-color: #EEEEEE;
+    --button-hover-bg: #666666;
+ }
 
 /* Hochkontrast Schwarz-Weiß - WCAG AAA Maximum */
 [data-theme="contrast-high"] {
@@ -102,6 +114,12 @@
     --color-focus: #000000;
     --border-width: 2px;
     --focus-outline-width: 4px;
+
+    --tooltip-bg: #222222;
+    --tooltip-color: #FFFFFF;
+    --button-bg: #444444;
+    --button-color: #EEEEEE;
+    --button-hover-bg: #666666;
 }
 
 /* Hochkontrast Weiß-Schwarz (Invers) - WCAG AAA Maximum */
@@ -125,6 +143,12 @@
     --color-focus: #FFFF00;
     --border-width: 2px;
     --focus-outline-width: 4px;
+
+    --tooltip-bg: #222222;
+    --tooltip-color: #FFFFFF;
+    --button-bg: #444444;
+    --button-color: #EEEEEE;
+    --button-hover-bg: #666666;
 }
 
 /* Body */
@@ -1807,3 +1831,315 @@ body.tips-hidden .sidebar-container {
     opacity: 0;
 }
 */
+
+/* Glossary Tooltip Base Styles */
+.glossary-tooltip {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 1000;
+  min-width: 250px;
+  max-width: 300px;
+  background: var(--tooltip-bg, #333);
+  color: var(--tooltip-color, #fff);
+  border-radius: 6px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+/* Visible state */
+.glossary-tooltip--visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tooltip header */
+.glossary-tooltip__header {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--tooltip-border, #555);
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+/* Tooltip content */
+.glossary-tooltip__content {
+  padding: 12px 16px;
+  line-height: 1.4;
+  font-size: 0.95em;
+}
+
+/* Tooltip footer */
+.glossary-tooltip__footer {
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--tooltip-border, #555);
+  text-align: right;
+}
+
+/* More info button */
+.glossary-tooltip__more {
+  background: var(--button-bg, #007cba);
+  color: var(--button-color, #fff);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.glossary-tooltip__more:hover {
+  background: var(--button-hover-bg, #005a87);
+}
+
+/* Tooltip arrow (optional) */
+.glossary-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 20px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--tooltip-bg, #333) transparent;
+}
+
+
+/* ===== GLOSSARY TERM STYLES ===== */
+
+.glossary-term {
+    /* Text decoration with theme colors */
+    text-decoration: underline dotted var(--color-primary);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+
+    /* Smooth transitions for hover effects */
+    transition: all var(--transition-fast);
+    transition-property: background-color, text-decoration-color, color;
+
+    /* Cursor indication */
+    cursor: pointer;
+
+    /* Maintain text readability */
+    color: inherit;
+    background-color: transparent;
+
+    /* Focus styles for accessibility */
+    outline: none;
+    position: relative;
+}
+
+/* Hover state - subtle background change */
+.glossary-term:hover {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    text-decoration-color: var(--color-surface);
+
+    /* Smooth color transition */
+    transition-duration: var(--transition-medium);
+}
+
+/* Focus state for keyboard navigation */
+.glossary-term:focus {
+    outline: var(--focus-outline-width) solid var(--color-focus);
+    outline-offset: 2px;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    text-decoration-color: var(--color-surface);
+}
+
+/* Active state when clicked */
+.glossary-term:active {
+    background-color: var(--color-primary-hover);
+    transform: translateY(1px);
+    transition-duration: 0.1s;
+}
+
+/* Dark theme adjustments */
+/*
+[data-theme="dark"] .glossary-term {
+    text-decoration-color: var(--color-primary);
+}
+
+[data-theme="dark"] .glossary-term:hover {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    text-decoration-color: var(--color-surface);
+}
+
+[data-theme="dark"] .glossary-term:focus {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+*/
+/* Optional: Add a subtle scale effect on hover for more interactivity */
+.glossary-term:hover {
+    transform: scale(1.02);
+}
+
+.glossary-term:active {
+    transform: scale(0.98);
+}
+
+/* Ensure proper spacing and line height */
+.glossary-term {
+    padding: 1px 2px;
+    border-radius: 3px;
+    line-height: inherit;
+}
+
+/* Print styles - remove interactive elements for printing */
+@media print {
+    .glossary-term {
+        text-decoration: underline dotted #000;
+        background-color: transparent !important;
+        color: inherit !important;
+    }
+
+    .glossary-term:hover,
+    .glossary-term:focus {
+        background-color: transparent !important;
+        color: inherit !important;
+    }
+}
+
+/* ===== GLOSSARY MODAL STYLES ===== */
+
+.glossary-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: modalFadeIn var(--modal-transition);
+}
+
+.glossary-modal {
+    background: var(--color-surface-elevated);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px var(--color-shadow-strong);
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideIn var(--modal-transition);
+}
+
+.glossary-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.glossary-modal__header h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 1.5em;
+}
+
+.glossary-modal__close {
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.glossary-modal__close:hover {
+    background: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.glossary-modal__content {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.glossary-modal__definition,
+.glossary-modal__extended,
+.glossary-modal__examples {
+    margin-bottom: 24px;
+}
+
+.glossary-modal__content h3 {
+    color: var(--color-primary);
+    margin: 0 0 12px 0;
+    font-size: 1.2em;
+}
+
+.glossary-modal__content p {
+    margin: 0 0 16px 0;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+}
+
+.glossary-modal__footer {
+    padding: 0 24px 20px;
+    text-align: right;
+}
+
+.glossary-modal__close-btn {
+    background: var(--button-bg);
+    color: var(--button-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.glossary-modal__close-btn:hover {
+    background: var(--button-hover-bg);
+}
+
+/* Animations */
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .glossary-modal-overlay {
+        padding: 10px;
+    }
+
+    .glossary-modal {
+        max-height: 90vh;
+    }
+
+    .glossary-modal__header,
+    .glossary-modal__content,
+    .glossary-modal__footer {
+        padding: 16px;
+    }
+}

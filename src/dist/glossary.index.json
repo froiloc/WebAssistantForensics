@@ -117,6 +117,12 @@
       "original": "Magnet AXIOM"
     },
     {
+      "type": "white",
+      "pattern": "\\bMagnet\\ Forensics\\ AXIOM\\b",
+      "term_id": "axiom_examine",
+      "original": "Magnet Forensics AXIOM"
+    },
+    {
       "type": "black",
       "pattern": "AXIOM\\s*[0-9]",
       "term_id": "axiom_examine",
@@ -361,6 +367,6 @@
     "version": "1.0.0",
     "term_count": 10,
     "build_time": null,
-    "hash": "c6f093e0131aab40ab418e0af77f0645"
+    "hash": "6d3e8a8742d7bcaba6cb8a663bb3b6ae"
   }
 }

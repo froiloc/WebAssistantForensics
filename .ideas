@@ -14,3 +14,4 @@ Context:
   45:   und gibt den Fallnamen ein.</p>
        ^^^^^^ Missing 'lang' attribute
 - Tonalität für den Agent soll motivierend-ermunternd sein.
+- Hamburger Menüpunkt zu Stöbern im Glossar. Modal wie Wörterbuch. Suche nach Begriff. Maske. Vorschlag bei Eingabe. Levenshtein Distanz.

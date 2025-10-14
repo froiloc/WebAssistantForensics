@@ -113,6 +113,60 @@
                 },
 
                 /**
+                * Findet alle Vorkommen eines Begriffs im Text mit genauer Position
+                *
+                * @param {string} text - Zu durchsuchender Text
+                * @param {Array} patterns - Kompilierte Patterns
+                * @returns {Array|null} Array von Matches mit Positionen oder null
+                */
+                findAllTermMatches(text, patterns) {
+                    if (!text || !patterns) {
+                        LOG.debug(MODULE, 'Glossary Manager: No text or patterns provided for detailed matching');
+                        return null;
+                    }
+
+                    LOG.debug(MODULE, `Glossary Manager: Detailed matching in text: "${text.substring(0, 50)}..."`);
+
+                    const whitePatterns = patterns.filter(p => p.type === 'white');
+                    const blackPatterns = patterns.filter(p => p.type === 'black');
+
+                    const matches = [];
+
+                    for (const pattern of whitePatterns) {
+                        const regex = new RegExp(pattern.pattern, 'gi');
+                        let match;
+
+                        while ((match = regex.exec(text)) !== null) {
+                            const matchedText = match[0];
+
+                            // Prüfen ob black pattern den Fund ausschließen
+                            const shouldExclude = blackPatterns.some(blackPattern => {
+                                const blackRegex = new RegExp(blackPattern.pattern, 'i');
+                                return blackRegex.test(matchedText);
+                            });
+
+                            if (!shouldExclude) {
+                                matches.push({
+                                    termId: pattern.term_id,
+                                    matchedText: matchedText,
+                                    start: match.index,
+                                    end: match.index + matchedText.length - 1
+                                });
+                                LOG.debug(MODULE, `Glossary Manager: Found term "${pattern.term_id}" at position ${match.index}`);
+                            }
+
+                            // Avoid infinite loops with zero-length matches
+                            if (match.index === regex.lastIndex) {
+                                regex.lastIndex++;
+                            }
+                        }
+                    }
+
+                    LOG.debug(MODULE, `Glossary Manager: Found ${matches.length} detailed matches`);
+                    return matches.length > 0 ? matches : null;
+                },
+
+                /**
                  * Findet passende Begriffe im Text
                  * 
                  * @param {string} text - Zu durchsuchender Text
@@ -286,47 +340,165 @@
                 },
 
                 /**
-                 * Ersetzt Text durch Glossar-Highlights
-                 * 
-                 * @param {Object} textNode - TextNode mit parent Element
-                 * @param {string} termId - Term ID
-                 * @param {string} matchedText - Gefundener Text
-                 */
-                replaceWithHighlight(textNode, termId, matchedText) {
+                * Enhanced version that processes ALL terms in one pass
+                */
+                replaceWithHighlight(textNode, allMatches) {
                     const { node, element } = textNode;
                     const fullText = node.textContent;
-                    const matchIndex = fullText.indexOf(matchedText);
 
-                    if (matchIndex === -1) {
-                        LOG.warn(MODULE, `Glossary Manager: Could not find match text in node`);
-                        return;
-                    }
+                    LOG.debug(MODULE, `Glossary Manager: Processing ${allMatches.length} different terms in text node`);
 
-                    LOG.debug(MODULE, `Glossary Manager: Replacing text with highlight for term: ${termId}`);
-
-                    // Text vor dem Match
-                    const beforeText = fullText.substring(0, matchIndex);
-                    
-                    // Text nach dem Match
-                    const afterText = fullText.substring(matchIndex + matchedText.length);
-
-                    // Neuen DOM-Baum erstellen
+                    // Sort matches by start position to process in order
+                    const sortedMatches = allMatches.sort((a, b) => a.start - b.start);
                     const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
 
-                    if (beforeText) {
-                        fragment.appendChild(document.createTextNode(beforeText));
+                    // Process all matches from all terms in order
+                    sortedMatches.forEach(match => {
+                        // Add text before this match
+                        if (match.start > lastIndex) {
+                            const beforeText = fullText.substring(lastIndex, match.start);
+                            fragment.appendChild(document.createTextNode(beforeText));
+                        }
+
+                        // Create highlight for this specific term
+                        const highlight = this.createHighlight(match.termId, match.matchedText);
+                        fragment.appendChild(highlight);
+
+                        lastIndex = match.end + 1;
+                    });
+
+                    // Add remaining text after the last match
+                    if (lastIndex < fullText.length) {
+                        fragment.appendChild(document.createTextNode(fullText.substring(lastIndex)));
                     }
 
-                    const highlight = this.createHighlight(termId, matchedText);
-                    fragment.appendChild(highlight);
-
-                    if (afterText) {
-                        fragment.appendChild(document.createTextNode(afterText));
-                    }
-
-                    // Original Node ersetzen
+                    // Replace the original text node
                     element.replaceChild(fragment, node);
-                    LOG.debug(MODULE, 'Glossary Manager: Text successfully replaced with highlight');
+                    LOG.debug(MODULE, `Glossary Manager: Successfully processed ${sortedMatches.length} terms from ${new Set(sortedMatches.map(m => m.termId)).size} unique terms`);
+                },
+
+                /**
+                * Processes ALL glossary terms in a text node in a single pass
+                * Filters to keep only longest non-overlapping matches
+                *
+                * @param {Object} textNode - TextNode with parent element
+                * @param {Array} allMatches - All term matches with positions
+                */
+                replaceWithHighlightMulti(textNode, allMatches) {
+                    const { node, element } = textNode;
+                    const fullText = node.textContent;
+
+                    LOG.debug(MODULE, `Glossary Manager: Processing ${allMatches.length} raw matches in text node`);
+
+                    // Step 1: Filter to keep only longest non-overlapping matches
+                    const filteredMatches = this.filterToLongestNonOverlapping(allMatches);
+
+                    LOG.debug(MODULE, 'Glossary Manager: After filtering:', filteredMatches.map(m =>
+                    `${m.matchedText} (${m.start}-${m.end}) for term: ${m.termId}`
+                    ));
+
+                    LOG.debug(MODULE, `Glossary Manager: Filtered to ${filteredMatches.length} non-overlapping matches`);
+
+                    // Step 2: Sort matches by start position to process in order
+                    const sortedMatches = filteredMatches.sort((a, b) => a.start - b.start);
+                    const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
+
+                    // Step 3: Process all filtered matches in order
+                    sortedMatches.forEach(match => {
+                        // Add text before this match
+                        if (match.start > lastIndex) {
+                            const beforeText = fullText.substring(lastIndex, match.start);
+                            fragment.appendChild(document.createTextNode(beforeText));
+                        }
+
+                        // Create highlight for this specific term
+                        const highlight = this.createHighlight(match.termId, match.matchedText);
+                        fragment.appendChild(highlight);
+
+                        lastIndex = match.end + 1;
+                    });
+
+                    // Add remaining text after the last match
+                    if (lastIndex < fullText.length) {
+                        fragment.appendChild(document.createTextNode(fullText.substring(lastIndex)));
+                    }
+
+                    // Replace the original text node
+                    element.replaceChild(fragment, node);
+
+                    const uniqueTermCount = new Set(sortedMatches.map(m => m.termId)).size;
+                    LOG.debug(MODULE, 'Glossary Manager: Raw matches found:', allMatches.map(m =>
+                    `${m.matchedText} (${m.start}-${m.end}) for term: ${m.termId}`
+                    ));
+                    LOG.debug(MODULE, `Glossary Manager: Successfully processed ${sortedMatches.length} terms from ${uniqueTermCount} unique terms`);
+                },
+
+                /**
+                * Filters matches to keep only the longest non-overlapping ones
+                * FIXED VERSION - properly handles contained matches
+                *
+                * @param {Array} matches - All raw matches
+                * @returns {Array} Filtered matches with no overlaps
+                */
+                // Add this detailed debugging to your filterToLongestNonOverlapping function
+                filterToLongestNonOverlapping(matches) {
+                    if (!matches || matches.length === 0) return [];
+
+                    LOG.debug(MODULE, '=== STARTING NUCLEAR FILTERING ===');
+                    LOG.debug(MODULE, 'All matches:', matches.map(m => `${m.matchedText} (${m.start}-${m.end})`));
+
+                    // Sort by start position
+                    const sorted = [...matches].sort((a, b) => a.start - b.start);
+
+                    // Group by overlapping regions with STRICT overlap detection
+                    const groups = [];
+                    let currentGroup = [sorted[0]];
+
+                    LOG.debug(MODULE, `Starting group with: "${sorted[0].matchedText}" (${sorted[0].start}-${sorted[0].end})`);
+
+                    for (let i = 1; i < sorted.length; i++) {
+                        const current = sorted[i];
+                        const lastInGroup = currentGroup[currentGroup.length - 1];
+
+                        LOG.debug(MODULE, `Checking: "${current.matchedText}" (${current.start}-${current.end}) vs last in group: "${lastInGroup.matchedText}" (${lastInGroup.start}-${lastInGroup.end})`);
+
+                        // STRICT OVERLAP DETECTION: Only group if they actually overlap, not just touch
+                        //const hasActualOverlap = current.start < lastInGroup.end;
+                        // SUPER STRICT: Only group if they share at least 1 character of overlap
+                        const hasActualOverlap = current.start <= lastInGroup.end && current.end >= lastInGroup.start;
+
+                        if (hasActualOverlap) {
+                            LOG.debug(MODULE, `→ ACTUAL OVERLAP DETECTED - adding to current group`);
+                            currentGroup.push(current);
+                        } else {
+                            LOG.debug(MODULE, `→ NO OVERLAP (or just touching) - starting new group`);
+                            groups.push(currentGroup);
+                            currentGroup = [current];
+                        }
+                    }
+                    groups.push(currentGroup);
+
+                    LOG.debug(MODULE, `Formed ${groups.length} overlap groups:`, groups.map(g => g.map(m => m.matchedText)));
+
+                    // From each group, take only the ABSOLUTE longest match by CHARACTER COUNT
+                    const filtered = groups.map((group, index) => {
+                        const longest = group.reduce((longest, current) => {
+                            // Calculate actual character length from positions
+                            const currentLength = current.end - current.start + 1;
+                            const longestLength = longest.end - longest.start + 1;
+
+                            LOG.debug(MODULE, `Group ${index}: Comparing "${current.matchedText}" (${currentLength} chars) vs "${longest.matchedText}" (${longestLength} chars)`);
+
+                            return currentLength > longestLength ? current : longest;
+                        });
+                        LOG.debug(MODULE, `Group ${index}: FINAL CHOICE "${longest.matchedText}" (${longest.end - longest.start + 1} chars)`);
+                        return longest;
+                    });
+
+                    LOG.debug(MODULE, `=== FILTERING COMPLETE: ${matches.length} → ${filtered.length} ===`);
+                    return filtered.sort((a, b) => a.start - b.start);
                 },
 
                 /**
@@ -428,11 +600,107 @@
                 }
             };
 
-            // Private Hilfsfunktionen
+            // Replace the stub function with this implementation
             function _showDetailedView(termId) {
                 LOG.debug(MODULE, `Glossary Manager: Showing detailed view for term: ${termId}`);
-                // Hier würde die detaillierte Ansicht implementiert werden
-                // Könnte ein Modal, Sidebar oder erweiterter Tooltip sein
+
+                // Get term details
+                const termIndex = _searchIndex.lookup[termId];
+                if (termIndex === undefined) {
+                    LOG.warn(MODULE, `Glossary Manager: Term ID not found for detailed view: ${termId}`);
+                    return;
+                }
+
+                const term = _fullGlossary[termIndex];
+                if (!term || !term.extendedExplanation) {
+                    LOG.warn(MODULE, `Glossary Manager: No extended explanation available for term: ${termId}`);
+                    return;
+                }
+
+                const mediaSection = term.media.path.length > 0 ? `
+                    <div class="glossary-modal__media">
+                    <figure>
+                    <img src="${term.media.path}"
+                    alt="${term.media.alt}"
+                    class="glossary-modal__image"
+                    onerror="this.style.display='none'; console.warn('Failed to load media for term: ${term.term}')">
+                    <figcaption>${term.media.caption}</figcaption>
+                    </figure>
+                    </div>
+                    ` : '';
+
+                // Hide the tooltip first
+                DOMManager.hideTooltip();
+
+                // Create modal overlay
+                const modalOverlay = document.createElement('div');
+                modalOverlay.className = 'glossary-modal-overlay';
+                modalOverlay.setAttribute('role', 'dialog');
+                modalOverlay.setAttribute('aria-labelledby', 'glossary-modal-title');
+                modalOverlay.setAttribute('aria-modal', 'true');
+
+                modalOverlay.innerHTML = `
+                <div class="glossary-modal">
+                <div class="glossary-modal__header">
+                <h2 id="glossary-modal-title">${term.term}</h2>
+                <button class="glossary-modal__close" aria-label="Modal schließen">
+                &times;
+                </button>
+                </div>
+                <div class="glossary-modal__content">
+                <div class="glossary-modal__definition">
+                <h3>Definition</h3>
+                <p>${term.shortDefinition}</p>
+                </div>
+                ${mediaSection}
+                <div class="glossary-modal__extended">
+                <h3>Ausführliche Erklärung</h3>
+                <div>${term.extendedExplanation}</div>
+                </div>
+                ${term.usageExamples ? `
+                    <div class="glossary-modal__examples">
+                    <h3>Anwendungsbeispiele</h3>
+                    <div>${term.usageExamples}</div>
+                    </div>
+                    ` : ''}
+                    </div>
+                    <div class="glossary-modal__footer">
+                    <button class="glossary-modal__close-btn">Schließen</button>
+                    </div>
+                    </div>
+                    `;
+
+                    // Add to DOM
+                    document.body.appendChild(modalOverlay);
+
+                    // Event handlers
+                    const closeModal = () => {
+                        modalOverlay.remove();
+                        document.removeEventListener('keydown', handleEscape);
+                        LOG.debug(MODULE, 'Glossary Manager: Modal closed');
+                    };
+
+                    const handleEscape = (event) => {
+                        if (event.key === 'Escape') {
+                            closeModal();
+                        }
+                    };
+
+                    // Add event listeners
+                    modalOverlay.querySelector('.glossary-modal__close').addEventListener('click', closeModal);
+                    modalOverlay.querySelector('.glossary-modal__close-btn').addEventListener('click', closeModal);
+                    modalOverlay.addEventListener('click', (event) => {
+                        if (event.target === modalOverlay) {
+                            closeModal();
+                        }
+                    });
+
+                    document.addEventListener('keydown', handleEscape);
+
+                    // Focus management
+                    modalOverlay.querySelector('.glossary-modal__close').focus();
+
+                    LOG.debug(MODULE, 'Glossary Manager: Detailed modal opened');
             }
 
             function _handleTermClick(event) {
@@ -489,15 +757,23 @@
                 const textNodes = ViewportManager.findTextNodesInRange(viewportRange);
 
                 let processedCount = 0;
+                let totalTermsFound = 0;
+
                 textNodes.forEach(textNode => {
-                    const termId = PatternCompiler.findMatchingTerm(textNode.text, _patternCompiler);
-                    if (termId) {
-                        DOMManager.replaceWithHighlight(textNode, termId, textNode.text);
+                    // Find ALL term matches in this text node
+                    const allMatches = PatternCompiler.findAllTermMatches(textNode.text, _patternCompiler);
+
+                    if (allMatches && allMatches.length > 0) {
+                        // Process ALL matches in a single pass
+                        DOMManager.replaceWithHighlightMulti(textNode, allMatches);
                         processedCount++;
+                        totalTermsFound += allMatches.length;
+
+                        LOG.debug(MODULE, `Glossary Manager: Processed ${allMatches.length} terms in one text node`);
                     }
                 });
 
-                LOG.debug(MODULE, `Glossary Manager: Viewport processing completed. Processed ${processedCount} text nodes with matches`);
+                LOG.debug(MODULE, `Glossary Manager: Viewport processing completed. Processed ${processedCount} text nodes with ${totalTermsFound} total terms`);
             }
 
             // Public API - Direkt als window.GlossaryManager
@@ -553,9 +829,16 @@
                         // Event Listener
                         document.addEventListener('click', _handleDocumentClick);
                         window.addEventListener('scroll', _handleScroll, { passive: true });
+                        window.addEventListener('resize', _handleScroll, { passive: true });
 
                         // Erste Verarbeitung
                         _processViewportContent();
+
+                        // In your init() method, replace the simple _processViewportContent() call with:
+                        setTimeout(() => {
+                            LOG.debug(MODULE, 'Glossary Manager: Initial viewport processing');
+                            _processViewportContent();
+                        }, 100);
 
                         _isInitialized = true;
                         LOG.success(MODULE, 'Glossary Manager erfolgreich initialisiert');

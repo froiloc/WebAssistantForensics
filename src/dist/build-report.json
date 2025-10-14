@@ -12,9 +12,9 @@
     "terms_with_extended": 10,
     "terms_with_related": 8,
     "categories_used": [
-      "process",
+      "technical",
       "tool-specific",
-      "technical"
+      "process"
     ],
     "media_coverage": "80.0%",
     "extended_coverage": "100.0%"
@@ -30,8 +30,8 @@
     }
   },
   "index_info": {
-    "total_patterns": 41,
-    "white_patterns": 29,
+    "total_patterns": 42,
+    "white_patterns": 30,
     "black_patterns": 12,
     "unique_terms_indexed": 10
   }

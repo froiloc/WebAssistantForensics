@@ -6,7 +6,8 @@
     "whitePatterns": [
       "AXIOM Examine",
       "AXIOM",
-      "Magnet AXIOM"
+      "Magnet AXIOM",
+      "Magnet Forensics AXIOM"
     ],
     "blackPatterns": [
       "AXIOM\\s*[0-9]",
