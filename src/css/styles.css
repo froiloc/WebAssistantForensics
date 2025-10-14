@@ -2255,8 +2255,6 @@ body.tips-hidden .sidebar-container {
 
 /* Favorites sidebar */
 #sidebar-favorites {
-    padding: 0;
-    height: 100%;
     display: flex;
     flex-direction: column;
 }

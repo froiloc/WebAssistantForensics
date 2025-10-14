@@ -186,23 +186,60 @@
         }
     }
 
+    function getSidebarRotationOrder() {
+        const sidebarContainer = document.getElementById('sidebar-container');
+        if (!sidebarContainer) {
+            LOG.warn(MODULE, 'Sidebar container not found');
+            return ['navigation', 'favorites', 'history']; // fallback
+        }
+
+        const sidebarWrappers = sidebarContainer.querySelectorAll('.sidebar-wrapper');
+        const order = Array.from(sidebarWrappers).map(wrapper =>
+            wrapper.getAttribute('data-sidebar')
+        ).filter(sidebarId => sidebarId); // Remove any null/undefined values
+
+        LOG.debug(MODULE, 'Detected sidebar order from HTML:', order);
+        return order;
+    }
+
     function activateNextSidebar() {
         // StateManager für Lesezugriffe verwenden
-        const sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
         const activeSidebarTab = window.StateManager.get('ui.activeSidebarTab');
+
+        // 1. Define a fixed, logical rotation order
+        const sidebarRotationOrder = getSidebarRotationOrder();
+
+        // 2. Get the list of actually open sidebars from StateManager
+        const sidebarsOpen = window.StateManager.get('ui.sidebarsOpen') || [];
 
         LOG.debug(MODULE, `🔍 activateNextSidebar called:`);
         LOG.debug(MODULE, `  - sidebarsOpen: [${sidebarsOpen.join(', ')}] (length: ${sidebarsOpen.length})`);
+        LOG.debug(MODULE, `  - All sidebars in rotation: [${sidebarRotationOrder.join(', ')}]`);
         LOG.debug(MODULE, `  - activeSidebarTab: ${activeSidebarTab}`);
+
+        // 3. Filter the fixed order to only include sidebars that are currently open
+        const availableSidebars = sidebarRotationOrder.filter(sidebarId =>
+            sidebarsOpen.includes(sidebarId)
+        );
 
         if (sidebarsOpen.length <= 1) {
             LOG.debug(MODULE, `❌ Cannot switch: only ${sidebarsOpen.length} sidebar(s) open`);
             return;
         }
 
-        const currentIndex = sidebarsOpen.indexOf(activeSidebarTab);
+        // 4. Find the current active sidebar in the filtered, ordered list
+        const currentIndex = availableSidebars.indexOf(activeSidebarTab);
+        if (currentIndex === -1) {
+            LOG.warn(MODULE, `⚠️ Active sidebar not in available list. Defaulting to first.`);
+            activateSidebar(availableSidebars[0]);
+            return;
+        }
+
+        // 5. Calculate the next sidebar in the ordered list
         const nextIndex = (currentIndex + 1) % sidebarsOpen.length;
-        const nextSidebar = sidebarsOpen[nextIndex];
+        const nextSidebar = availableSidebars[nextIndex];
+
+        LOG.debug(MODULE, `sidebar info: sidebarsOpen: ${sidebarsOpen}, activeSidebarTab: ${activeSidebarTab}, currentIndex: ${currentIndex}, nextIndex: ${nextIndex}, nextSidebar ${nextSidebar}`);
 
         activateSidebar(nextSidebar);
         LOG(MODULE, `✓ Switched to next sidebar: ${nextSidebar}`);

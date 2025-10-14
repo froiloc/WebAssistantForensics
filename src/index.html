@@ -161,12 +161,19 @@
                 <!-- Close-Button im Header -->
                 <button class="sidebar-close-btn"
                         aria-label="Lesezeichen schließen"
-                        data-sidebar="navigation">
+                        data-sidebar="favorites">
                     ✕
                 </button>
             </div>
 
             <div class="sidebar-tab-body">
+                <!-- Subheader (nur bei aktiver Sidebar) -->
+                <div class="sidebar-subheader">
+                    <span style="font-size: 0.9em; color: var(--color-text-secondary);">
+                        Abschnitte
+                    </span>
+                </div>
+
                 <!-- Body (Content-Bereich) -->
                 <div class="sidebar-body">
                     <!-- Wird dynamisch von script-favorites.js generiert -->

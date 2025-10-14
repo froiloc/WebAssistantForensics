@@ -26,7 +26,7 @@
     // Configuration
     const CONFIG = {
         selectors: {
-            container: '#sidebar-favorites .sidebar-tab-body',
+            container: '#sidebar-favorites .sidebar-tab-body .sidebar-body',
             list: '.favorites-list',
             folderHeader: '.favorites-folder-header',
             folderList: '.favorites-folder-list',

@@ -137,6 +137,7 @@
         // Menu-Items
         const showHistoryBtn = document.getElementById('show-history-btn');
         const toggleNavBtn = document.getElementById('toggle-nav-sidebar-btn');
+        const toggleFavBtn = document.getElementById('toggle-favorites-sidebar-btn');
         const toggleTipsBtn = document.getElementById('toggle-tips-footer-btn');
 
         LOG.debug(MODULE, 'Menu elements:', {
@@ -144,6 +145,7 @@
             menuDropdown: !!menuDropdown,
             showHistoryBtn: !!showHistoryBtn,
             toggleNavBtn: !!toggleNavBtn,
+            toggleFavBtn: !!toggleFavBtn,
             toggleTipsBtn: !!toggleTipsBtn
         });
 
@@ -167,6 +169,16 @@
             toggleNavBtn.addEventListener('click', () => {
                 if (window.SidebarManager) {
                     window.SidebarManager.toggleSidebar('navigation');
+                }
+                closeMenu();
+            });
+        }
+
+        // Toggle Favorites Sidebar
+        if (toggleFavBtn) {
+            toggleFavBtn.addEventListener('click', () => {
+                if (window.SidebarManager) {
+                    window.SidebarManager.toggleSidebar('favorites');
                 }
                 closeMenu();
             });
