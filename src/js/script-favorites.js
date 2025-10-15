@@ -25,30 +25,45 @@
     let unsubscribeFromHistory = null;
 
     // Configuration
+    // Configuration
     const CONFIG = {
         selectors: {
-            header: '#sidebar-favorites .sidebar-tab-body .sidebar-subheader',
-            body: '#sidebar-favorites .sidebar-tab-body .sidebar-body',
-            footer: '#sidebar-favorites .sidebar-tab-body .sidebar-footer',
-            list: '#sidebar-favorites .favorites-list',
-            folderHeader: '#sidebar-favorites .favorites-folder-header',
-            folderList: '#sidebar-favorites .favorites-folder-list',
-            emptyState: '#sidebar-favorites .favorites-empty-state',
-            favoritesFolderTab: '#sidebar-favorites .favorites-folder-tab',
-            favoriteActionEdit: '#sidebar-favorites .favorite-action--edit',
-            favoriteLink: '#sidebar-favorites .favorite-link',
-            favoriteActionRemove: '#sidebar-favorites .favorite-action--remove'
+            sidebar: '#sidebar-favorites',
+            header: '#sidebar-favorites .sidebar-subheader',
+            body: '#sidebar-favorites .sidebar-body',
+            footer: '#sidebar-favorites .sidebar-footer',
+            favoritesList: '#favorites-list',
+            folderNav: '#favorites-folder-nav',
+            emptyState: '#favorites-empty-state',
+            folderTabs: '.favorites-folder-tab',
+            favoriteItems: '.favorite-item',
+            favoriteLinks: '.favorite-link',
+            favoriteRemoveBtns: '.favorite-remove-btn'
         },
         classes: {
+            active: 'active',
+            hidden: 'hidden',
             favoriteItem: 'favorite-item',
             favoriteLink: 'favorite-link',
-            favoriteMeta: 'favorite-meta',
-            favoriteActions: 'favorite-actions',
-            favoritesFolderTab: 'favorites-folder-tab',
-            folderItem: 'favorite-folder-item',
-            folderName: 'favorite-folder-name',
-            activeFolder: 'favorite-folder--active'
-        }
+            favoriteActive: 'favorite--active',
+            folderActive: 'favorites-folder-tab--active'
+        },
+        templates: {
+            favoriteItem: (favorite) => `
+                <li class="favorite-item" data-section="${favorite.sectionId}" data-favorite-id="${favorite.id}">
+                <button class="favorite-link" data-section="${favorite.sectionId}">
+                <span class="favorite-item-title">${favorite.sectionName}</span>
+                <span class="favorite-item-meta">
+                <span class="favorite-item-path">${favorite.sectionPath}</span>
+                <span class="favorite-item-access">• ${favorite.accessCount || 0} Zugriffe</span>
+                </span>
+                </button>
+                <button class="favorite-remove-btn" aria-label="Favorit entfernen" data-favorite-id="${favorite.id}">
+                🗑️
+                </button>
+                </li>
+                `
+         }
     };
 
     // ============================================================
@@ -56,49 +71,45 @@
     // ============================================================
 
     function renderFavoritesList(folderId = 'default') {
-        const sidebarBody = _favoritesContainer;
-        if (!sidebarBody) {
-            LOG.error(MODULE, 'Favorites sidebar body not found');
-            return;
-        }
-
         const favorites = window.StateManager.get('favorites.items') || [];
         const folderFavorites = favorites.filter(fav => fav.folderId === folderId);
 
+        const emptyState = document.querySelector(CONFIG.selectors.emptyState);
+        const favoritesList = document.querySelector(CONFIG.selectors.favoritesList);
+
         if (folderFavorites.length === 0) {
-            sidebarBody.innerHTML = `
-            <div class="favorites-empty-state">
-            <p class="favorites-empty-message">Noch keine Favoriten</p>
-            <p class="favorites-empty-hint">Fügen Sie Favoriten hinzu, indem Sie auf das Stern-Symbol ★ in der Navigation klicken.</p>
-            </div>
-            `;
+            // Show empty state, hide list
+            emptyState.classList.remove(CONFIG.classes.hidden);
+            favoritesList.classList.add(CONFIG.classes.hidden);
             return;
         }
 
-        // Render favorites list following the navigation pattern
-        sidebarBody.innerHTML = `
-        <ul class="favorites-list" role="list">
-        ${folderFavorites.map(favorite => `
-            <li class="favorite-item" data-section="${favorite.sectionId}" data-favorite-id="${favorite.id}" role="listitem">
-            <button class="favorite-link" data-section="${favorite.sectionId}">
-            <span class="favorite-item-icon">⭐</span>
-            <span class="favorite-item-content">
-            <span class="favorite-item-title">${getSectionDisplayName(favorite.sectionId)}</span>
-            <span class="favorite-item-meta">
-            <span class="favorite-item-path">${favorite.sectionPath || favorite.sectionId}</span>
-            <span class="favorite-item-access">• ${favorite.accessCount || 0} Zugriffe</span>
-            </span>
-            </span>
-            </button>
-            <button class="favorite-remove-btn" aria-label="Favorit entfernen" data-favorite-id="${favorite.id}">
-            🗑️
-            </button>
-            </li>
-            `).join('')}
-            </ul>
-            `;
+        // Hide empty state, show list
+        emptyState.classList.add(CONFIG.classes.hidden);
+        favoritesList.classList.remove(CONFIG.classes.hidden);
 
-            attachFavoritesEventListeners();
+        // Render favorites into the pre-existing list
+        favoritesList.innerHTML = folderFavorites.map(favorite =>
+        CONFIG.templates.favoriteItem(favorite)
+        ).join('');
+
+        attachFavoritesEventListeners();
+    }
+
+    function toggleElementVisibility(selector, isVisible) {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.classList.toggle(CONFIG.classes.hidden, !isVisible);
+        }
+    }
+
+    function updateFolderTab(folderId) {
+        // Update active states on folder tabs
+        document.querySelectorAll(CONFIG.selectors.folderTabs).forEach(tab => {
+            const isActive = tab.dataset.folderId === folderId;
+            tab.classList.toggle(CONFIG.classes.folderActive, isActive);
+            tab.setAttribute('aria-selected', isActive.toString());
+        });
     }
 
     // ============================================================
@@ -169,7 +180,7 @@
 
     function attachFavoritesEventListeners() {
         // Favorite item click handlers - using SectionManagement
-        _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink).forEach(link => {
+        _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteLink).forEach(link => {
             link.addEventListener('click', (e) => {
                 const sectionId = e.currentTarget.dataset.section;
 
@@ -187,7 +198,7 @@
         });
 
         // Remove button handlers
-        _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink).forEach(btn => {
+        _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteLink).forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent triggering the favorite-link click
                 const favoriteId = e.currentTarget.dataset.favoriteId;
@@ -416,25 +427,25 @@
     */
     function attachFavoritesEventListeners() {
         // Folder tab clicks
-        const folderTabs = _favoritesContainer.querySelectorAll(CONFIG.selector.favoritesFolderTab);
+        const folderTabs = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoritesFolderTab);
         folderTabs.forEach(tab => {
             tab.addEventListener('click', handleFolderTabClick);
         });
 
         // Favorite link clicks
-        const favoriteLinks = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink);
+        const favoriteLinks = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteLink);
         favoriteLinks.forEach(link => {
             link.addEventListener('click', handleFavoriteClick);
         });
 
         // Edit button clicks
-        const editButtons = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteActionEdit);
+        const editButtons = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteActionEdit);
         editButtons.forEach(button => {
             button.addEventListener('click', handleEditClick);
         });
 
         // Remove button clicks
-        const removeButtons = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteActionRemove);
+        const removeButtons = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteActionRemove);
         removeButtons.forEach(button => {
             button.addEventListener('click', handleRemoveClick);
         });

@@ -157,30 +157,43 @@
                     <span class="sidebar-tab-icon">⭐</span>
                     <span class="sidebar-tab-text">Lesezeichen</span>
                 </button>
-
-                <!-- Close-Button im Header -->
-                <button class="sidebar-close-btn"
-                        aria-label="Lesezeichen schließen"
-                        data-sidebar="favorites">
-                    ✕
-                </button>
+                <button class="sidebar-close-btn" aria-label="Lesezeichen schließen" data-sidebar="favorites">✕</button>
             </div>
 
             <div class="sidebar-tab-body">
                 <!-- Subheader (nur bei aktiver Sidebar) -->
                 <div class="sidebar-subheader">
                     <span style="font-size: 0.9em; color: var(--color-text-secondary);">
-                        Abschnitte
+                        Favoriten
                     </span>
                 </div>
 
                 <!-- Body (Content-Bereich) -->
                 <div class="sidebar-body">
-                    <!-- Wird dynamisch von script-favorites.js generiert -->
+                    <!-- Folder Navigation -->
+                    <div id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
+                        <button class="favorites-folder-tab favorites-folder-tab--active"
+                                data-folder-id="default"
+                                role="tab"
+                                aria-selected="true"
+                                aria-controls="favorites-list">
+                            Favorites
+                        </button>
+                    </div>
+
+                    <!-- Empty State (initially visible) -->
+                    <div id="favorites-empty-state" class="favorites-empty-state">
+                        <p class="favorites-empty-message">Noch keine Favoriten</p>
+                        <p class="favorites-empty-hint">Fügen Sie Favoriten hinzu, indem Sie auf das Stern-Symbol ★ in der Navigation klicken.</p>
+                    </div>
+
+                    <!-- Favorites List (initially hidden) -->
+                    <ul id="favorites-list" class="favorites-list hidden" role="list"></ul>
                 </div>
 
                 <!-- Footer (Footer-Bereich) -->
                 <div class="sidebar-footer">
+                    <!-- Future: Add folder button, etc. -->
                 </div>
             </div>
         </div>

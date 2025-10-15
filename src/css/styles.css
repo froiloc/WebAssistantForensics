@@ -2419,3 +2419,23 @@ body.tips-hidden .sidebar-container {
     background: var(--color-border-strong);
 }
 
+#sidebar-favorites .hidden {
+    display: none !important;
+}
+
+/* Ensure proper visibility states for screen readers */
+[aria-hidden="true"] {
+    display: none;
+}
+
+.favorites-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.favorites-empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-secondary);
+}
