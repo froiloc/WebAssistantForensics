@@ -28,12 +28,12 @@
         // UI-Status
         ui: {
             sidebarOpen: false,
-        sidebarsOpen: [],           // Array: ['navigation', 'history']
-        activeSidebarTab: null,     // 'navigation' | 'history' | null
-        notesOpen: false,
-        tipsVisible: true,
-        menuOpen: false
-                },
+            sidebarsOpen: [],           // Array: ['navigation', 'history']
+            activeSidebarTab: null,     // 'navigation' | 'history' | null
+            notesOpen: false,
+            tipsVisible: true,
+            menuOpen: false
+        },
 
         // User Preferences (persistiert)
         preferences: {

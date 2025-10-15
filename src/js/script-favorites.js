@@ -22,26 +22,302 @@
     let _isInitialized = false;
     let _favoritesContainer = null;
     let _currentFolder = 'default';
+    let unsubscribeFromHistory = null;
 
     // Configuration
     const CONFIG = {
         selectors: {
-            container: '#sidebar-favorites .sidebar-tab-body .sidebar-body',
-            list: '.favorites-list',
-            folderHeader: '.favorites-folder-header',
-            folderList: '.favorites-folder-list',
-            emptyState: '.favorites-empty-state'
+            header: '#sidebar-favorites .sidebar-tab-body .sidebar-subheader',
+            body: '#sidebar-favorites .sidebar-tab-body .sidebar-body',
+            footer: '#sidebar-favorites .sidebar-tab-body .sidebar-footer',
+            list: '#sidebar-favorites .favorites-list',
+            folderHeader: '#sidebar-favorites .favorites-folder-header',
+            folderList: '#sidebar-favorites .favorites-folder-list',
+            emptyState: '#sidebar-favorites .favorites-empty-state',
+            favoritesFolderTab: '#sidebar-favorites .favorites-folder-tab',
+            favoriteActionEdit: '#sidebar-favorites .favorite-action--edit',
+            favoriteLink: '#sidebar-favorites .favorite-link',
+            favoriteActionRemove: '#sidebar-favorites .favorite-action--remove'
         },
         classes: {
             favoriteItem: 'favorite-item',
             favoriteLink: 'favorite-link',
             favoriteMeta: 'favorite-meta',
             favoriteActions: 'favorite-actions',
+            favoritesFolderTab: 'favorites-folder-tab',
             folderItem: 'favorite-folder-item',
             folderName: 'favorite-folder-name',
             activeFolder: 'favorite-folder--active'
         }
     };
+
+    // ============================================================
+    //  Favorites List Rendering Function
+    // ============================================================
+
+    function renderFavoritesList(folderId = 'default') {
+        const sidebarBody = _favoritesContainer;
+        if (!sidebarBody) {
+            LOG.error(MODULE, 'Favorites sidebar body not found');
+            return;
+        }
+
+        const favorites = window.StateManager.get('favorites.items') || [];
+        const folderFavorites = favorites.filter(fav => fav.folderId === folderId);
+
+        if (folderFavorites.length === 0) {
+            sidebarBody.innerHTML = `
+            <div class="favorites-empty-state">
+            <p class="favorites-empty-message">Noch keine Favoriten</p>
+            <p class="favorites-empty-hint">Fügen Sie Favoriten hinzu, indem Sie auf das Stern-Symbol ★ in der Navigation klicken.</p>
+            </div>
+            `;
+            return;
+        }
+
+        // Render favorites list following the navigation pattern
+        sidebarBody.innerHTML = `
+        <ul class="favorites-list" role="list">
+        ${folderFavorites.map(favorite => `
+            <li class="favorite-item" data-section="${favorite.sectionId}" data-favorite-id="${favorite.id}" role="listitem">
+            <button class="favorite-link" data-section="${favorite.sectionId}">
+            <span class="favorite-item-icon">⭐</span>
+            <span class="favorite-item-content">
+            <span class="favorite-item-title">${getSectionDisplayName(favorite.sectionId)}</span>
+            <span class="favorite-item-meta">
+            <span class="favorite-item-path">${favorite.sectionPath || favorite.sectionId}</span>
+            <span class="favorite-item-access">• ${favorite.accessCount || 0} Zugriffe</span>
+            </span>
+            </span>
+            </button>
+            <button class="favorite-remove-btn" aria-label="Favorit entfernen" data-favorite-id="${favorite.id}">
+            🗑️
+            </button>
+            </li>
+            `).join('')}
+            </ul>
+            `;
+
+            attachFavoritesEventListeners();
+    }
+
+    // ============================================================
+    //  Add/Remove Favorites functions
+    // ============================================================
+
+    function addFavorite(sectionId, sectionName = null, sectionPath = null) {
+        const favorites = window.StateManager.get('favorites.items') || [];
+
+        // Check if already favorited
+        const existingFavorite = favorites.find(fav =>
+        fav.sectionId === sectionId && fav.folderId === 'default'
+        );
+
+        if (existingFavorite) {
+            Toast.show('Bereits als Favorit gespeichert', 'info');
+            return;
+        }
+
+        const newFavorite = {
+            id: generateId(),
+            sectionId: sectionId,
+            sectionName: sectionName || getSectionDisplayName(sectionId),
+            sectionPath: sectionPath || sectionId,
+            folderId: 'default',
+            createdAt: new Date().toISOString(),
+            accessCount: 0,
+            lastAccessed: null
+        };
+
+        favorites.push(newFavorite);
+        window.StateManager.set('favorites.items', favorites);
+
+        // Update UI
+        renderFavoritesList();
+        Toast.show('Als Favorit gespeichert', 'success');
+    }
+
+    function removeFavorite(favoriteId) {
+        const favorites = window.StateManager.get('favorites.items') || [];
+        const updatedFavorites = favorites.filter(fav => fav.id !== favoriteId);
+
+        window.StateManager.set('favorites.items', updatedFavorites);
+        renderFavoritesList();
+        Toast.show('Favorit entfernt', 'info');
+    }
+
+    // ============================================================
+    //  Helper functions
+    // ============================================================
+
+    function getSectionDisplayName(sectionId) {
+        // This should map section IDs to display names
+        // You might want to pull this from your navigation data
+        const sectionNames = {
+            'template-selection': 'Template-Auswahl',
+            'artifact-filtering': 'Artifact-Filterung',
+            'export-formats': 'Export-Formate im Detail',
+            'common-mistakes': 'Häufige Fehler vermeiden'
+        };
+
+        return sectionNames[sectionId] || sectionId;
+    }
+
+    function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function attachFavoritesEventListeners() {
+        // Favorite item click handlers - using SectionManagement
+        _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink).forEach(link => {
+            link.addEventListener('click', (e) => {
+                const sectionId = e.currentTarget.dataset.section;
+
+                // Use the correct navigation method
+                if (window.SectionManagement && window.SectionManagement.scrollToSection) {
+                    window.SectionManagement.scrollToSection(sectionId);
+
+                    // Increment access count when navigating via favorites
+                    incrementFavoriteAccessCount(sectionId);
+                } else {
+                    console.error('SectionManagement not available');
+                    Toast.show('Navigation nicht verfügbar', 'error');
+                }
+            });
+        });
+
+        // Remove button handlers
+        _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink).forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering the favorite-link click
+                const favoriteId = e.currentTarget.dataset.favoriteId;
+                removeFavorite(favoriteId);
+            });
+        });
+    }
+
+    function incrementFavoriteAccessCount(sectionId) {
+        const favorites = window.StateManager.get('favorites.items') || [];
+        const updatedFavorites = favorites.map(favorite => {
+            if (favorite.sectionId === sectionId) {
+                return {
+                    ...favorite,
+                    accessCount: (favorite.accessCount || 0) + 1,
+                    lastAccessed: new Date().toISOString()
+                };
+            }
+            return favorite;
+        });
+
+        window.StateManager.set('favorites.items', updatedFavorites);
+
+        // Optional: Re-render to update access count display
+        renderFavoritesList();
+    }
+
+    function syncFavoriteAccessForHistoryEntry(historyEntry) {
+        const favorites = window.StateManager.get('favorites.items') || [];
+        const sectionId = historyEntry.sectionId;
+
+        // Check if this section is favorited
+        const favoriteIndex = favorites.findIndex(fav => fav.sectionId === sectionId);
+
+        if (favoriteIndex !== -1) {
+            LOG.debug(MODULE, `Incrementing access count for favorite: ${sectionId}`);
+
+            // Increment the favorite's access count
+            const updatedFavorites = [...favorites];
+            updatedFavorites[favoriteIndex] = {
+                ...updatedFavorites[favoriteIndex],
+ accessCount: (updatedFavorites[favoriteIndex].accessCount || 0) + 1,
+ lastAccessed: historyEntry.timestamp || new Date().toISOString()
+            };
+
+            window.StateManager.set('favorites.items', updatedFavorites);
+
+            // Update UI if favorites sidebar is visible
+            if (isFavoritesSidebarActive()) {
+                renderFavoritesList();
+            }
+        }
+    }
+
+    function initializeFavoritesHistorySync() {
+        // Subscribe to history.entries changes
+        unsubscribeFromHistory = window.StateManager.subscribe('history.entries', (newEntries, oldEntries) => {
+            LOG.debug(MODULE, 'History entries changed:', {
+                oldLength: oldEntries?.length || 0,
+                newLength: newEntries?.length || 0
+            });
+
+            // Check if a new entry was added (not just modified)
+            if (newEntries && oldEntries && newEntries.length > oldEntries.length) {
+                // Find the new entry (assuming newest is first in array)
+                const newEntry = newEntries[0];
+                if (newEntry) {
+                    syncFavoriteAccessForHistoryEntry(newEntry);
+                }
+            }
+        });
+
+        LOG.success(MODULE, 'Favorites history sync initialized');
+    }
+
+    function isFavoritesSidebarActive() {
+        const favoritesSidebar = document.getElementById('sidebar-favorites');
+        return favoritesSidebar && favoritesSidebar.classList.contains('active');
+    }
+
+    function getLastAccessTime(sectionId, historyEntries) {
+        const sectionEntries = historyEntries.filter(entry => entry.sectionId === sectionId);
+        if (sectionEntries.length > 0) {
+            // Return the most recent timestamp
+            return sectionEntries.reduce((latest, entry) =>
+            entry.timestamp > latest ? entry.timestamp : latest, ''
+            );
+        }
+        return null;
+    }
+
+    function initializeFavoritesAccessSync() {
+        // Observe history changes in StateManager
+        window.StateManager.observe('history.entries', (newHistory, oldHistory) => {
+            if (newHistory.length !== oldHistory.length) {
+                // History changed - sync favorite access counts
+                syncFavoriteAccessCounts();
+            }
+        });
+
+        // Initial sync
+        syncFavoriteAccessCounts();
+    }
+
+    function initializeFavorites() {
+        LOG(MODULE, 'Initializing favorites...');
+
+        const favoritesContainer = document.getElementById('sidebar-favorites');
+        if (!favoritesContainer) {
+            LOG.error(MODULE, 'Favorites container not found');
+            return;
+        }
+
+        // Initialize history sync
+        initializeFavoritesHistorySync();
+
+        // Render initial list
+        renderFavoritesList();
+
+        LOG.success(MODULE, 'Favorites initialized');
+    }
+
+    function destroyFavorites() {
+        // Clean up observer when favorites system is destroyed
+        if (unsubscribeFromHistory) {
+            unsubscribeFromHistory();
+            unsubscribeFromHistory = null;
+            LOG.debug(MODULE, 'Favorites history sync destroyed');
+        }
+    }
 
     /**
     * Renders the favorites sidebar content
@@ -140,25 +416,25 @@
     */
     function attachFavoritesEventListeners() {
         // Folder tab clicks
-        const folderTabs = _favoritesContainer.querySelectorAll('.favorites-folder-tab');
+        const folderTabs = _favoritesContainer.querySelectorAll(CONFIG.selector.favoritesFolderTab);
         folderTabs.forEach(tab => {
             tab.addEventListener('click', handleFolderTabClick);
         });
 
         // Favorite link clicks
-        const favoriteLinks = _favoritesContainer.querySelectorAll('.favorite-link');
+        const favoriteLinks = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteLink);
         favoriteLinks.forEach(link => {
             link.addEventListener('click', handleFavoriteClick);
         });
 
         // Edit button clicks
-        const editButtons = _favoritesContainer.querySelectorAll('.favorite-action--edit');
+        const editButtons = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteActionEdit);
         editButtons.forEach(button => {
             button.addEventListener('click', handleEditClick);
         });
 
         // Remove button clicks
-        const removeButtons = _favoritesContainer.querySelectorAll('.favorite-action--remove');
+        const removeButtons = _favoritesContainer.querySelectorAll(CONFIG.selector.favoriteActionRemove);
         removeButtons.forEach(button => {
             button.addEventListener('click', handleRemoveClick);
         });
@@ -308,6 +584,19 @@
     function init() {
         LOG.debug(MODULE, 'Favorites Manager: init() called');
 
+        // Shortcut beim SidebarManager registrieren
+        if (window.SidebarManager) {
+            const registered = window.SidebarManager.registerShortcut('favorites', 'f');
+
+            if (registered) {
+                LOG.success(MODULE, 'Shortcut Alt+f registered with SidebarManager');
+            } else {
+                LOG.warn(MODULE, 'Shortcut Alt+f already taken');
+            }
+        } else {
+            LOG.error(MODULE, 'SidebarManager not available!');
+        }
+
         if (_isInitialized) {
             LOG.debug(MODULE, 'Favorites Manager: Already initialized');
             return true;
@@ -315,7 +604,7 @@
 
         try {
             // Get container from the DOM, just like navigation and history do
-            _favoritesContainer = document.querySelector(CONFIG.selectors.container);
+            _favoritesContainer = document.querySelector(CONFIG.selectors.body);
 
             if (!_favoritesContainer) {
                 LOG.error(MODULE, 'Favorites Manager: Favorites container not found');
