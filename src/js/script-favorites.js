@@ -324,6 +324,7 @@
 
         // Render initial list
         renderFavoritesList();
+        attachFavoritesEventListeners();
 
         LOG.success(MODULE, 'Favorites initialized');
     }
@@ -335,40 +336,6 @@
             unsubscribeFromHistory = null;
             LOG.debug(MODULE, 'Favorites history sync destroyed');
         }
-    }
-
-    /**
-    * Renders the favorites sidebar content
-    */
-    function renderFavorites() {
-        LOG.debug(MODULE, 'Favorites Manager: Rendering favorites sidebar');
-
-        if (!_favoritesContainer) {
-            LOG.warn(MODULE, 'Favorites Manager: Container not available for rendering');
-            return;
-        }
-
-        const favorites = StateManager.getFavorites(_currentFolder);
-        const folders = StateManager.getFolders();
-
-        LOG.debug(MODULE, `Favorites Manager: Rendering ${favorites.length} favorites in folder "${_currentFolder}"`);
-
-        // Build HTML structure
-        _favoritesContainer.innerHTML = `
-        <div class="sidebar-header">
-            <div class="favorites-folder-nav">
-                ${renderFolderNavigation(folders)}
-            </div>
-        </div>
-        <div class="favorites-content">
-            ${favorites.length > 0 ? renderFavoritesList(favorites) : renderEmptyState()}
-        </div>
-        `;
-
-        // Add event listeners
-        attachFavoritesEventListeners();
-
-        LOG.debug(MODULE, 'Favorites Manager: Favorites sidebar rendered successfully');
     }
 
     /**
@@ -469,7 +436,7 @@
         LOG.debug(MODULE, `Favorites Manager: Switching to folder: ${folderId}`);
 
         _currentFolder = folderId;
-        renderFavorites();
+        renderFavoritesList(_currentFolder);
 
         event.preventDefault();
         event.stopPropagation();
@@ -522,7 +489,7 @@
         const favorite = StateManager.getFavorite(favoriteId);
         if (favorite && confirm(`Möchten Sie "${favorite.title}" aus den Favoriten entfernen?`)) {
             StateManager.removeFavorite(favoriteId);
-            renderFavorites(); // Re-render after removal
+            renderFavoritesList(_currentFolder); // Re-render after removal
             Toast.show(`"${favorite.title}" aus Favoriten entfernt`, 'success', 2000);
         }
 
@@ -592,7 +559,8 @@
     */
     function refresh() {
         if (_isInitialized) {
-            renderFavorites();
+            renderFavoritesList(_currentFolder);
+            attachFavoritesEventListeners();
         }
     }
 
@@ -630,7 +598,8 @@
             }
 
             // Initial render
-            renderFavorites();
+            renderFavoritesList(_currentFolder);
+            attachFavoritesEventListeners();
 
             _isInitialized = true;
             LOG.success(MODULE, 'Favorites Manager initialized successfully');
