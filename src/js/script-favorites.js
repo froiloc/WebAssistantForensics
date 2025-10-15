@@ -70,7 +70,16 @@
                 </button>
                 </li>
                 `
-         }
+        },
+        i18n: {
+            de: {
+                today: 'Heute',
+                yesterday: 'Gestern',
+                daysAgo: 'Vor %d Tagen',
+                weeksAgo: 'Vor %d Wochen',
+                monthsAgo: 'Vor %d Monaten'
+            }
+        }
     };
 
     // ============================================================
@@ -101,13 +110,6 @@
         ).join('');
 
         attachFavoritesEventListeners();
-    }
-
-    function toggleElementVisibility(selector, isVisible) {
-        const element = document.querySelector(selector);
-        if (element) {
-            element.classList.toggle(CONFIG.classes.hidden, !isVisible);
-        }
     }
 
     function updateFolderTab(folderId) {
@@ -194,43 +196,21 @@
                 // Use the correct navigation method
                 if (window.SectionManagement && window.SectionManagement.scrollToSection) {
                     window.SectionManagement.scrollToSection(sectionId);
-
-                    // Increment access count when navigating via favorites
-                    incrementFavoriteAccessCount(sectionId);
                 } else {
-                    console.error('SectionManagement not available');
+                    LOG.error(MODULE, 'SectionManagement not available');
                     Toast.show('Navigation nicht verfügbar', 'error');
                 }
             });
         });
 
         // Remove button handlers
-        _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteLink).forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteRemoveBtns).forEach(btn => {
+                btn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent triggering the favorite-link click
                 const favoriteId = e.currentTarget.dataset.favoriteId;
                 removeFavorite(favoriteId);
             });
         });
-    }
-
-    function incrementFavoriteAccessCount(sectionId) {
-        const favorites = window.StateManager.get('favorites.items') || [];
-        const updatedFavorites = favorites.map(favorite => {
-            if (favorite.sectionId === sectionId) {
-                return {
-                    ...favorite,
-                    accessCount: (favorite.accessCount || 0) + 1,
-                    lastAccessed: new Date().toISOString()
-                };
-            }
-            return favorite;
-        });
-
-        window.StateManager.set('favorites.items', updatedFavorites);
-
-        // Optional: Re-render to update access count display
-        renderFavoritesList();
     }
 
     function syncFavoriteAccessForHistoryEntry(historyEntry) {
@@ -247,8 +227,8 @@
             const updatedFavorites = [...favorites];
             updatedFavorites[favoriteIndex] = {
                 ...updatedFavorites[favoriteIndex],
- accessCount: (updatedFavorites[favoriteIndex].accessCount || 0) + 1,
- lastAccessed: historyEntry.timestamp || new Date().toISOString()
+                accessCount: (updatedFavorites[favoriteIndex].accessCount || 0) + 1,
+                lastAccessed: historyEntry.timestamp || new Date().toISOString()
             };
 
             window.StateManager.set('favorites.items', updatedFavorites);
@@ -261,6 +241,8 @@
     }
 
     function initializeFavoritesHistorySync() {
+        console.log('🎯 initializeFavoritesHistorySync() called!'); // Debug log
+
         // Subscribe to history.entries changes
         unsubscribeFromHistory = window.StateManager.subscribe('history.entries', (newEntries, oldEntries) => {
             LOG.debug(MODULE, 'History entries changed:', {
@@ -282,42 +264,21 @@
     }
 
     function isFavoritesSidebarActive() {
-        const favoritesSidebar = document.getElementById('sidebar-favorites');
-        return favoritesSidebar && favoritesSidebar.classList.contains('active');
-    }
-
-    function getLastAccessTime(sectionId, historyEntries) {
-        const sectionEntries = historyEntries.filter(entry => entry.sectionId === sectionId);
-        if (sectionEntries.length > 0) {
-            // Return the most recent timestamp
-            return sectionEntries.reduce((latest, entry) =>
-            entry.timestamp > latest ? entry.timestamp : latest, ''
-            );
-        }
-        return null;
-    }
-
-    function initializeFavoritesAccessSync() {
-        // Observe history changes in StateManager
-        window.StateManager.observe('history.entries', (newHistory, oldHistory) => {
-            if (newHistory.length !== oldHistory.length) {
-                // History changed - sync favorite access counts
-                syncFavoriteAccessCounts();
-            }
-        });
-
-        // Initial sync
-        syncFavoriteAccessCounts();
+        return document.querySelector(CONFIG.selectors.sidebar)?.classList.contains(CONFIG.classes.active);
     }
 
     function initializeFavorites() {
         LOG(MODULE, 'Initializing favorites...');
 
-        const favoritesContainer = document.getElementById('sidebar-favorites');
+        // Use CONFIG selector for consistency
+        const favoritesContainer = document.querySelector(CONFIG.selectors.sidebar);
         if (!favoritesContainer) {
             LOG.error(MODULE, 'Favorites container not found');
             return;
         }
+
+        // Store reference for other functions to use
+        _favoritesContainer = favoritesContainer;
 
         // Initialize history sync
         initializeFavoritesHistorySync();
@@ -325,6 +286,9 @@
         // Render initial list
         renderFavoritesList();
         attachFavoritesEventListeners();
+
+        // Mark as initialized
+        _isInitialized = true;
 
         LOG.success(MODULE, 'Favorites initialized');
     }
@@ -336,201 +300,15 @@
             unsubscribeFromHistory = null;
             LOG.debug(MODULE, 'Favorites history sync destroyed');
         }
-    }
 
-    /**
-    * Renders folder navigation
-    */
-    function renderFolderNavigation(folders) {
-        return folders.map(folder => `
-        <button class="favorites-folder-tab ${folder.id === _currentFolder ? 'favorites-folder-tab--active' : ''}"
-        data-folder-id="${folder.id}"
-        aria-label="Ordner anzeigen: ${folder.name}">
-        ${folder.name}
-        </button>
-        `).join('');
-    }
-
-    /**
-    * Renders the favorites list
-    */
-    function renderFavoritesList(favorites) {
-        return `
-        <ul class="favorites-list" role="list">
-        ${favorites.map(favorite => `
-            <li class="favorite-item" data-favorite-id="${favorite.id}">
-            <button class="favorite-link" data-favorite-id="${favorite.id}">
-            <span class="favorite-title">${escapeHtml(favorite.title)}</span>
-            <div class="favorite-meta">
-            <span class="favorite-access-count">${favorite.accessCount} Zugriffe</span>
-            <span class="favorite-last-accessed">${formatRelativeTime(favorite.lastAccessed)}</span>
-            </div>
-            </button>
-            <div class="favorite-actions">
-            <button class="favorite-action favorite-action--edit"
-            data-favorite-id="${favorite.id}"
-            aria-label="Favorite bearbeiten">
-            🖉
-            </button>
-            <button class="favorite-action favorite-action--remove"
-            data-favorite-id="${favorite.id}"
-            aria-label="Favorite entfernen">
-            🗑
-            </button>
-            </div>
-            </li>
-            `).join('')}
-            </ul>
-            `;
-    }
-
-    /**
-    * Renders empty state
-    */
-    function renderEmptyState() {
-        return `
-        <div class="favorites-empty-state">
-        <p class="favorites-empty-message">Noch keine Favoriten</p>
-        <p class="favorites-empty-hint">Fügen Sie Favoriten hinzu, indem Sie auf das Stern-Symbol ★ in der Navigation klicken.</p>
-        </div>
-        `;
-    }
-
-    /**
-    * Attaches event listeners to favorites elements
-    */
-    function attachFavoritesEventListeners() {
-        // Folder tab clicks
-        const folderTabs = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoritesFolderTab);
-        folderTabs.forEach(tab => {
-            tab.addEventListener('click', handleFolderTabClick);
-        });
-
-        // Favorite link clicks
-        const favoriteLinks = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteLink);
-        favoriteLinks.forEach(link => {
-            link.addEventListener('click', handleFavoriteClick);
-        });
-
-        // Edit button clicks
-        const editButtons = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteActionEdit);
-        editButtons.forEach(button => {
-            button.addEventListener('click', handleEditClick);
-        });
-
-        // Remove button clicks
-        const removeButtons = _favoritesContainer.querySelectorAll(CONFIG.selectors.favoriteActionRemove);
-        removeButtons.forEach(button => {
-            button.addEventListener('click', handleRemoveClick);
-        });
-
-        // Keyboard navigation
-        _favoritesContainer.addEventListener('keydown', handleKeyboardNavigation);
-    }
-
-    /**
-    * Handles folder tab clicks
-    */
-    function handleFolderTabClick(event) {
-        const folderId = event.currentTarget.getAttribute('data-folder-id');
-        LOG.debug(MODULE, `Favorites Manager: Switching to folder: ${folderId}`);
-
-        _currentFolder = folderId;
-        renderFavoritesList(_currentFolder);
-
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    /**
-    * Handles favorite item clicks (navigation)
-    */
-    function handleFavoriteClick(event) {
-        const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
-        LOG.debug(MODULE, `Favorites Manager: Navigating to favorite: ${favoriteId}`);
-
-        const favorite = StateManager.getFavorite(favoriteId);
-        if (favorite) {
-            // Increment access count
-            StateManager.incrementFavoriteAccess(favoriteId);
-
-            // Navigate to section (using same pattern as navigation)
-            navigateToSection(favorite.selector, favorite.sectionId);
-
-            // Show toast confirmation
-            Toast.show(`Zu "${favorite.title}" navigiert`, 'success', 2000);
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    /**
-    * Handles edit button clicks
-    */
-    function handleEditClick(event) {
-        const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
-        LOG.debug(MODULE, `Favorites Manager: Edit favorite: ${favoriteId}`);
-
-        // TODO: Implement edit modal in Phase 1.5
-        Toast.show('Bearbeitungsfunktion folgt in Phase 1.5', 'info', 3000);
-
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    /**
-    * Handles remove button clicks
-    */
-    function handleRemoveClick(event) {
-        const favoriteId = event.currentTarget.getAttribute('data-favorite-id');
-        LOG.debug(MODULE, `Favorites Manager: Remove favorite: ${favoriteId}`);
-
-        const favorite = StateManager.getFavorite(favoriteId);
-        if (favorite && confirm(`Möchten Sie "${favorite.title}" aus den Favoriten entfernen?`)) {
-            StateManager.removeFavorite(favoriteId);
-            renderFavoritesList(_currentFolder); // Re-render after removal
-            Toast.show(`"${favorite.title}" aus Favoriten entfernt`, 'success', 2000);
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    /**
-    * Handles keyboard navigation
-    */
-    function handleKeyboardNavigation(event) {
-        // Implement similar keyboard navigation as navigation sidebar
-        if (event.key === 'Enter' || event.key === ' ') {
-            const focused = document.activeElement;
-            if (focused.classList.contains('favorite-link')) {
-                event.preventDefault();
-                focused.click();
-            }
-        }
-    }
-
-    /**
-    * Navigates to a section (reusing navigation patterns)
-    */
-    function navigateToSection(selector, sectionId) {
-        LOG.debug(MODULE, `Favorites Manager: Navigating to section: ${sectionId}`);
-
-        // Use existing navigation system if available
-        if (window.Navigation && typeof window.Navigation.navigateToSection === 'function') {
-            window.Navigation.navigateToSection(sectionId);
-        } else {
-            // Fallback: scroll to element
-            const element = document.querySelector(selector);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
+        // Optional: Reset initialization state
+        _isInitialized = false;
+        _favoritesContainer = null;
     }
 
     /**
     * Formats relative time for display
+    * TODO use later or delete
     */
     function formatRelativeTime(isoString) {
         const date = new Date(isoString);
@@ -538,20 +316,11 @@
         const diffMs = now - date;
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Heute';
-        if (diffDays === 1) return 'Gestern';
-        if (diffDays < 7) return `Vor ${diffDays} Tagen`;
-        if (diffDays < 30) return `Vor ${Math.floor(diffDays / 7)} Wochen`;
-        return `Vor ${Math.floor(diffDays / 30)} Monaten`;
-    }
-
-    /**
-    * Escapes HTML to prevent XSS
-    */
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (diffDays === 0) return CONFIG.i18n.de.today;
+        if (diffDays === 1) return CONFIG.i18n.de.yesterday;
+        if (diffDays < 7) return CONFIG.i18n.de.daysAgo.replace('%d', diffDays);
+        if (diffDays < 30) return CONFIG.i18n.de.weeksAgo.replace('%d', Math.floor(diffDays / 7));
+        return CONFIG.i18n.de.monthsAgo.replace('%d', Math.floor(diffDays / 30));
     }
 
     /**
@@ -560,7 +329,6 @@
     function refresh() {
         if (_isInitialized) {
             renderFavoritesList(_currentFolder);
-            attachFavoritesEventListeners();
         }
     }
 
@@ -590,7 +358,7 @@
 
         try {
             // Get container from the DOM, just like navigation and history do
-            _favoritesContainer = document.querySelector(CONFIG.selectors.body);
+            _favoritesContainer = document.querySelector(CONFIG.selectors.sidebar);
 
             if (!_favoritesContainer) {
                 LOG.error(MODULE, 'Favorites Manager: Favorites container not found');
@@ -598,10 +366,9 @@
             }
 
             // Initial render
-            renderFavoritesList(_currentFolder);
-            attachFavoritesEventListeners();
-
+            initializeFavorites();
             _isInitialized = true;
+
             LOG.success(MODULE, 'Favorites Manager initialized successfully');
             return true;
 
@@ -623,6 +390,7 @@
     window.FavoritesManager = {
         init: init,
         refresh: refresh,
+        removeFavorite, removeFavorite,
         isInitialized: () => _isInitialized
     };
 

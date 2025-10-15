@@ -832,6 +832,7 @@
             update: update,
             subscribe: subscribe,
             reset: reset,
+            _observers: _observers,
 
             // Favorites methods
             addFavorite: addFavorite,
