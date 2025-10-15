@@ -58,7 +58,14 @@
                 <span class="favorite-item-access">• ${favorite.accessCount || 0} Zugriffe</span>
                 </span>
                 </button>
-                <button class="favorite-remove-btn" aria-label="Favorit entfernen" data-favorite-id="${favorite.id}">
+                <button class="favorite-action favorite-action--edit"
+                data-favorite-id="${favorite.id}"
+                aria-label="Favorite bearbeiten">
+                🖉
+                </button>
+                <button class="favorite-action favorite-remove-btn"
+                data-favorite-id="${favorite.id}"
+                aria-label="Favorit entfernen">
                 🗑️
                 </button>
                 </li>
