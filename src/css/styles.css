@@ -2374,16 +2374,6 @@ body.tips-hidden .sidebar-container {
     gap: 4px;
 }
 
-.favorite-action {
-    background: none;
-    border: none;
-    padding: 6px;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 0.9em;
-    transition: background-color var(--transition-fast);
-}
-
 .favorite-action:hover {
     background: var(--color-border);
 }
@@ -2395,19 +2385,13 @@ body.tips-hidden .sidebar-container {
 
 /* Empty state */
 .favorites-empty-state {
-    padding: 40px 20px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
     text-align: center;
+    justify-content: center;
+    min-height: 200px;
     color: var(--color-text-secondary);
-}
-
-.favorites-empty-message {
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
-.favorites-empty-hint {
-    font-size: 0.9em;
-    line-height: 1.4;
 }
 
 /* Dark theme adjustments */
@@ -2428,14 +2412,891 @@ body.tips-hidden .sidebar-container {
     display: none;
 }
 
-.favorites-list {
-    list-style: none;
+.favorites-empty-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
     margin: 0;
-    padding: 0;
+    display: block; /* Ensure proper block-level styling */
 }
 
-.favorites-empty-state {
+/* ===== FAVORITES LOADING & VISUAL FEEDBACK STATES ===== */
+
+/* Loading State */
+.favorite--loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.favorite--loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 60px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid var(--color-border);
+    border-top: 2px solid var(--color-primary);
+    border-radius: 50%;
+    animation: favorite-spin 1s linear infinite;
+}
+
+/* Removing State - Smooth fade out */
+.favorite--removing {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all var(--transition-medium) var(--ease-in-out);
+    pointer-events: none;
+}
+
+/* Success State - Checkmark flash */
+.favorite--success {
+    position: relative;
+}
+
+.favorite--success::before {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    right: 60px;
+    transform: translateY(-50%);
+    color: var(--color-success);
+    font-weight: bold;
+    font-size: 16px;
+    animation: favorite-success-pulse 0.5s var(--ease-out) 2;
+}
+
+/* Disabled State */
+.favorite--disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Enhanced hover states for favorite actions */
+.favorite-link:hover,
+.favorite-action:hover {
+    transform: translateY(-1px);
+    transition: transform var(--transition-fast) var(--ease-out);
+}
+
+.favorite-action--edit:hover {
+    background-color: var(--color-warning);
+    color: var(--color-warning-text);
+}
+
+.favorite-remove-btn:hover {
+    background-color: var(--color-error);
+    color: var(--color-surface-elevated);
+}
+
+/* Favorite item transitions */
+.favorite-item {
+    transition: all var(--transition-medium) var(--ease-in-out);
+    transform-origin: center;
+}
+
+/* Animations */
+@keyframes favorite-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes favorite-success-pulse {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .favorite--loading::after,
+    .favorite--removing,
+    .favorite--success::before,
+    .favorite-link:hover,
+    .favorite-action:hover,
+    .favorite-item {
+        animation: none;
+        transition: none;
+        transform: none;
+    }
+
+    .favorite--loading::after {
+        content: "⋯";
+        border: none;
+        animation: none;
+        font-size: 1.2em;
+    }
+
+    .favorite--success::before {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* ===== FAVORITES ACTION BUTTON CONSISTENCY ===== */
+
+.favorite-action {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1.1em;
+    transition: all var(--transition-fast) var(--ease-out);
+
+    /* Consistent sizing */
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.favorite-action:hover {
+    background: var(--color-border);
+    transform: translateY(-1px);
+}
+
+.favorite-action:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+}
+
+.favorite-action--edit:hover {
+    background-color: var(--color-warning);
+    color: var(--color-warning-text);
+}
+
+.favorite-remove-btn:hover {
+    background-color: var(--color-error);
+    color: var(--color-surface-elevated);
+}
+
+/* Ensure favorite link takes remaining space */
+.favorite-link {
+    flex: 1;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    color: var(--color-text-primary);
+    min-height: 60px; /* Match action button height with padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Favorite item layout */
+.favorite-item {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--color-border);
+    gap: 4px;
+}
+
+.favorite-actions {
+    display: flex;
+    padding: 0 8px;
+    gap: 4px;
+    align-items: center;
+}
+
+/* ===== ENHANCED FAVORITES EMPTY STATE ===== */
+
+.favorites-empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    padding: 2rem 1rem;
+    gap: 1rem;
+    max-width: 300px;
+}
+
+.favorites-empty-icon {
+    font-size: 3rem;
+    opacity: 0.6;
+    line-height: 1;
+}
+
+.favorites-empty-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.favorites-empty-description {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.favorites-empty-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.favorites-empty-suggestion {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
     color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast) var(--ease-out);
+}
+
+.favorites-empty-suggestion:hover {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+}
+
+.favorites-empty-suggestion:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+}
+
+/* ===== ENHANCED FOLDER TAB NAVIGATION ===== */
+
+.favorites-folder-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px 16px;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.favorites-folder-tab {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 20px; /* More pill-like */
+    padding: 8px 16px;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-medium) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover effect with subtle scale */
+.favorites-folder-tab:hover {
+    background: var(--color-surface);
+    border-color: var(--color-primary);
+    color: var(--color-text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+/* Active state with stronger visual prominence */
+.favorites-folder-tab--active {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-shadow-strong);
+}
+
+/* Focus state for keyboard navigation */
+.favorites-folder-tab:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    z-index: 1;
+}
+
+/* Subtle pulse animation for active tab */
+.favorites-folder-tab--active::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    box-shadow: 0 0 0 2px var(--color-primary);
+    animation: tab-pulse 2s var(--ease-out) infinite;
+    opacity: 0.6;
+}
+
+@keyframes tab-pulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.3;
+        transform: scale(1.02);
+    }
+}
+
+/* Tab with count badges */
+.favorites-folder-tab__badge {
+    display: inline-block;
+    background: var(--color-text-disabled);
+    color: var(--color-surface-elevated);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.7em;
+    margin-left: 6px;
+    min-width: 18px;
+    text-align: center;
+    transition: all var(--transition-fast) var(--ease-out);
+}
+
+.favorites-folder-tab--active .favorites-folder-tab__badge {
+    background: var(--color-surface-elevated);
+    color: var(--color-primary);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .favorites-folder-tab,
+    .favorites-folder-tab:hover,
+    .favorites-folder-tab--active {
+        transition: none;
+        transform: none;
+        animation: none;
+    }
+
+    .favorites-folder-tab--active::after {
+        animation: none;
+        opacity: 0.4;
+    }
+}
+
+/* ===== FAVORITES LOADING SKELETON STATES ===== */
+
+/* Skeleton loading for initial favorites load */
+.favorites-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+}
+
+.favorite-skeleton-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 6px;
+    background: var(--color-surface);
+    gap: 12px;
+    animation: skeleton-pulse 2s var(--ease-in-out) infinite;
+}
+
+.favorite-skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.favorite-skeleton-line {
+    height: 12px;
+    border-radius: 4px;
+    background: var(--color-border);
+}
+
+.favorite-skeleton-line--title {
+    width: 70%;
+    height: 16px;
+}
+
+.favorite-skeleton-line--meta {
+    width: 50%;
+    height: 10px;
+}
+
+.favorite-skeleton-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.favorite-skeleton-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: var(--color-border);
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Enhanced operation loading states */
+.favorite-item--adding {
+    position: relative;
+    overflow: hidden;
+}
+
+.favorite-item--adding::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+                                transparent
+    );
+    animation: shimmer 1.5s var(--ease-out) infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Batch operation states */
+.favorites-container--loading .favorite-link,
+.favorites-container--loading .favorite-action {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .favorite-skeleton-item {
+        animation: none;
+        opacity: 0.8;
+    }
+
+    .favorite-item--adding::before {
+        animation: none;
+        background: var(--color-surface);
+    }
+}
+
+/* ===== ENHANCED FAVORITES EMPTY STATE ===== */
+
+.favorites-empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.favorites-empty-icon {
+    font-size: 3rem;
+    opacity: 0.6;
+    margin-bottom: 0.5rem;
+}
+
+.favorites-empty-description {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 300px;
+    margin: 0;
+}
+
+.favorites-empty-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.favorites-empty-suggestion {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast) var(--ease-out);
+}
+
+.favorites-empty-suggestion:hover {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+}
+
+.favorites-empty-suggestion:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+}
+
+.favorites-empty-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+/* ===== ENHANCED MICRO-INTERACTIONS & HOVER EFFECTS ===== */
+
+/* Enhanced favorite item interactions */
+.favorite-item {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--color-border);
+    gap: 4px;
+    transition: all var(--transition-medium) var(--ease-out);
+    transform-origin: center;
+    position: relative;
+}
+
+/* Lift effect on hover */
+.favorite-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    border-radius: 8px;
+    margin: 2px 4px;
+    background: var(--color-surface-elevated);
+}
+
+/* Smooth border radius transition */
+.favorite-item,
+.favorite-link {
+    border-radius: 6px;
+    transition:
+    transform var(--transition-medium) var(--ease-out),
+    box-shadow var(--transition-medium) var(--ease-out),
+    background-color var(--transition-fast) var(--ease-out),
+    border-radius var(--transition-medium) var(--ease-out);
+}
+
+/* Enhanced favorite link hover */
+.favorite-link:hover {
+    background: var(--color-surface);
+    transform: translateX(4px);
+}
+
+/* Click feedback effect */
+.favorite-link:active {
+    transform: translateX(4px) scale(0.98);
+    transition-duration: 0.1s;
+}
+
+/* Action button micro-interactions */
+.favorite-action {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 1.1em;
+    transition: all var(--transition-medium) var(--ease-out);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Button hover with scale */
+.favorite-action:hover {
+    background: var(--color-border);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+/* Button click feedback */
+.favorite-action:active {
+    transform: scale(0.95);
+    transition-duration: 0.1s;
+}
+
+/* Specific button color transitions */
+.favorite-action--edit {
+    color: var(--color-warning);
+}
+
+.favorite-action--edit:hover {
+    background-color: var(--color-warning);
+    color: var(--color-warning-text);
+    transform: scale(1.1) rotate(5deg);
+}
+
+.favorite-remove-btn {
+    color: var(--color-error);
+}
+
+.favorite-remove-btn:hover {
+    background-color: var(--color-error);
+    color: var(--color-surface-elevated);
+    transform: scale(1.1);
+}
+
+/* Staggered animation for multiple favorites */
+.favorite-item {
+    animation: slideInUp 0.5s var(--ease-out) both;
+}
+
+/* Different delays for staggered effect */
+.favorite-item:nth-child(1) { animation-delay: 0.05s; }
+.favorite-item:nth-child(2) { animation-delay: 0.1s; }
+.favorite-item:nth-child(3) { animation-delay: 0.15s; }
+.favorite-item:nth-child(4) { animation-delay: 0.2s; }
+.favorite-item:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth removal animation */
+.favorite-item.favorite--removing {
+    animation: slideOutLeft 0.4s var(--ease-in) both;
+}
+
+@keyframes slideOutLeft {
+    to {
+        opacity: 0;
+        transform: translateX(-30px);
+        height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+}
+
+/* Enhanced empty state suggestions */
+.favorites-empty-suggestion {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-medium) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Suggestion button hover with icon animation */
+.favorites-empty-suggestion:hover {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.favorites-empty-suggestion:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .favorite-item,
+    .favorite-link,
+    .favorite-action,
+    .favorites-empty-suggestion {
+        transition: none;
+        animation: none;
+        transform: none;
+    }
+
+    .favorite-item:hover {
+        transform: none;
+        margin: 0;
+    }
+
+    .favorite-link:hover {
+        transform: none;
+    }
+}
+
+/* Ripple effect for advanced micro-interaction */
+.favorite-action::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.favorite-action:active::after {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== ENHANCED FAVORITES EMPTY STATE ===== */
+
+.favorites-empty-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%; /* Ensure full width for proper button sizing */
+}
+
+.favorites-empty-suggestion {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+
+    /* Consistent sizing */
+    min-width: 140px; /* Minimum width for consistency */
+    max-width: 200px; /* Maximum width to prevent overflow */
+    flex: 1; /* Allow buttons to grow equally */
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.favorites-empty-suggestion:hover {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.favorites-empty-suggestion:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* ===== ENHANCED FAVORITES EMPTY STATE ===== */
+
+.favorites-empty-actions {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 0.5rem;
+    width: 100%;
+    align-items: center; /* Center buttons */
+}
+
+.favorites-empty-suggestion {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast) var(--ease-out);
+    position: relative;
+    margin-bottom: 0.2rem;
+
+    /* Consistent fixed width */
+    width: 100%;
+    max-width: 220px; /* Fixed maximum width */
+    min-height: 44px; /* Consistent height for accessibility */
+
+    /* Text handling */
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* Flexbox for consistent alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorites-empty-suggestion:hover {
+    background: var(--color-primary);
+    color: var(--color-surface-elevated);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.favorites-empty-suggestion:active {
+    transform: translateY(0);
+}
+
+/* Tooltip for long text */
+.favorites-empty-suggestion[data-tooltip] {
+    position: relative;
+}
+
+.favorites-empty-suggestion[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tooltip-bg);
+    color: var(--tooltip-color);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.favorites-empty-suggestion[data-tooltip]:hover::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--tooltip-bg);
+    margin-bottom: -2px;
+    z-index: 1001;
 }

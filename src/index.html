@@ -163,32 +163,92 @@
             <div class="sidebar-tab-body">
                 <!-- Subheader (nur bei aktiver Sidebar) -->
                 <div class="sidebar-subheader">
-                    <span style="font-size: 0.9em; color: var(--color-text-secondary);">
-                        Favoriten
-                    </span>
-                </div>
-
-                <!-- Body (Content-Bereich) -->
-                <div class="sidebar-body">
                     <!-- Folder Navigation -->
-                    <div id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
+                    <nav id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
                         <button class="favorites-folder-tab favorites-folder-tab--active"
                                 data-folder-id="default"
                                 role="tab"
                                 aria-selected="true"
                                 aria-controls="favorites-list">
-                            Favorites
+                            Lesezeichen
+                            <span class="favorites-folder-tab__badge" id="favorites-default-count">0</span>
                         </button>
-                    </div>
 
+                    </nav>
+
+                </div>
+
+                <!-- Body (Content-Bereich) -->
+                <div class="sidebar-body">
                     <!-- Empty State (initially visible) -->
-                    <div id="favorites-empty-state" class="favorites-empty-state">
-                        <p class="favorites-empty-message">Noch keine Favoriten</p>
-                        <p class="favorites-empty-hint">Fügen Sie Favoriten hinzu, indem Sie auf das Stern-Symbol ★ in der Navigation klicken.</p>
+                    <div id="favorites-empty-state" class="favorites-empty-state hidden">
+                        <div class="favorites-empty-icon" aria-hidden="true">⭐</div>
+                        <strong class="favorites-empty-title">
+                            Noch keine Lesezeichen
+                        </strong>
+                        <p class="favorites-empty-description">
+                            Markieren Sie wichtige Abschnitte als Lesezeichen, um sie schnell wiederzufinden.
+                        </p>
+                        <div class="favorites-empty-actions">
+                            <!-- Button container -->
+                            <div class="favorites-suggestions-container">
+                                <button class="favorites-empty-suggestion hidden" data-section="dummy-1">
+                                    Dummy 1
+                                </button>
+                                <button class="favorites-empty-suggestion hidden" data-section="dummy-2">
+                                    Dummy 2
+                                </button>
+                                <button class="favorites-empty-suggestion hidden" data-section="dummy-3">
+                                    Dummy 3
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Guidance message (shown when no suggestions available) -->
+                        <p class="favorites-empty-hint hidden">
+                            Navigieren Sie durch die Anleitung und klicken Sie auf das Stern-Icon,
+                            um Abschnitte als Lesezeichen zu speichern.
+                        </p>
                     </div>
 
                     <!-- Favorites List (initially hidden) -->
-                    <ul id="favorites-list" class="favorites-list hidden" role="list"></ul>
+                    <ul id="favorites-list" class="favorites-list hidden" role="list">
+                        <!-- Dynamic favorites will go here -->
+                    </ul>
+
+                    <!-- Static skeleton in HTML -->
+                    <div id="favorites-skeleton" class="favorites-skeleton">
+                        <div class="favorite-skeleton-item">
+                            <div class="favorite-skeleton-content">
+                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                            </div>
+                            <div class="favorite-skeleton-actions">
+                                <div class="favorite-skeleton-action"></div>
+                                <div class="favorite-skeleton-action"></div>
+                            </div>
+                        </div>
+                        <div class="favorite-skeleton-item">
+                            <div class="favorite-skeleton-content">
+                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                            </div>
+                            <div class="favorite-skeleton-actions">
+                                <div class="favorite-skeleton-action"></div>
+                                <div class="favorite-skeleton-action"></div>
+                            </div>
+                        </div>
+                        <div class="favorite-skeleton-item">
+                            <div class="favorite-skeleton-content">
+                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                            </div>
+                            <div class="favorite-skeleton-actions">
+                                <div class="favorite-skeleton-action"></div>
+                                <div class="favorite-skeleton-action"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Footer (Footer-Bereich) -->
