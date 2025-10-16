@@ -165,27 +165,15 @@
         });
     }
 
+    // ========================================================================
     // Public API
-    const Toast = {
+    // ========================================================================
+
+    window.Toast = {
         init,
         show,
         clearAll
     };
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            LOG.debug(MODULE, 'Toast System: DOM loaded, initializing');
-            init();
-        });
-    } else {
-        LOG.debug(MODULE, 'Toast System: DOM already ready, initializing immediately');
-        init();
-    }
-
-    // Export to global scope
-    window.Toast = Toast;
-
     LOG.success(MODULE, 'Toast System: Module loaded and ready');
-
 })();

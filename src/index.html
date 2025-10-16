@@ -33,6 +33,17 @@
                         <span id="breadcrumb-current">Überblick</span>
                     </li>
                 </ol>
+
+                <!-- Static breadcrumb star button - initially hidden -->
+                <div class="breadcrumb-star-container" hidden>
+                    <button id="breadcrumb-star"
+                            class="breadcrumb-star"
+                            type="button"
+                            aria-label="Abschnitt als Favorit speichern"
+                            hidden>
+                        <span class="sr-only">Abschnitt als Favorit speichern</span>
+                    </button>
+                </div>
             </nav>
         </div>
         
@@ -1505,32 +1516,44 @@
     <!-- 5. TOAST - Toast Notifications -->
     <script src="./js/script-toast.js" defer></script>
 
-    <!-- 6. NAVIGATION - Navigation, Sidebar, Menu, Breadcrumb -->
+    <!-- 6. NAVIGATION - Navigation sidebar and hooks system -->
     <script src="js/script-navigation.js"></script>
 
-    <!-- 7. HISTORY - Section-History Tracking -->
+    <!-- 7. BREADCRUMB - Breadcrumb functionality -->
+    <script src="js/script-breadcrumb.js"></script>
+
+    <!-- 8. MAINMENU - Hamburger menu and dropdown -->
+    <script src="js/script-mainmenu.js"></script>
+
+    <!-- 9. HISTORY - Section-History Tracking -->
     <script src="js/script-history.js"></script>
 
-    <!-- 8. NOTES - Notizen-Feature -->
+    <!-- 10. NOTES - Notizen-Feature -->
     <script src="js/script-notes.js"></script>
 
-    <!-- 9. DETAIL LEVEL - Detail-Level-System -->
+    <!-- 11. DETAIL LEVEL - Detail-Level-System -->
     <script src="js/script-detail-level.js"></script>
 
-    <!-- 10. TIPS - Tips-Footer mit Rotation -->
+    <!-- 12. TIPS - Tips-Footer mit Rotation -->
     <script src="js/script-tips.js"></script>
 
-    <!-- 11. PREFERENCES - User Preferences Management -->
+    <!-- 13. PREFERENCES - User Preferences Management -->
     <script src="js/script-preferences.js"></script>
 
-    <!-- 12. THEME - Theme Management System -->
+    <!-- 14. THEME - Theme Management System -->
     <script src="js/script-theme.js"></script>
 
-    <!-- 13. GLOSSARY - Dynamischer Glossar -->
+    <!-- 15. GLOSSARY - Dynamischer Glossar -->
     <script src="js/script-glossary-manager.js"></script>
 
-    <!-- 14. FAVORITES - User Favorites for bookmarking sections -->
+    <!-- 16. FAVORITES - User Favorites for bookmarking sections -->
     <script src="js/script-favorites.js"></script>
+
+    <!-- 17. FAVORITES-BREADCRUMB-STAR - Favorites indicator for breadcrumb menu -->
+    <script src="js/script-favorites-breadcrumb-star.js"></script>
+
+    <!-- 18. FAVORITES-NAVIGATION-STARS - Favorites indicator for navigation sidebar -->
+    <script src="js/script-favorites-navigation-stars.js"></script>
 
     <!-- Last INIT - Haupt-Initialisierung (MUSS ZULETZT geladen werden) -->
     <script src="js/script-init.js"></script>

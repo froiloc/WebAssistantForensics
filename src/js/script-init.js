@@ -1,102 +1,82 @@
 // ============================================================================
-// SCRIPT-INIT.JS - Version 040
-// Haupt-Initialisierung: Orchestriert alle Module
+// COMPLETE MODULE INITIALIZATION
 // ============================================================================
-
 (function() {
     'use strict';
 
     const MODULE = 'INIT';
 
-    LOG(MODULE, `Starting application initialization... Build ${window.BUILD_INFO.version}`);
-
-    // ========================================================================
-    // INITIALISIERUNGS-REIHENFOLGE
-    // ========================================================================
+    // Check dependencies
+    if (typeof window.LOG === 'undefined') {
+        console.error(`${MODULE}: LOG object not available. Favorites Manager disabled.`);
+        return;
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-        LOG(MODULE, 'DOM ready, initializing modules...');
+        LOG(MODULE, 'DOM ready, initializing all modules in order...');
 
-        // 0. StateManager initialisieren (VOR allem anderen!)
-        if (!window.StateManager) {
-            LOG.error(MODULE, '❌ StateManager module not available! Check script loading order.');
-        } else {
-            LOG.success(MODULE, '✅ StateManager is ready');
-        }
+        // CRITICAL FOUNDATION (must initialize first)
+        const criticalModules = [
+            { name: 'StateManagerModule', required: true },
+            { name: 'Preferences', required: true },
+            { name: 'SectionManagement', required: true },
+            { name: 'SidebarManager', required: true }
+        ];
 
-        // 1. Preferences laden (als erstes)
-        if (window.Preferences) {
-            window.Preferences.init();
-        } else {
-            LOG.error(MODULE, '❌ Preferences module not loaded!');
-        }
+        // CORE MODULES
+        const coreModules = [
+            { name: 'NavigationManager', required: true },
+            { name: 'BreadcrumbManager', required: true },
+            { name: 'MainMenuManager', required: true },
+            { name: 'FavoritesManager', required: true },
+            { name: 'Toast', required: true }
+        ];
 
-        // 2. Section Management (Kern-Funktionalität)
-        if (window.SectionManagement) {
-            window.SectionManagement.init();
-        } else {
-            LOG.error(MODULE, '❌ SectionManagement module not loaded!');
-        }
+        // UI ENHANCEMENTS
+        const uiModules = [
+            { name: 'History', required: false },
+            { name: 'Notes', required: false },
+            { name: 'DetailLevel', required: false },
+            { name: 'Tips', required: false },
+            { name: 'BreadcrumbStarManager', required: false },
+            { name: 'NavigationStarsManager', required: false },
+            { name: 'GlossaryManager', required: false }
+        ];
 
-        // 3. Sidebar Manager (VOR Navigation/History!)
-        if (window.SidebarManager) {
-            window.SidebarManager.init();
-        } else {
-            LOG.error(MODULE, '❌ SidebarManager module not loaded!');
-        }
-
-        // 4. Navigation (benötigt Section Management)
-        if (window.Navigation) {
-            window.Navigation.init();
-        } else {
-            LOG.error(MODULE, '❌ Navigation module not loaded!');
-        }
-
-        // 5. History
-        if (window.History) {
-            window.History.init();
-        } else {
-            LOG.warn(MODULE, '❌ History module not loaded');
-        }
-
-        // 6. Notes
-        if (window.Notes) {
-            window.Notes.init();
-        } else {
-            LOG.warn(MODULE, '❌ Notes module not loaded');
-        }
-
-        // 7. Detail Level
-        if (window.DetailLevel) {
-            window.DetailLevel.init();
-        } else {
-            LOG.warn(MODULE, '❌ DetailLevel module not loaded');
-        }
-
-        // 8. Tips
-        if (window.Tips) {
-            window.Tips.init();
-        } else {
-            LOG.warn(MODULE, '❌ Tips module not loaded');
-        }
+        // Initialize in proper dependency order
+        initializeModuleGroup(criticalModules, 'Critical Foundation');
+        initializeModuleGroup(coreModules, 'Core Modules');
+        initializeModuleGroup(uiModules, 'UI Enhancements');
 
         LOG.separator(MODULE, '✅ INITIALIZATION COMPLETE');
-        LOG.success(MODULE, `✅ Application initialization complete! Build ${window.BUILD_INFO.version}`);
+        LOG.success(MODULE, `✅ All modules initialized! Build ${window.BUILD_INFO.version}`);
 
-        // Trigger Event für externe Listener
+        // Final system ready event
         window.dispatchEvent(new CustomEvent('appInitialized'));
     });
 
-    // ========================================================================
-    // ERROR HANDLING
-    // ========================================================================
+    /**
+    * Initialize a group of modules with proper error handling
+    */
+    function initializeModuleGroup(modules, groupName) {
+        LOG(MODULE, `Initializing ${groupName}...`);
 
-    window.addEventListener('error', (e) => {
-        LOG.error(MODULE, 'Global error:', e.error);
-    });
+        modules.forEach(module => {
+            const globalName = module.name;
+            const manager = window[globalName];
 
-    window.addEventListener('unhandledrejection', (e) => {
-        LOG.error(MODULE, 'Unhandled promise rejection:', e.reason);
-    });
+            if (manager && typeof manager.init === 'function') {
+                try {
+                    manager.init();
+                    LOG.success(MODULE, `✅ ${globalName} initialized`);
+                } catch (error) {
+                    LOG.error(MODULE, `❌ ${globalName} initialization failed:`, error);
+                }
+            } else {
+                const message = `${globalName} not available`;
+                module.required ? LOG.error(MODULE, `❌ ${message}`) : LOG.warn(MODULE, `⚠️ ${message}`);
+            }
+        });
+    }
 
 })();

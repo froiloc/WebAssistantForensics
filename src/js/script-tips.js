@@ -248,12 +248,12 @@
 
     window.Tips = {
         init: initTips,
- show: showTipsFooter,
- hide: hideTipsFooter,
- toggle: toggleTipsFooter,
- next: showNextTipManual,
- previous: showPreviousTip,
- reset: resetTipRotation
+        show: showTipsFooter,
+        hide: hideTipsFooter,
+        toggle: toggleTipsFooter,
+        next: showNextTipManual,
+        previous: showPreviousTip,
+        reset: resetTipRotation
     };
 
     LOG(MODULE, 'Tips module loaded');

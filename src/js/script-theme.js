@@ -203,11 +203,4 @@
         cycleTheme: cycleTheme
     };
 
-    // ===== AUTO-INIT BEI DOM READY =====
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTheme);
-    } else {
-        initTheme();
-    }
-
 })();

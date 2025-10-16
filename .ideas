@@ -16,3 +16,5 @@ Context:
 - Tonalität für den Agent soll motivierend-ermunternd sein.
 - Hamburger Menüpunkt zu Stöbern im Glossar. Modal wie Wörterbuch. Suche nach Begriff. Maske. Vorschlag bei Eingabe. Levenshtein Distanz.
 - Hamburgermenü aus script-navigation.js heraustrennen in eigenes Script.
+- introduce CONFIG.i18n.de in all classes.
+- implement in StateManager code, the subscription is path-based but doesn't have bubbling behavior for nested properties. We should add this.

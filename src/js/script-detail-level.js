@@ -25,6 +25,8 @@
         'expert': '3'
     };
 
+    let _isInitialized = false;
+
     // ========================================================================
     // DETAIL LEVEL MANAGEMENT
     // ========================================================================
@@ -199,11 +201,16 @@
     // ========================================================================
 
     function initDetailLevel() {
+        if (_isInitialized) {
+            LOG.warn(MODULE, 'Already initialized');
+            return;
+        }
         LOG(MODULE, 'Initializing detail level module...');
 
         initDetailLevelControls();
         initDetailLevelListeners();
 
+        _isInitialized = true;
         LOG.success(MODULE, 'Detail level module initialized');
     }
 

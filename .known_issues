@@ -1,0 +1,10 @@
+🐛 Documented Issues for Later (16.10.2025)
+Issue #1: Hamburger Menu Broken
+Symptoms: Menu toggle not functioning
+Potential Causes: CSS conflicts, JavaScript event listener issues, DOM structure changes
+Priority: High (affects core navigation)
+
+Issue #2: Favorites Not Persisting
+Symptoms: Favorites disappear on page reload
+Potential Causes: StateManager persistence configuration, storage key issues, schema validation failures
+Priority: High (core functionality)

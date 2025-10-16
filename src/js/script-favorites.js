@@ -212,6 +212,61 @@
     }
 
     // ============================================================
+    //  Favorite Status Check
+    // ============================================================
+
+    function isSectionFavorited(sectionId) {
+        const favoritesState = window.StateManager.get('favorites');
+        if (!favoritesState || !favoritesState.items) return false;
+
+        return favoritesState.items.some(item =>
+        item.sectionId === sectionId && item.folderId === 'default'
+        );
+    }
+
+    // ============================================================
+    //  Toggle Favorite Function
+    // ============================================================
+
+    function toggleFavorite(sectionId) {
+        window.LOG.debug('Favorites', `Toggling favorite for section: ${sectionId}`);
+
+        // Show immediate visual feedback
+        showFavoriteLoadingState(sectionId);
+
+        // Get current favorites state with proper defaults
+        const favoritesState = window.StateManager.get('favorites') || {
+            version: '1.0',
+            items: [],
+            folders: [
+                {
+                    id: 'default',
+            name: 'Favoriten',
+            created: new Date().toISOString()
+                }
+            ],
+            lastUpdated: new Date().toISOString()
+        };
+
+        // Check if section is already favorited in default folder
+        const existingFavorite = favoritesState.items.find(item =>
+            item.sectionId === sectionId && item.folderId === 'default'
+        );
+
+        if (existingFavorite) {
+            // Remove existing favorite
+            window.LOG.debug('Favorites', `Removing existing favorite: ${existingFavorite.id}`);
+            removeFavorite(existingFavorite.id);
+        } else {
+            // Add new favorite
+            window.LOG.debug('Favorites', `Adding new favorite for section: ${sectionId}`);
+            addFavorite(sectionId);
+        }
+
+        // Loading state will be cleared by addFavorite/removeFavorite functions
+    }
+
+    // ============================================================
     //  visual feedback functions
     // ============================================================
 
@@ -636,6 +691,11 @@
      * Initializes the favorites manager
      */
     function init() {
+        if (_isInitialized) {
+            LOG.warn(MODULE, 'Already initialized');
+            return;
+        }
+
         LOG.debug(MODULE, 'Favorites Manager: init() called');
 
         // Shortcut beim SidebarManager registrieren
@@ -649,11 +709,6 @@
             }
         } else {
             LOG.error(MODULE, 'SidebarManager not available!');
-        }
-
-        if (_isInitialized) {
-            LOG.debug(MODULE, 'Favorites Manager: Already initialized');
-            return true;
         }
 
         try {
@@ -678,21 +733,21 @@
         }
     }
 
-    // AUTO-INITIALIZE ON SCRIPT LOAD, following the same pattern
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        // DOM is already ready, initialize immediately
-        init();
-    }
+    // ============================================================
+    //  Public API Export
+    // ============================================================
 
     // Export to global scope if needed for direct access
     window.FavoritesManager = {
         init: init,
         refresh: refresh,
+        addFavorite: addFavorite,
+        isSectionFavorited: isSectionFavorited,
+        removeFavorite: removeFavorite,
+        toggleFavorite: toggleFavorite,
         isInitialized: () => _isInitialized
     };
+    LOG.debug('Favorites', 'FavoritesManager API exported with toggle support');
 
     LOG.debug(MODULE, 'Favorites Manager: Module loaded and auto-initialization scheduled');
-
 })();

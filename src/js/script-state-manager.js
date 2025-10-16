@@ -25,6 +25,13 @@
      * Wird durch Proxy gewrappt für automatische Change Detection
      */
     let _state = {
+        // System State (nicht persistiert)
+        system: {
+            ready: false,
+            modulesLoaded: 0,
+            initializationPhase: 'booting'
+        },
+
         // UI-Status
         ui: {
             sidebarOpen: false,
@@ -213,7 +220,7 @@
      * @param {Function} callback - Callback-Funktion (newValue, oldValue, path)
      * @returns {Function} Unsubscribe-Funktion
      */
-    function subscribe(path, callback) {
+    function subscribe(path, callback, options = { bubble: false }) {
         if (typeof callback !== 'function') {
             LOG.error(MODULE, 'Subscribe: callback must be a function');
             return () => {};
@@ -239,45 +246,51 @@
 
     /**
      * Benachrichtigt alle Observer eines bestimmten Pfads
-     *
+     *  Jetzt mit Kohlensäure (Bubbling)
      * @param {String} path - Pfad im State
      * @param {*} newValue - Neuer Wert
      * @param {*} oldValue - Alter Wert
      */
     function notifyObservers(path, newValue, oldValue) {
-        // Exakter Pfad
-        if (_observers[path]) {
-            _observers[path].forEach(callback => {
-                try {
-                    callback(newValue, oldValue, path);
-                } catch (e) {
-                    LOG.error(MODULE, `Observer callback error for ${path}:`, e);
-                }
-            });
+        const pathsToNotify = new Set([path]);
+
+        // Generate all parent paths for bubbling
+        let currentPath = path;
+        while (currentPath.includes('.')) {
+            currentPath = currentPath.substring(0, currentPath.lastIndexOf('.'));
+            pathsToNotify.add(currentPath);
         }
 
-        // Wildcard-Observer (z.B. 'preferences.*')
-        const wildcardPath = path.split('.').slice(0, -1).join('.') + '.*';
-        if (_observers[wildcardPath]) {
-            _observers[wildcardPath].forEach(callback => {
-                try {
-                    callback(newValue, oldValue, path);
-                } catch (e) {
-                    LOG.error(MODULE, `Wildcard observer callback error for ${wildcardPath}:`, e);
-                }
-            });
-        }
+        // Add root observer
+        pathsToNotify.add('*');
 
-        // Root-Observer ('*')
-        if (_observers['*']) {
-            _observers['*'].forEach(callback => {
-                try {
-                    callback(newValue, oldValue, path);
-                } catch (e) {
-                    LOG.error(MODULE, `Root observer callback error:`, e);
+        // Notify all relevant paths
+        pathsToNotify.forEach(currentPath => {
+            // Exact path observers
+            if (_observers[currentPath]) {
+                _observers[currentPath].forEach(callback => {
+                    try {
+                        callback(newValue, oldValue, path);
+                    } catch (e) {
+                        LOG.error(MODULE, `Observer callback error for ${currentPath}:`, e);
+                    }
+                });
+            }
+
+            // Wildcard observers for this level
+            if (currentPath !== '*') {
+                const wildcardPath = currentPath.split('.').slice(0, -1).join('.') + '.*';
+                if (_observers[wildcardPath]) {
+                    _observers[wildcardPath].forEach(callback => {
+                        try {
+                            callback(newValue, oldValue, path);
+                        } catch (e) {
+                            LOG.error(MODULE, `Wildcard observer callback error for ${wildcardPath}:`, e);
+                        }
+                    });
                 }
-            });
-        }
+            }
+        });
     }
 
     // ========================================================================
