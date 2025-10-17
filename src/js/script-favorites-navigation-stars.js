@@ -41,11 +41,27 @@
 
         // Register our hook with the navigation system
         if (window.NavigationManager && window.NavigationManager.registerAfterItemCreation) {
+            if (window.NavigationManager.isInitialized()) {
+                LOG.error(MODULE, 'Navigation has already been initializes. Wrong running order.');
+                return;
+            }
             window.NavigationManager.registerAfterItemCreation(addStarToNavItem);
+
             LOG.success(MODULE, 'Registered navigation item creation hook');
         } else {
             LOG.error(MODULE, 'Navigation hook system not available');
             return;
+        }
+
+        // === CRITICAL MISSING: Subscribe to favorites changes ===
+        if (window.StateManager) {
+            const unsubscribe = window.StateManager.subscribe('favorites', () => {
+                LOG.debug(MODULE, 'Favorites changed, updating all navigation stars');
+                updateAllNavigationStars();
+            });
+            // Store for cleanup if needed
+            _unsubscribeFunctions.push(unsubscribe);
+            LOG.debug(MODULE, 'Subscribed to favorites changes');
         }
 
         _isInitialized = true;
@@ -87,8 +103,10 @@
     function handleStarClick(sectionId, starButton) {
         LOG.debug(MODULE, `Toggling favorite for section: ${sectionId}`);
 
+        LOG.debug(MODULE, "0) starButton is: ", starButton);
         // Show loading state
         starButton.classList.add(CONFIG.classes.loading);
+        LOG.debug(MODULE, `Added loading class to star for: ${sectionId}`);
 
         // Toggle favorite
         window.FavoritesManager.toggleFavorite(sectionId);
@@ -115,6 +133,7 @@
                                 `${sectionTitle} ${CONFIG.i18n.de.addFavorite}`
         );
 
+        LOG.debug(MODULE, "1) starButton is: ", starButton);
         // Remove loading state
         starButton.classList.remove(CONFIG.classes.loading);
 
@@ -122,14 +141,22 @@
     }
 
     /**
-     * Update all navigation stars (e.g., when favorites change globally)
-     */
+    * Update all navigation stars (e.g., when favorites change globally)
+    */
     function updateAllNavigationStars() {
-        document.querySelectorAll(CONFIG.selectors.star).forEach(starButton => {
+        const stars = document.querySelectorAll(CONFIG.selectors.star);
+        LOG.debug(MODULE, `Updating ${stars.length} navigation stars`);
+
+        stars.forEach(starButton => {
             const sectionId = starButton.dataset.sectionId;
-            if (sectionId) {
-                updateStarAppearance(starButton, sectionId);
+            if (!sectionId) {
+                LOG.warn(MODULE, 'Star button missing sectionId data attribute', starButton);
+                // STILL remove loading state even if sectionId is missing!
+                LOG.debug(MODULE, "2) starButton is: ", starButton);
+                starButton.classList.remove(CONFIG.classes.loading);
+                return;
             }
+            updateStarAppearance(starButton, sectionId);
         });
     }
 

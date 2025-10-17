@@ -187,6 +187,11 @@
     }
 
     function removeFavorite(favoriteId) {
+        // FIRST: Get the sectionId before we remove the favorite
+        const favorites = window.StateManager.get('favorites.items') || [];
+        const favoriteToRemove = favorites.find(fav => fav.id === favoriteId);
+        const sectionId = favoriteToRemove?.sectionId;
+
         const favoriteItem = document.querySelector(`[data-favorite-id="${favoriteId}"]`);
 
         if (favoriteItem) {
@@ -195,17 +200,27 @@
 
             // Wait for animation to complete before actual removal
             setTimeout(() => {
-                const favorites = window.StateManager.get('favorites.items') || [];
                 const updatedFavorites = favorites.filter(fav => fav.id !== favoriteId);
                 window.StateManager.set('favorites.items', updatedFavorites);
+
+                // === CRITICAL FIX: Hide loading state ===
+                if (sectionId) {
+                    hideFavoriteLoadingState(sectionId);
+                }
+
                 renderFavoritesList();
                 Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
-            }, 300); // Match CSS transition duration
+            }, 300);
         } else {
             // Fallback if DOM element not found
-            const favorites = window.StateManager.get('favorites.items') || [];
             const updatedFavorites = favorites.filter(fav => fav.id !== favoriteId);
             window.StateManager.set('favorites.items', updatedFavorites);
+
+            // === CRITICAL FIX: Hide loading state ===
+            if (sectionId) {
+                hideFavoriteLoadingState(sectionId);
+            }
+
             renderFavoritesList();
             Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
         }

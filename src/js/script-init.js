@@ -25,6 +25,7 @@
 
         // CORE MODULES
         const coreModules = [
+            { name: 'NavigationStarsManager', required: false }, // ← init before NavigationManager
             { name: 'NavigationManager', required: true },
             { name: 'BreadcrumbManager', required: true },
             { name: 'MainMenuManager', required: true },
@@ -39,7 +40,6 @@
             { name: 'DetailLevel', required: false },
             { name: 'Tips', required: false },
             { name: 'BreadcrumbStarManager', required: false },
-            { name: 'NavigationStarsManager', required: false },
             { name: 'GlossaryManager', required: false }
         ];
 
