@@ -1055,7 +1055,7 @@ body.notes-open .notes-sidebar {
     transition: color var(--transition-medium);
 }
 
-#sidebar-history .history-list {
+#sidebar-history #history-list {
     list-style: none;
     margin: 0;
     padding: 0;

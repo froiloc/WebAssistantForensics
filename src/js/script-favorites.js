@@ -41,8 +41,10 @@
             emptyStateHint: '.favorites-empty-hint',
             folderTabs: '.favorites-folder-tab',
             favoriteItems: '.favorite-item',
-            favoriteLinks: '.favorite-link',
-            favoriteRemoveBtns: '.favorite-remove-btn'
+            favoriteLink: '.favorite-link',
+            favoriteEditBtn: '.favorite-action--edit',
+            favoriteRemoveBtn: '.favorite-remove-btn',
+            favoriteDetailsBtn: '.favorite-details-toggle'
         },
         classes: {
             active: 'active',
@@ -62,7 +64,8 @@
             accessStats: 'access-stats',
             statItem: 'stat-item',
             statLabel: 'stat-label',
-            statValue: 'stat-value'
+            statValue: 'stat-value',
+            favoritesEmptySuggestion: 'favorites-empty-suggestion'
         }
     };
     const CONFIG_I18N = {
@@ -97,10 +100,10 @@
             <span class="favorite-item-path">${favorite.sectionPath}</span>
             </button>
             <div class="favorite-actions">
-                <button class="favorite-action favorite-details-toggle" aria-expanded="false" aria-label="${CONFIG_I18N.de.showStatistics}">
+                <button class="favorite-action favorite-details-toggle" aria-expanded="false" data-favorite-id="${favorite.id}" aria-label="${CONFIG_I18N.de.showStatistics}">
                 </button>
-                <button class="favorite-action favorite-action--edit" aria-label="${CONFIG_I18N.de.editFavorite}"></button>
-                <button class="favorite-action favorite-remove-btn" aria-label="${CONFIG_I18N.de.removeFavorite}"></button>
+                <button class="favorite-action favorite-action--edit" data-favorite-id="${favorite.id}" aria-label="${CONFIG_I18N.de.editFavorite}"></button>
+                <button class="favorite-action favorite-remove-btn" data-favorite-id="${favorite.id}" aria-label="${CONFIG_I18N.de.removeFavorite}"></button>
                 <!-- Statistics as last child of favorite-actions -->
                 <div class="favorite-details">
                     ${StatisticsManager.createStatisticsHTML(favorite)}
@@ -243,7 +246,7 @@
         ).join('');
 
         // Initialize statistics for the rendered items
-        const favoriteItems = Array.from(favoritesList.querySelectorAll('.favorite-item'));
+        const favoriteItems = Array.from(favoritesList.querySelectorAll(CONFIG.selectors.favoriteItem));
 
         updateFolderBadgeCounts();
 
@@ -309,7 +312,7 @@
         const favoriteToRemove = favorites.find(fav => fav.id === favoriteId);
         const sectionId = favoriteToRemove?.sectionId;
 
-        const favoriteItem = document.querySelector(`[data-favorite-id="${favoriteId}"]`);
+        const favoriteItem = document.querySelector(`main [data-favorite-id="${favoriteId}"]`);
 
         if (favoriteItem) {
             // Add removing class for smooth animation
@@ -403,21 +406,21 @@
     // ============================================================
 
     function showFavoriteLoadingState(sectionId) {
-        const favoriteItem = document.querySelector(`[data-section="${sectionId}"]`);
+        const favoriteItem = document.querySelector(`main [data-section="${sectionId}"]`);
         if (favoriteItem) {
             favoriteItem.classList.add(CONFIG.classes.loading, CONFIG.classes.disabled);
         }
     }
 
     function hideFavoriteLoadingState(sectionId) {
-        const favoriteItem = document.querySelector(`[data-section="${sectionId}"]`);
+        const favoriteItem = document.querySelector(`main [data-section="${sectionId}"]`);
         if (favoriteItem) {
             favoriteItem.classList.remove(CONFIG.classes.loading, CONFIG.classes.disabled);
         }
     }
 
     function showFavoriteSuccessState(favoriteId) {
-        const favoriteItem = document.querySelector(`[data-favorite-id="${favoriteId}"]`);
+        const favoriteItem = document.querySelector(`main [data-favorite-id="${favoriteId}"]`);
         if (favoriteItem) {
             favoriteItem.classList.add(CONFIG.classes.success);
             setTimeout(() => {
@@ -643,13 +646,13 @@
         LOG.debug(MODULE, 'Click target class:', e.target.className);
 
         // Handle statistics toggle clicks
-        if (e.target.closest('.favorite-details-toggle')) {
-            const toggleBtn = e.target.closest('.favorite-details-toggle');
+        if (e.target.closest(CONFIG.selectors.favoriteDetailsBtn)) {
+            const toggleBtn = e.target.closest(CONFIG.selectors.favoriteDetailsBtn);
             const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
 
             // Close all other expanded details first
             if (!isExpanded) {
-                document.querySelectorAll('.favorite-details-toggle[aria-expanded="true"]').forEach(otherToggle => {
+                document.querySelectorAll(`${CONFIG.selectors.favoriteDetailsBtn}[aria-expanded="true"]`).forEach(otherToggle => {
                     if (otherToggle !== toggleBtn) {
                         otherToggle.setAttribute('aria-expanded', 'false');
                     }
@@ -662,25 +665,32 @@
             return;
         }
 
-
         // Handle favorite link clicks (from favorites list)
-        if (e.target.closest(CONFIG.selectors.favoriteLink)) {
+        else if (e.target.closest(CONFIG.selectors.favoriteLink)) {
             const link = e.target.closest(CONFIG.selectors.favoriteLink);
             const sectionId = link.dataset.section;
             LOG.debug(MODULE, 'Empty state suggestion clicked:', sectionId);
             navigateToSection(sectionId);
         }
 
+        // Handle favorite edit clicks (from favorites list)
+        else if (e.target.closest(CONFIG.selectors.favoriteEditBtn)) {
+            const btn = e.target.closest(CONFIG.selectors.favoriteEditBtn);
+            e.stopPropagation();
+            const favoriteId = btn.dataset.favoriteId;
+            editFavorite(favoriteId);
+        }
+
         // Handle empty state suggestion clicks
-        else if (e.target.classList.contains('favorites-empty-suggestion')) {
+        else if (e.target.classList.contains(CONFIG.selectors.favoritesEmptySuggestion)) {
             const sectionId = e.target.dataset.section;
             LOG.debug(MODULE, `Empty state suggestion clicked: ${sectionId}`);
             navigateToSection(sectionId);
         }
 
         // Handle remove button clicks
-        else if (e.target.closest(CONFIG.selectors.favoriteRemoveBtns)) {
-            const btn = e.target.closest(CONFIG.selectors.favoriteRemoveBtns);
+        else if (e.target.closest(CONFIG.selectors.favoriteRemoveBtn)) {
+            const btn = e.target.closest(CONFIG.selectors.favoriteRemoveBtn);
             e.stopPropagation();
             const favoriteId = btn.dataset.favoriteId;
             removeFavorite(favoriteId);
@@ -704,6 +714,10 @@
             }
             Toast.show(message, 'error');
         }
+    }
+
+    function editFavorite(sectionId) {
+        Toast.show('The edit modal will be implemented in late phase 2.0', 'warn');
     }
 
     function syncFavoriteAccessForHistoryEntry(historyEntry) {
