@@ -25,8 +25,7 @@
     let unsubscribeFromHistory = null;
 
     // Configuration
-    // Configuration
-    const CONFIG = {
+    const CONFIG_BASE = {
         selectors: {
             sections: 'main section.content-section',
             sidebar: '#sidebar-favorites',
@@ -55,44 +54,158 @@
             loading: 'favorite--loading',
             removing: 'favorite--removing',
             success: 'favorite--success',
-            disabled: 'favorite--disabled'
+            disabled: 'favorite--disabled',
+            favoriteMain: 'favorite-main',
+            favoriteDetails: 'favorite-details',
+            detailsToggle: 'favorite-details-toggle',
+            detailsToggleActive: 'favorite-details-toggle--active',
+            accessStats: 'access-stats',
+            statItem: 'stat-item',
+            statLabel: 'stat-label',
+            statValue: 'stat-value'
+        }
+    };
+    const CONFIG_I18N = {
+        de: {
+            today: 'Heute',
+            yesterday: 'Gestern',
+            daysAgo: 'Vor %d Tagen',
+            weeksAgo: 'Vor %d Wochen',
+            monthsAgo: 'Vor %d Monaten',
+            navigationFailed: 'Navigation zu "%s" fehlgeschlagen',
+            navigationUnavailable: 'Navigation nicht verfügbar',
+            sectionNotFound: 'Abschnitt "%s" nicht gefunden',
+            favoriteRemoved: 'Lesezeichen entfernt',
+            favoriteAlreadySaved: 'Bereits als Lesezeichen gespeichert',
+            savedAsFavorite: 'Als Lesezeichen gespeichert',
+            showStatistics: 'Zugriffsstatistiken anzeigen',
+            accessCount: 'Zugriffe',
+            lastAccessed: 'Letzter Zugriff',
+            created: 'Erstellt',
+            never: 'Nie',
+            unknown: 'Unbekannt',
+            editFavorite: 'Lesezeichen bearbeiten',
+            removeFavorite: 'Lesezeichen entfernen'
+        }
+    };
+    const CONFIG_TEMPLATES = {
+        favoriteItem: (favorite) => `
+            <li class="favorite-item" data-section="${favorite.sectionId}" data-favorite-id="${favorite.id}">
+            <button class="favorite-link" data-section="${favorite.sectionId}">
+            <span class="favorite-item-title">${favorite.sectionName}</span>
+            <span class="favorite-item-meta" hidden>
+            <span class="favorite-item-path">${favorite.sectionPath}</span>
+            </button>
+            <div class="favorite-actions">
+                <button class="favorite-action favorite-details-toggle" aria-expanded="false" aria-label="${CONFIG_I18N.de.showStatistics}">
+                </button>
+                <button class="favorite-action favorite-action--edit" aria-label="${CONFIG_I18N.de.editFavorite}"></button>
+                <button class="favorite-action favorite-remove-btn" aria-label="${CONFIG_I18N.de.removeFavorite}"></button>
+                <!-- Statistics as last child of favorite-actions -->
+                <div class="favorite-details">
+                    ${StatisticsManager.createStatisticsHTML(favorite)}
+                </div>
+            </div>
+            </li>
+            `
+    };
+
+    // Final CONFIG object that combines everything
+    const CONFIG = {
+        ...CONFIG_BASE,
+        templates: CONFIG_TEMPLATES,
+        i18n: CONFIG_I18N
+    };
+
+    // Clean up - make them unavailable
+    delete window.CONFIG_BASE;
+    delete window.CONFIG_I18N;
+    delete window.CONFIG_TEMPLATES;
+
+    // ========================================================================
+    // FAVORITES STATISTICS - Expandable access statistics
+    // ========================================================================
+
+    const StatisticsManager = {
+        /**
+        * Create statistics HTML
+        */
+        createStatisticsHTML(favoriteData) {
+            const lastAccessed = this.formatLastAccessed(favoriteData.lastAccessed);
+            const accessCount = favoriteData.accessCount || 0;
+            const createdAt = this.formatCreatedAt(favoriteData.createdAt);
+
+            return `
+                <div class="${CONFIG.classes.accessStats}">
+                    <div class="${CONFIG.classes.statItem}">
+                        <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.accessCount}:</span>
+                        <span class="${CONFIG.classes.statValue}">${accessCount}</span>
+                    </div>
+                    <div class="${CONFIG.classes.statItem}">
+                        <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.lastAccessed}:</span>
+                        <span class="${CONFIG.classes.statValue}">${lastAccessed}</span>
+                    </div>
+                    <div class="${CONFIG.classes.statItem}">
+                        <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.created}:</span>
+                        <span class="${CONFIG.classes.statValue}">${createdAt}</span>
+                    </div>
+                </div>
+            `;
         },
-        templates: {
-            favoriteItem: (favorite) => `
-                <li class="favorite-item" data-section="${favorite.sectionId}" data-favorite-id="${favorite.id}">
-                <button class="favorite-link" data-section="${favorite.sectionId}">
-                <span class="favorite-item-title">${favorite.sectionName}</span>
-                <span class="favorite-item-meta">
-                <span class="favorite-item-path">${favorite.sectionPath}</span>
-                <span class="favorite-item-access">• ${favorite.accessCount || 0} Zugriffe</span>
-                </span>
-                </button>
-                <button class="favorite-action favorite-action--edit"
-                data-favorite-id="${favorite.id}"
-                aria-label="Lesezeichen bearbeiten">
-                🖉
-                </button>
-                <button class="favorite-action favorite-remove-btn"
-                data-favorite-id="${favorite.id}"
-                aria-label="Lesezeichen entfernen">
-                🗑️
-                </button>
-                </li>
-                `
+
+        /**
+        * Update existing statistics display
+        */
+        updateStatistics(statsContainer, favoriteData) {
+            const statItems = statsContainer.querySelectorAll(`.${CONFIG.classes.statItem}`);
+            statItems.forEach(item => {
+                const label = item.querySelector(`.${CONFIG.classes.statLabel}`)?.textContent;
+                const valueElement = item.querySelector(`.${CONFIG.classes.statValue}`);
+
+                if (label && valueElement) {
+                    if (label.includes(CONFIG.i18n.de.accessCount)) {
+                        valueElement.textContent = favoriteData.accessCount || 0;
+                    } else if (label.includes(CONFIG.i18n.de.lastAccessed)) {
+                        valueElement.textContent = this.formatLastAccessed(favoriteData.lastAccessed);
+                    }
+                }
+            });
         },
-        i18n: {
-            de: {
-                today: 'Heute',
-                yesterday: 'Gestern',
-                daysAgo: 'Vor %d Tagen',
-                weeksAgo: 'Vor %d Wochen',
-                monthsAgo: 'Vor %d Monaten',
-                navigationFailed: 'Navigation zu "%s" fehlgeschlagen',
-                navigationUnavailable: 'Navigation nicht verfügbar',
-                sectionNotFound: 'Abschnitt "%s" nicht gefunden',
-                favoriteRemoved: 'Lesezeichen entfernt',
-                favoriteAlreadySaved: 'Bereits als Lesezeichen gespeichert',
-                savedAsFavorite: 'Als Lesezeichen gespeichert'
+
+        /**
+        * Format last accessed date
+        */
+        formatLastAccessed(timestamp) {
+            if (!timestamp) return CONFIG.i18n.de.never;
+
+            // Use relative time formatting if available, otherwise simple date
+            try {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) return CONFIG.i18n.de.yesterday;
+                if (diffDays < 7) return CONFIG.i18n.de.daysAgo.replace('%d', diffDays);
+                if (diffDays < 30) return CONFIG.i18n.de.weeksAgo.replace('%d', Math.floor(diffDays / 7));
+
+                return date.toLocaleDateString('de-DE');
+            } catch (e) {
+                return CONFIG.i18n.de.unknown;
+            }
+        },
+
+        /**
+        * Format creation date
+        */
+        formatCreatedAt(timestamp) {
+            if (!timestamp) return CONFIG.i18n.de.unknown;
+
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleDateString('de-DE');
+            } catch (e) {
+                return CONFIG.i18n.de.unknown;
             }
         }
     };
@@ -100,7 +213,6 @@
     // ============================================================
     //  Favorites List Rendering Function
     // ============================================================
-
     function renderFavoritesList(folderId = 'default') {
         const favorites = window.StateManager.get('favorites.items') || [];
         const folderFavorites = favorites.filter(fav => fav.folderId === folderId);
@@ -130,7 +242,12 @@
             CONFIG.templates.favoriteItem(favorite)
         ).join('');
 
+        // Initialize statistics for the rendered items
+        const favoriteItems = Array.from(favoritesList.querySelectorAll('.favorite-item'));
+
         updateFolderBadgeCounts();
+
+        LOG.debug(MODULE, `Rendered ${folderFavorites.length} favorites with statistics`);
     }
 
     function updateFolderTab(folderId) {
@@ -525,6 +642,27 @@
         LOG.debug(MODULE, 'Click target:', e.target);
         LOG.debug(MODULE, 'Click target class:', e.target.className);
 
+        // Handle statistics toggle clicks
+        if (e.target.closest('.favorite-details-toggle')) {
+            const toggleBtn = e.target.closest('.favorite-details-toggle');
+            const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+
+            // Close all other expanded details first
+            if (!isExpanded) {
+                document.querySelectorAll('.favorite-details-toggle[aria-expanded="true"]').forEach(otherToggle => {
+                    if (otherToggle !== toggleBtn) {
+                        otherToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            // Toggle current button
+            toggleBtn.setAttribute('aria-expanded', !isExpanded);
+            e.stopPropagation();
+            return;
+        }
+
+
         // Handle favorite link clicks (from favorites list)
         if (e.target.closest(CONFIG.selectors.favoriteLink)) {
             const link = e.target.closest(CONFIG.selectors.favoriteLink);
@@ -649,18 +787,43 @@
 
         // Simulate loading delay
         setTimeout(() => {
-            // 1. Render initial list first
+            // 1. Ensure favorites data structure exists
+            initializeFavoritesData();
+
+            // 2. Render initial list
             renderFavoritesList();
 
-            // 2. THEN start watching history
-            // Initialize history sync
-            initializeFavoritesHistorySync();
+            // 3. THEN start watching history
+            // Initialize history sync if available
+            if (window.StateManager && window.StateManager.subscribe) {
+                initializeFavoritesHistorySync();
+            }
 
             // Mark as initialized
             _isInitialized = true;
 
             LOG.success(MODULE, 'Favorites initialized');
         }, 800);
+    }
+
+    function initializeFavoritesData() {
+        const currentFavorites = window.StateManager.get('favorites');
+
+        if (!currentFavorites) {
+            const initialFavorites = {
+                version: '1.0',
+                items: [],
+                folders: [
+                    {
+                        id: 'default',
+                        name: 'Favoriten',
+                        created: new Date().toISOString()
+                    }
+                ],
+                lastUpdated: new Date().toISOString()
+            };
+            window.StateManager.set('favorites', initialFavorites);
+        }
     }
 
     function destroyFavorites() {
@@ -713,17 +876,10 @@
 
         LOG.debug(MODULE, 'Favorites Manager: init() called');
 
-        // Shortcut beim SidebarManager registrieren
-        if (window.SidebarManager) {
-            const registered = window.SidebarManager.registerShortcut('favorites', 'f');
-
-            if (registered) {
-                LOG.success(MODULE, 'Shortcut Alt+f registered with SidebarManager');
-            } else {
-                LOG.warn(MODULE, 'Shortcut Alt+f already taken');
-            }
-        } else {
-            LOG.error(MODULE, 'SidebarManager not available!');
+        // Check dependencies
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available - Favorites disabled');
+            return false;
         }
 
         try {
@@ -733,6 +889,19 @@
             if (!_favoritesContainer) {
                 LOG.error(MODULE, 'Favorites Manager: Favorites container not found');
                 return false;
+            }
+
+            // Shortcut beim SidebarManager registrieren
+            if (window.SidebarManager) {
+                const registered = window.SidebarManager.registerShortcut('favorites', 'f');
+
+                if (registered) {
+                    LOG.success(MODULE, 'Shortcut Alt+f registered with SidebarManager');
+                } else {
+                    LOG.warn(MODULE, 'Shortcut Alt+f already taken');
+                }
+            } else {
+                LOG.error(MODULE, 'SidebarManager not available!');
             }
 
             // Initial render
@@ -760,7 +929,11 @@
         isSectionFavorited: isSectionFavorited,
         removeFavorite: removeFavorite,
         toggleFavorite: toggleFavorite,
-        isInitialized: () => _isInitialized
+        isInitialized: () => _isInitialized,
+        // Debug-Funktionen (nur wenn debugMode aktiv)
+        _debug: window.BUILD_INFO?.debugMode ? {
+            StatisticsManager: StatisticsManager
+        } : undefined
     };
     LOG.debug('Favorites', 'FavoritesManager API exported with toggle support');
 

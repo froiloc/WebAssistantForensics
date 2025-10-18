@@ -41,7 +41,8 @@
             { name: 'Tips', required: false },
             { name: 'BreadcrumbStarManager', required: false },
             { name: 'HeaderStarsManager', required: false },
-            { name: 'GlossaryManager', required: false }
+            { name: 'GlossaryManager', required: false },
+            { name: 'ThemeManager', required: false },
         ];
 
         // Initialize in proper dependency order

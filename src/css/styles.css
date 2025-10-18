@@ -2367,22 +2367,6 @@ body.tips-hidden .sidebar-container {
     font-size: 0.75em;
 }
 
-/* Favorite actions */
-.favorite-actions {
-    display: flex;
-    padding: 0 8px;
-    gap: 4px;
-}
-
-.favorite-action:hover {
-    background: var(--color-border);
-}
-
-.favorite-action:focus {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 1px;
-}
-
 /* Empty state */
 .favorites-empty-state {
     padding: 1.5rem;
@@ -2545,45 +2529,6 @@ body.tips-hidden .sidebar-container {
 }
 
 /* ===== FAVORITES ACTION BUTTON CONSISTENCY ===== */
-
-.favorite-action {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 1.1em;
-    transition: all var(--transition-fast) var(--ease-out);
-
-    /* Consistent sizing */
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.favorite-action:hover {
-    background: var(--color-border);
-    transform: translateY(-1px);
-}
-
-.favorite-action:focus {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 1px;
-}
-
-.favorite-action--edit:hover {
-    background-color: var(--color-warning);
-    color: var(--color-warning-text);
-}
-
-.favorite-remove-btn:hover {
-    background-color: var(--color-error);
-    color: var(--color-surface-elevated);
-}
-
 /* Ensure favorite link takes remaining space */
 .favorite-link {
     flex: 1;
@@ -2884,7 +2829,7 @@ body.tips-hidden .sidebar-container {
 
 /* Batch operation states */
 .favorites-container--loading .favorite-link,
-.favorites-container--loading .favorite-action {
+.favorites-container--loading .favorite-actions button {
     pointer-events: none;
     opacity: 0.7;
 }
@@ -3013,7 +2958,7 @@ body.tips-hidden .sidebar-container {
 }
 
 /* Action button micro-interactions */
-.favorite-action {
+.favorite-actions button {
     background: none;
     border: none;
     padding: 8px;
@@ -3031,28 +2976,48 @@ body.tips-hidden .sidebar-container {
     overflow: hidden;
 }
 
-/* Button hover with scale */
-.favorite-action:hover {
-    background: var(--color-border);
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px var(--color-shadow);
+/* Statistics toggle button */
+.favorite-details-toggle::before {
+    content: "📊";
+    font-size: 14px;
 }
 
-/* Button click feedback */
-.favorite-action:active {
-    transform: scale(0.95);
-    transition-duration: 0.1s;
+.favorite-details-toggle[aria-expanded="true"]::before {
+    content: "📈";
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
 }
 
-/* Specific button color transitions */
+/* Edit button */
+.favorite-action--edit::before {
+    content: "🖉";
+    font-size: 13px;
+}
+
+/* Remove button */
+.favorite-remove-btn::before {
+    content: "🗑️";
+    font-size: 13px;
+}
+
+.favorite-actions button:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.favorite-details-toggle {
+    color: var(--color-info);
+}
+
+.favorite-details-toggle:hover {
+    background-color: var(--color-info);
+}
+
 .favorite-action--edit {
     color: var(--color-warning);
 }
 
 .favorite-action--edit:hover {
     background-color: var(--color-warning);
-    color: var(--color-warning-text);
-    transform: scale(1.1) rotate(5deg);
 }
 
 .favorite-remove-btn {
@@ -3061,8 +3026,11 @@ body.tips-hidden .sidebar-container {
 
 .favorite-remove-btn:hover {
     background-color: var(--color-error);
-    color: var(--color-surface-elevated);
-    transform: scale(1.1);
+}
+
+.favorite-actions button:focus {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
 }
 
 /* Staggered animation for multiple favorites */
@@ -3486,4 +3454,243 @@ body.tips-hidden .sidebar-container {
 
 .header-star--loading::before {
     content: '⏳'; /* Loading state */
+}
+
+/* ============================================================================
+   FAVORITES STATISTICS STYLES (Cleaned and Consolidated)
+   ============================================================================ */
+
+/*
+|--------------------------------------------------------------------------
+| Core Favorite Item Structure
+|--------------------------------------------------------------------------
+*/
+.favorite-item {
+    /* Initial Structure/Aesthetics */
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-primary);
+    transition: all 0.2s ease;
+
+    /* Positioning/Stacking Context */
+    position: relative; /* Needed for desktop positioning and z-index context */
+    z-index: 0; /* Default stacking order */
+}
+
+/*
+|--------------------------------------------------------------------------
+| Favorite Main Content (The Clickable Row)
+|--------------------------------------------------------------------------
+*/
+.favorite-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem; /* Base padding */
+    cursor: pointer;
+}
+
+.favorite-main:hover {
+    background-color: var(--hover-bg);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Statistics Details Container (.favorite-details)
+|--------------------------------------------------------------------------
+*/
+.favorite-details {
+    display: none;
+    top: 0;
+    right: 100%;
+    margin-right: 8px;
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px var(--color-shadow-strong);
+    padding: 12px;
+    min-width: 200px;
+}
+
+/* Universal show state for details on toggle */
+.favorite-details-toggle[aria-expanded="true"] ~ .favorite-details {
+    display: block;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Favorite Link / Button
+|--------------------------------------------------------------------------
+| Consistent styling for the main link/button element inside the item.
+*/
+.favorite-link {
+    width: auto !important;
+    flex: 1;
+    justify-content: flex-start;
+    padding: 8px 12px !important;
+    text-align: left;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Statistics Content
+|--------------------------------------------------------------------------
+*/
+.access-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    background: transparent !important; /* Ensure no inherited transparency (only needs to be on the container) */
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem; /* Base font size */
+    background: transparent !important; /* CONSOLIDATED: Removed from label/value */
+}
+
+.stat-label {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Favorite Actions (Container for Toggle Button / Positioning Context)
+|--------------------------------------------------------------------------
+*/
+.favorite-actions {
+    position: relative; /* Positioning context for absolute children (.favorite-details) */
+}
+
+/*
+|--------------------------------------------------------------------------
+| Animations
+|--------------------------------------------------------------------------
+*/
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    to {
+        max-height: 500px; /* Arbitrarily large value */
+        opacity: 1;
+        padding-top: 0.75rem; /* Assuming this is the desired final padding */
+        padding-bottom: 0.75rem; /* Assuming this is the desired final padding */
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Responsive Media Queries
+|--------------------------------------------------------------------------
+*/
+
+/* MOBILE: x <= 1024px - Show as inline block below the item */
+@media (max-width: 1024px) {
+    .favorite-item .favorite-details-toggle[aria-expanded="true"] ~ .favorite-details {
+        display: flex;
+        flex-direction: column;
+        padding: 0.02rem 0.75rem;
+        animation: slideDown 0.3s ease;
+    }
+}
+
+/* MOBILE: x <= 768px - Smaller padding/font adjustments */
+@media (max-width: 768px) {
+    .favorite-main {
+        padding: 0.5rem; /* Overrides base 0.75rem */
+    }
+
+    .favorite-details {
+        padding: 0.5rem !important; /* Override all other padding */
+    }
+
+    /* Fixed Modal Styles - **UNCOMMENT IF YOU WANT A FIXED MODAL ON SMALL SCREENS** */
+    /*
+    .favorite-details {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 300px;
+        z-index: 10000;
+    }
+    */
+
+    .stat-item {
+        font-size: 0.8rem; /* Overrides base 0.875rem */
+    }
+}
+
+/* DESKTOP: x > 1024px - Absolute Popover Positioning */
+@media (min-width: 1025px) {
+    .favorite-details-toggle[aria-expanded="true"] ~ .favorite-details {
+        position: absolute; /* Break out of normal flow entirely */
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        min-width: 240px;
+        max-width: 280px;
+        animation: fadeIn 0.2s ease;
+        /* Calculate position relative to the toggle button */
+        top: calc(100% + 4px);
+        right: -8px;
+
+    }
+
+    /* Tooltip Arrow (Border & Content) */
+    .favorite-details-toggle[aria-expanded="true"] ~ .favorite-details::before {
+        content: '';
+        position: absolute;
+        top: -11px;
+        right: 100px;
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 5px solid var(--color-border);
+        border-left: 6px solid transparent;
+    }
+
+    .favorite-details-toggle[aria-expanded="true"] ~ .favorite-details::after {
+        content: '';
+        position: absolute;
+        top: -9px;
+        right: 98px;
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 5px solid var(--color-border);
+        border-left: 6px solid transparent;
+    }
+
+    /* Elevate the expanded item above siblings for desktop tooltip visibility */
+    .favorite-item:has(.favorite-details-toggle[aria-expanded="true"]) {
+        z-index: 1;
+    }
+
 }

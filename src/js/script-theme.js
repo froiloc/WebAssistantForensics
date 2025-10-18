@@ -32,6 +32,7 @@
         THEMES.CONTRAST_INVERSE
     ];
 
+    let _isInitialized = false;
     let currentTheme = THEMES.SYSTEM;
 
     // ===== INITIALISIERUNG =====
@@ -53,6 +54,8 @@
         // System Theme Change Listener
         const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
         darkModeQuery.addEventListener('change', handleSystemThemeChange);
+
+        _isInitialized = true;
 
         LOG.success(MODULE, `Theme system initialized with theme: ${currentTheme}`);
     }
@@ -182,7 +185,7 @@
     }
 
     // ===== ÖFFENTLICHE API =====
-    window.themeAPI = {
+    window.ThemeManager = {
         init: initTheme,
         setTheme: function(theme) {
             if (Object.values(THEMES).includes(theme)) {
@@ -194,13 +197,10 @@
             }
             return false;
         },
-        getTheme: function() {
-            return currentTheme;
-        },
-        getAvailableThemes: function() {
-            return { ...THEMES };
-        },
-        cycleTheme: cycleTheme
+        getTheme: () => currentTheme,
+        getAvailableThemes: () => THEMES,
+        cycleTheme: cycleTheme,
+        isInitialized: () => _isInitialized
     };
 
 })();

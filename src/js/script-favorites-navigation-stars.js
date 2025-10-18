@@ -27,6 +27,7 @@
     };
 
     let _isInitialized = false;
+    let _unsubscribeFunctions = [];
 
     /**
      * Initialize navigation stars
