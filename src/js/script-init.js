@@ -40,6 +40,7 @@
             { name: 'DetailLevel', required: false },
             { name: 'Tips', required: false },
             { name: 'BreadcrumbStarManager', required: false },
+            { name: 'HeaderStarsManager', required: false },
             { name: 'GlossaryManager', required: false }
         ];
 

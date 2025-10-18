@@ -94,6 +94,7 @@
                 closeMenu();
             } else {
                 menuDropdown.classList.add('open');
+                menuDropdown.setAttribute('aria-hidden', 'false');
 
                 if (menuBtn) {
                     menuBtn.setAttribute('aria-expanded', 'true');
@@ -110,6 +111,7 @@
 
         if (menuDropdown) {
             menuDropdown.classList.remove('open');
+            menuDropdown.setAttribute('aria-hidden', 'true');
 
             if (menuBtn) {
                 menuBtn.setAttribute('aria-expanded', 'false');
