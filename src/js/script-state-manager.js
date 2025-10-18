@@ -388,7 +388,7 @@
      */
     function clearStorage() {
         try {
-            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(CONFIG.storageKey);
             LOG(MODULE, '🗑️ Cleared localStorage');
         } catch (e) {
             LOG.error(MODULE, 'Failed to clear localStorage:', e);
@@ -405,6 +405,11 @@
      * @returns {string} Favorite ID
      */
     function addFavorite(favoriteData) {
+        if (!favoriteData?.title || !favoriteData?.sectionId) {
+            LOG.error(MODULE, 'Invalid favorite data:', favoriteData);
+            return null;
+        }
+
         LOG.debug(MODULE, 'Adding favorite:', favoriteData);
 
         const favorite = {
@@ -631,7 +636,7 @@
      * @returns {string} Unique ID
      */
     function generateId() {
-        return 'fav_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        return 'fav_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
     }
 
     // ========================================================================
@@ -763,6 +768,20 @@
         LOG.success(MODULE, '✅ State reset complete');
     }
 
+    // In der Public API hinzufügen
+    function batchUpdate(updates) {
+        _isLoading = true; // Temporär Persistierung pausieren
+
+        try {
+            Object.keys(updates).forEach(path => {
+                set(path, updates[path]);
+            });
+        } finally {
+            _isLoading = false;
+            saveToStorage(); // Einmalig speichern
+        }
+    }
+
     // ========================================================================
     // INITIALISIERUNG
     // ========================================================================
@@ -785,6 +804,7 @@
             subscribe: subscribe,
             reset: reset,
             _observers: _observers,
+            batchUpdate: batchUpdate,
 
             // Favorites methods
             addFavorite: addFavorite,
@@ -835,3 +855,25 @@
     LOG(MODULE, '🚀 State Manager auto-initialized and ready');
 
 })();
+
+/*** USAGE EXAMPLES
+// Grundlegende Nutzung
+StateManager.set('preferences.theme', 'dark');
+StateManager.subscribe('preferences.theme', (newValue) => {
+    document.body.setAttribute('data-theme', newValue);
+});
+
+// Favorites Management
+const favId = StateManager.addFavorite({
+    title: 'Important Section',
+    sectionId: 'sec-123',
+    tags: ['important', 'reference']
+});
+
+// Batch Updates
+StateManager.batchUpdate({
+    'ui.sidebarOpen': true,
+    'ui.activeSidebarTab': 'navigation',
+    'preferences.showTips': false
+});
+*** /
