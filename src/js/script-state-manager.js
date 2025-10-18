@@ -110,6 +110,7 @@
 
         // Other configuration
         storageKey: 'appState',
+        maxFavorites: 1000, // Maximale Anzahl Lesezeichen-Einträge
         maxHistoryLength: MAX_HISTORY_LENGTH, // Maximale Anzahl History-Einträge
         debounceDelay: 500 // ms - Verzögerung vor localStorage-Schreiben
     };
@@ -363,6 +364,7 @@
      * Wird beim Init aufgerufen
      */
     function loadFromStorage() {
+        _isLoading = true; // ADD THIS
         try {
             const stored = localStorage.getItem(CONFIG.storageKey);
             if (!stored) return;
@@ -380,6 +382,8 @@
             LOG.debug(MODULE, `📥 Loaded persisted state from localStorage`);
         } catch (error) {
             LOG.error(MODULE, 'Failed to load state from storage:', error);
+        } finally {
+            _isLoading = false; // ADD THIS
         }
     }
 
@@ -410,6 +414,26 @@
             return null;
         }
 
+        // Validate folder exists
+        if (favoriteData.folderId && favoriteData.folderId !== 'default') {
+            const folderExists = _state.favorites.folders.some(f => f.id === favoriteData.folderId);
+            if (!folderExists) {
+                LOG.warn(MODULE, `Folder not found: ${favoriteData.folderId}, using default`);
+                favoriteData.folderId = 'default';
+            }
+        }
+
+        // Check for duplicates
+        const isDuplicate = _state.favorites.items.some(fav =>
+            fav.sectionId === favoriteData.sectionId &&
+            fav.folderId === (favoriteData.folderId || 'default')
+        );
+
+        if (isDuplicate) {
+            LOG.warn(MODULE, `Favorite already exists for section: ${favoriteData.sectionId}`);
+            return null;
+        }
+
         LOG.debug(MODULE, 'Adding favorite:', favoriteData);
 
         const favorite = {
@@ -427,6 +451,11 @@
 
         _state.favorites.items.unshift(favorite); // Add to beginning for "newest first"
         _state.favorites.lastUpdated = new Date().toISOString();
+
+        if (_state.favorites.items.length >= CONFIG.maxFavorites) {
+            LOG.warn(MODULE, 'Favorites limit reached, removing oldest');
+            _state.favorites.items.pop(); // Remove oldest
+        }
 
         LOG.debug(MODULE, `Favorite added: ${favorite.title} (ID: ${favorite.id})`);
         saveToStorage();
@@ -760,7 +789,7 @@
         });
 
         // State zurücksetzen
-        _state = CONFIG.defaultState
+        _state = CONFIG.defaultState;
 
         // localStorage löschen
         clearStorage();
@@ -770,15 +799,18 @@
 
     // In der Public API hinzufügen
     function batchUpdate(updates) {
-        _isLoading = true; // Temporär Persistierung pausieren
-
+        _isLoading = true;
         try {
             Object.keys(updates).forEach(path => {
-                set(path, updates[path]);
+                try {
+                    set(path, updates[path]);
+                } catch (e) {
+                    LOG.error(MODULE, `Error in batchUpdate for path ${path}:`, e);
+                }
             });
         } finally {
             _isLoading = false;
-            saveToStorage(); // Einmalig speichern
+            saveToStorage();
         }
     }
 
@@ -876,4 +908,4 @@ StateManager.batchUpdate({
     'ui.activeSidebarTab': 'navigation',
     'preferences.showTips': false
 });
-*** /
+***/
