@@ -8,13 +8,112 @@
 
     const MODULE = 'STATE-MGR';
 
-    // ========================================================================
-    // KONSTANTEN
-    // ========================================================================
+    const MAX_HISTORY_LENGTH = 50;
 
-    const STORAGE_KEY = 'appState';
-    const DEBOUNCE_DELAY = 500; // ms - Verzögerung vor localStorage-Schreiben
-    const MAX_HISTORY_LENGTH = 50; // Maximale Anzahl History-Einträge
+    // ============================================================================
+    // CONFIGURATION - Centralized configuration
+    // ============================================================================
+    const CONFIG = {
+        // Default state structure
+        defaultState: {
+            // System State (nicht persistiert)
+            system: {
+                ready: false,
+                modulesLoaded: 0,
+                initializationPhase: 'booting'
+            },
+
+            // UI-Status
+            ui: {
+                sidebarOpen: false,
+                sidebarsOpen: [],           // Array: ['navigation', 'history']
+                activeSidebarTab: null,     // 'navigation' | 'history' | null
+                notesOpen: false,
+                tipsVisible: true,
+                menuOpen: false
+            },
+
+            // User Preferences (persistiert)
+            preferences: {
+                theme: 'system',            // 'light' | 'dark' | 'system'
+                detailLevel: 'bestpractice', // 'basic' | 'bestpractice' | 'expert'
+                timeFormat: 'relative',     // 'relative' | 'absolute'
+                showTips: true,             // boolean
+                autoSaveNotes: true,        // boolean
+                sidebarsOpen: ['navigation'], // Default-Sidebars
+                activeSidebarTab: 'navigation'
+            },
+
+            // Section Management (nicht persistiert)
+            sections: {
+                currentActive: 'intro',
+                allSections: [],
+                lastNavigationTime: 0,
+                lastNavigatedSection: null,
+                lastSectionChangeTime: 0,
+                lastChangedToSection: null
+            },
+
+            // Scroll State (nicht persistiert)
+            scroll: {
+                lastScrollY: 0,
+                lastDirection: 'down',
+                userIsScrolling: false,
+                scrollTimeout: null,
+                isProcessingIntersection: false,
+                isProcessingScroll: false,
+                lastScrollIntentionTime: 0,
+                scrollCallCounter: 0
+            },
+
+            // History (persistiert)
+            history: {
+                entries: [],               // Array von History-Einträgen
+                maxLength: MAX_HISTORY_LENGTH
+            },
+
+            // Notes (persistiert)
+            notes: {
+                content: '',
+                lastSaved: null,
+                saveTimer: null
+            },
+
+            // Observers/Misc (nicht persistiert)
+            observers: {
+                focusObserver: null
+            },
+
+            // Favorites state (persistiert)
+            favorites: {
+                items: [],
+                folders: [
+                    {
+                        id: 'default',
+                        name: 'Favorites',
+                        created: new Date().toISOString()
+                    }
+                ],
+                lastUpdated: new Date().toISOString()
+            }
+
+        },
+
+        // Persistent state paths (what gets saved to localStorage)
+        persistentPaths: [
+            'preferences',
+            'history.entries',
+            'notes.content',
+            'notes.lastSaved',
+            'favorites'
+        ],
+
+        // Other configuration
+        storageKey: 'appState',
+        maxHistoryLength: MAX_HISTORY_LENGTH, // Maximale Anzahl History-Einträge
+        debounceDelay: 500 // ms - Verzögerung vor localStorage-Schreiben
+    };
+
 
     // ========================================================================
     // PRIVATER STATE (nicht direkt zugreifbar)
@@ -24,88 +123,8 @@
      * Der tatsächliche Application State
      * Wird durch Proxy gewrappt für automatische Change Detection
      */
-    let _state = {
-        // System State (nicht persistiert)
-        system: {
-            ready: false,
-            modulesLoaded: 0,
-            initializationPhase: 'booting'
-        },
-
-        // UI-Status
-        ui: {
-            sidebarOpen: false,
-            sidebarsOpen: [],           // Array: ['navigation', 'history']
-            activeSidebarTab: null,     // 'navigation' | 'history' | null
-            notesOpen: false,
-            tipsVisible: true,
-            menuOpen: false
-        },
-
-        // User Preferences (persistiert)
-        preferences: {
-            theme: 'system',            // 'light' | 'dark' | 'system'
-            detailLevel: 'bestpractice', // 'basic' | 'bestpractice' | 'expert'
-            timeFormat: 'relative',     // 'relative' | 'absolute'
-            showTips: true,             // boolean
-            autoSaveNotes: true,        // boolean
-            sidebarsOpen: ['navigation'], // Default-Sidebars
-            activeSidebarTab: 'navigation'
-        },
-
-        // Section Management (nicht persistiert)
-        sections: {
-            currentActive: 'intro',
-            allSections: [],
-            lastNavigationTime: 0,
-            lastNavigatedSection: null,
-            lastSectionChangeTime: 0,
-            lastChangedToSection: null
-        },
-
-        // Scroll State (nicht persistiert)
-        scroll: {
-            lastScrollY: 0,
-            lastDirection: 'down',
-            userIsScrolling: false,
-            scrollTimeout: null,
-            isProcessingIntersection: false,
-            isProcessingScroll: false,
-            lastScrollIntentionTime: 0,
-            scrollCallCounter: 0
-        },
-
-        // History (persistiert)
-        history: {
-            entries: [],               // Array von History-Einträgen
-            maxLength: MAX_HISTORY_LENGTH
-        },
-
-        // Notes (persistiert)
-        notes: {
-            content: '',
-            lastSaved: null,
-            saveTimer: null
-        },
-
-        // Observers/Misc (nicht persistiert)
-        observers: {
-            focusObserver: null
-        },
-
-        // Favorites state
-        favorites: {
-            items: [],
-            folders: [
-                {
-                    id: 'default',
-                    name: 'Favorites',
-                    created: new Date().toISOString()
-                }
-            ],
-            lastUpdated: new Date().toISOString()
-        }
-    };
+    // Initialize state with config
+    let _state = JSON.parse(JSON.stringify(CONFIG.defaultState)); // Deep clone
 
     /**
      * Observer-Registry
@@ -303,16 +322,13 @@
      * @returns {Object} Zu persistierender State
      */
     function getPersistedState() {
-        return {
-            preferences: _state.preferences,
-            history: {
-                entries: _state.history.entries
-            },
-            notes: {
-                content: _state.notes.content,
-                lastSaved: _state.notes.lastSaved
-            }
-        };
+        const persistedState = {};
+
+        CONFIG.persistentPaths.forEach(path => {
+            setNestedValue(persistedState, path, getNestedValue(_state, path));
+        });
+
+        return persistedState;
     }
 
     /**
@@ -333,13 +349,13 @@
                 const toSave = getPersistedState();
                 const serialized = JSON.stringify(toSave);
 
-                localStorage.setItem(STORAGE_KEY, serialized);
+                localStorage.setItem(CONFIG.storageKey, serialized);
 
                 LOG.debug(MODULE, `💾 Saved to localStorage (${serialized.length} chars)`);
             } catch (e) {
                 LOG.error(MODULE, 'Failed to save to localStorage:', e);
             }
-        }, DEBOUNCE_DELAY);
+        }, CONFIG.debounceDelay);
     }
 
     /**
@@ -347,44 +363,23 @@
      * Wird beim Init aufgerufen
      */
     function loadFromStorage() {
-        _isLoading = true;
-
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-
-            if (!stored) {
-                LOG.debug(MODULE, 'No stored state found, using defaults');
-                _isLoading = false;
-                return;
-            }
+            const stored = localStorage.getItem(CONFIG.storageKey);
+            if (!stored) return;
 
             const parsed = JSON.parse(stored);
 
-            // Merge mit aktuellem State (behält Defaults für nicht gespeicherte Werte)
-            if (parsed.preferences) {
-                _state.preferences = {
-                    ..._state.preferences,
-                    ...parsed.preferences
-                };
-            }
+            // Merge persisted state back using our config
+            CONFIG.persistentPaths.forEach(path => {
+                const storedValue = getNestedValue(parsed, path);
+                if (storedValue !== undefined) {
+                    setNestedValue(_state, path, storedValue);
+                }
+            });
 
-            if (parsed.history) {
-                _state.history.entries = parsed.history.entries || [];
-            }
-
-            if (parsed.notes) {
-                _state.notes.content = parsed.notes.content || '';
-                _state.notes.lastSaved = parsed.notes.lastSaved;
-            }
-
-            LOG.success(MODULE, '📂 Loaded state from localStorage');
-            LOG.debug(MODULE, 'Loaded preferences:', _state.preferences);
-            LOG.debug(MODULE, `Loaded history: ${_state.history.entries.length} entries`);
-
-        } catch (e) {
-            LOG.error(MODULE, 'Failed to load from localStorage:', e);
-        } finally {
-            _isLoading = false;
+            LOG.debug(MODULE, `📥 Loaded persisted state from localStorage`);
+        } catch (error) {
+            LOG.error(MODULE, 'Failed to load state from storage:', error);
         }
     }
 
@@ -704,9 +699,13 @@
         // Observer benachrichtigen
         notifyObservers(path, value, oldValue);
 
-        // Prüfen ob persistierbar
+        // Check if this path should be persisted
         const topLevelKey = path.split('.')[0];
-        if (['preferences', 'history', 'notes'].includes(topLevelKey)) {
+        const shouldPersist = CONFIG.persistentPaths.some(persistentPath =>
+            persistentPath.startsWith(topLevelKey)
+        );
+
+        if (shouldPersist) {
             saveToStorage();
         }
     }
@@ -736,7 +735,7 @@
 
         const merged = {
             ...current,
- ...updates
+            ...updates
         };
 
         set(path, merged);
@@ -756,67 +755,7 @@
         });
 
         // State zurücksetzen
-        _state = {
-            ui: {
-                sidebarOpen: false,
-                sidebarsOpen: [],
-                activeSidebarTab: null,
-                notesOpen: false,
-                tipsVisible: true,
-                menuOpen: false
-                            },
-                preferences: {
-                    theme: 'system',
-                    detailLevel: 'bestpractice',
-                    timeFormat: 'relative',
-                    showTips: true,
-                    autoSaveNotes: true,
-                    sidebarsOpen: ['navigation'],
-                    activeSidebarTab: 'navigation'
-                },
-                sections: {
-                    currentActive: 'intro',
-                    allSections: [],
-                    lastNavigationTime: 0,
-                    lastNavigatedSection: null,
-                    lastSectionChangeTime: 0,
-                    lastChangedToSection: null
-                },
-                scroll: {
-                    lastScrollY: 0,
-                    lastDirection: 'down',
-                    userIsScrolling: false,
-                    scrollTimeout: null,
-                    isProcessingIntersection: false,
-                    isProcessingScroll: false,
-                    lastScrollIntentionTime: 0,
-                    scrollCallCounter: 0
-                },
-                history: {
-                    entries: [],
-                    maxLength: MAX_HISTORY_LENGTH
-                },
-                notes: {
-                    content: '',
-                    lastSaved: null,
-                    saveTimer: null
-                },
-                observers: {
-                    focusObserver: null
-                },
-                favorites: {
-                    items: [],
-                    folders: [
-                        {
-                            id: 'default',
-                            name: 'Favorites',
-                            created: new Date().toISOString()
-                        }
-                    ],
-                    lastUpdated: new Date().toISOString()
-                }
-
-        };
+        _state = CONFIG.defaultState
 
         // localStorage löschen
         clearStorage();
@@ -865,7 +804,9 @@
             _debug: window.BUILD_INFO?.debugMode ? {
                 getState: () => deepClone(_state),
                 getObservers: () => Object.keys(_observers),
-                clearStorage: clearStorage
+                clearStorage: clearStorage,
+                saveToStorage: saveToStorage,
+                loadFromStorage: loadFromStorage
             } : undefined
         };
 
