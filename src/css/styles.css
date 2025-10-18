@@ -2378,11 +2378,6 @@ body.tips-hidden .sidebar-container {
     color: var(--color-text-secondary);
 }
 
-/* Dark theme adjustments */
-[data-theme="dark"] .favorites-folder-tab {
-    background: var(--color-surface-elevated);
-}
-
 [data-theme="dark"] .favorite-link:hover {
     background: var(--color-border-strong);
 }
