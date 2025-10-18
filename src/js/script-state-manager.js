@@ -318,6 +318,19 @@
     // ========================================================================
 
     /**
+     * Use this function to integrate new settings
+     *
+     * @returns {Object}
+     */
+    function migrateState(parsed) {
+        // Example: Add new fields if they don't exist
+        if (!parsed.preferences?.autoSaveNotes) {
+            parsed.preferences.autoSaveNotes = true;
+        }
+        return parsed;
+    }
+
+    /**
      * Bestimmt, welche State-Teile persistiert werden sollen
      *
      * @returns {Object} Zu persistierender State
@@ -350,6 +363,14 @@
                 const toSave = getPersistedState();
                 const serialized = JSON.stringify(toSave);
 
+                // Prevent storing extremely large states
+                if (serialized.length > 5000000) { // 5MB
+                    LOG.warn(MODULE, 'State too large, trimming favorites...');
+                    _state.favorites.items = _state.favorites.items.slice(0, 100);
+                    saveToStorage(); // Retry with trimmed state
+                    return;
+                }
+
                 localStorage.setItem(CONFIG.storageKey, serialized);
 
                 LOG.debug(MODULE, `💾 Saved to localStorage (${serialized.length} chars)`);
@@ -369,7 +390,24 @@
             const stored = localStorage.getItem(CONFIG.storageKey);
             if (!stored) return;
 
-            const parsed = JSON.parse(stored);
+            let parsed;
+
+            try {
+                parsed = JSON.parse(stored);
+            } catch (e) {
+                LOG.error(MODULE, 'Corrupt storage data, resetting...');
+                clearStorage();
+                return;
+            }
+
+            // Validate critical structure
+            if (!parsed.preferences || !parsed.favorites) {
+                LOG.error(MODULE, 'Invalid state structure, resetting...');
+                clearStorage();
+                return;
+            }
+
+            parsed = migrateState(parsed); // if a new unknown item is added
 
             // Merge persisted state back using our config
             CONFIG.persistentPaths.forEach(path => {
