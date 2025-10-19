@@ -705,8 +705,15 @@
         LOG.debug(MODULE, 'Click target:', e.target);
         LOG.debug(MODULE, 'Click target class:', e.target.className);
 
+        // Handle subsection selection button in sidebar
+        if (e.target.closest('.subsection-selection-btn')) {
+            const subsectionButton = e.target.closest('.subsection-selection-btn');
+            handleSidebarSubsectionClick.call(subsectionButton, e);
+            return;
+        }
+
         // Handle statistics toggle clicks
-        if (e.target.closest(CONFIG.selectors.favoriteDetailsBtn)) {
+        else if (e.target.closest(CONFIG.selectors.favoriteDetailsBtn)) {
             const toggleBtn = e.target.closest(CONFIG.selectors.favoriteDetailsBtn);
             const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
 
@@ -754,6 +761,41 @@
             e.stopPropagation();
             const favoriteId = btn.dataset.favoriteId;
             removeFavorite(favoriteId);
+        }
+    }
+
+    /**
+     * Handle subsection selection button click in favorites sidebar
+     */
+    function handleSidebarSubsectionClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        LOG.debug(MODULE, 'Subsection selection button clicked in favorites sidebar');
+
+        // Get the current active section from StateManager
+        const currentSectionId = window.StateManager.get('sections.currentActive');
+
+        if (!currentSectionId) {
+            LOG.error(MODULE, 'No active section found for subsection selection');
+            Toast.show('Kein aktiver Abschnitt gefunden', 'error');
+            return;
+        }
+
+        // Visual feedback
+        const button = event.currentTarget || this;
+        button.classList.add('subsection-selection-btn--active');
+
+        // Enter subsection selection mode
+        if (window.SubsectionSelection) {
+            window.SubsectionSelection.enterSelectionMode(currentSectionId, () => {
+                // Callback when selection mode exits - remove active state
+                button.classList.remove('subsection-selection-btn--active');
+            });
+        } else {
+            LOG.error(MODULE, 'SubsectionSelection module not available');
+            Toast.show('Präzises Lesezeichen-System nicht verfügbar', 'error');
+            button.classList.remove('subsection-selection-btn--active');
         }
     }
 

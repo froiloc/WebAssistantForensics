@@ -9,1495 +9,1500 @@
     <link rel="stylesheet" href="css/media.css">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Direkt zum Hauptinhalt springen</a>
-    <!-- Top Navigation -->
-    <nav class="top-nav" role="navigation" aria-label="Hauptnavigation">
-        <div class="top-nav-left">
-            <button id="menu-toggle" class="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">
-                <span class="hamburger-icon">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </span>
-            </button>
-            
-            <nav class="breadcrumb" aria-label="Breadcrumb">
-                <ol class="breadcrumb-list">
-                    <li class="breadcrumb-item">
-                        <a href="#" id="breadcrumb-home" class="breadcrumb-link">
-                            🏠 AXIOM Leitfaden
-                        </a>
-                    </li>
-                    <li class="breadcrumb-separator" aria-hidden="true">›</li>
-                    <li class="breadcrumb-item breadcrumb-current" aria-current="page">
-                        <span id="breadcrumb-current">Überblick</span>
-                    </li>
-                </ol>
-
-                <!-- Static breadcrumb star button - initially hidden -->
-                <div class="breadcrumb-star-container" hidden>
-                    <button id="breadcrumb-star"
-                            class="breadcrumb-star"
-                            type="button"
-                            aria-label="Abschnitt als Favorit speichern"
-                            hidden>
-                        <span class="sr-only">Abschnitt als Favorit speichern</span>
+    <div class="app-container">
+        <div class="app-chrome">
+            <a href="#main-content" class="skip-link">Direkt zum Hauptinhalt springen</a>
+            <!-- Top Navigation -->
+            <nav class="top-nav" role="navigation" aria-label="Hauptnavigation">
+                <div class="top-nav-left">
+                    <button id="menu-toggle" class="menu-toggle" aria-label="Menü öffnen" aria-expanded="false">
+                        <span class="hamburger-icon">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
                     </button>
+
+                    <nav class="breadcrumb" aria-label="Breadcrumb">
+                        <ol class="breadcrumb-list">
+                            <li class="breadcrumb-item">
+                                <a href="#" id="breadcrumb-home" class="breadcrumb-link">
+                                    🏠 AXIOM Leitfaden
+                                </a>
+                            </li>
+                            <li class="breadcrumb-separator" aria-hidden="true">›</li>
+                            <li class="breadcrumb-item breadcrumb-current" aria-current="page">
+                                <span id="breadcrumb-current">Überblick</span>
+                            </li>
+                        </ol>
+
+                        <!-- Static breadcrumb star button - initially hidden -->
+                        <div class="breadcrumb-star-container" hidden>
+                            <button id="breadcrumb-star"
+                                    class="breadcrumb-star"
+                                    type="button"
+                                    aria-label="Abschnitt als Favorit speichern"
+                                    hidden>
+                                <span class="sr-only">Abschnitt als Favorit speichern</span>
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+
+                <div class="top-nav-right">
+                    <div class="detail-control-mini">
+                        <span class="detail-label">Detailgrad:</span>
+                        <div class="detail-buttons-mini">
+                            <button
+                                class="detail-btn-mini active"
+                                data-level="1"
+                                aria-pressed="true"
+                                title="Ebene 1: Basis">
+                                1
+                            </button>
+                            <button
+                                class="detail-btn-mini"
+                                data-level="2"
+                                aria-pressed="false"
+                                title="Ebene 2: Standard">
+                                2
+                            </button>
+                            <button
+                                class="detail-btn-mini"
+                                data-level="3"
+                                aria-pressed="false"
+                                title="Ebene 3: Vollständig">
+                                3
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </nav>
-        </div>
-        
-        <div class="top-nav-right">
-            <div class="detail-control-mini">
-                <span class="detail-label">Detailgrad:</span>
-                <div class="detail-buttons-mini">
-                    <button 
-                        class="detail-btn-mini active" 
-                        data-level="1" 
-                        aria-pressed="true"
-                        title="Ebene 1: Basis">
-                        1
-                    </button>
-                    <button 
-                        class="detail-btn-mini" 
-                        data-level="2" 
-                        aria-pressed="false"
-                        title="Ebene 2: Standard">
-                        2
-                    </button>
-                    <button 
-                        class="detail-btn-mini" 
-                        data-level="3" 
-                        aria-pressed="false"
-                        title="Ebene 3: Vollständig">
-                        3
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Menu Dropdown -->
-    <div id="menu-dropdown" class="menu-dropdown" role="menu" aria-hidden="true">
-        <button class="menu-item" id="show-history-btn" role="menuitem">
-            <span class="menu-icon">📜</span>
-            Verlauf ein/aus
-        </button>
-        <button class="menu-item" id="toggle-nav-sidebar-btn" role="menuitem">
-            <span class="menu-icon">🗂️</span>
-            Navigation ein/aus
-        </button>
-        <button class="menu-item" id="toggle-favorites-sidebar-btn" role="menuitem">
-            <span class="menu-icon">⭐</span>
-            Lesezeichen ein/aus
-        </button>
-        <button class="menu-item" id="toggle-tips-footer-btn" role="menuitem">
-            <span class="menu-icon">💡</span>
-            Tipps ein/aus
-        </button>
-        
-        <hr style="margin: 5px 0; border: none; border-top: 1px solid #e0e0e0;">
-        
-        <button class="menu-item" id="toggle-theme" role="menuitem" aria-label="Theme wechseln">
-            <div class="theme-icon">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
-            Theme: <span id="current-theme">System</span>
-        </button>
-
-        <button class="menu-item" id="toggle-media-layer" role="menuitem">
-            <span class="menu-icon">🖼️</span>
-            Medien: <span id="media-layer-status">Standard</span>
-        </button>
-        
-        <button class="menu-item" id="toggle-contrast" role="menuitem">
-            <span class="menu-icon">🌗</span>
-            Bild-Kontrast erhöhen
-        </button>
-    </div>
-
-    <!-- Sidebar Container (zentrale Verwaltung) -->
-    <div id="sidebar-container" class="sidebar-container">
-
-        <!-- Navigation Sidebar -->
-        <div id="sidebar-navigation" class="sidebar-wrapper" data-sidebar="navigation">
-            <!-- Tab Header (immer sichtbar) -->
-            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
-                <button class="sidebar-tab-button" aria-label="Navigation öffnen/schließen" data-sidebar="navigation">
-                    <span class="sidebar-tab-icon">📑</span>
-                    <span class="sidebar-tab-text">Navigation</span>
+            <!-- Menu Dropdown -->
+            <div id="menu-dropdown" class="menu-dropdown" role="menu" aria-hidden="true">
+                <button class="menu-item" id="show-history-btn" role="menuitem">
+                    <span class="menu-icon">📜</span>
+                    Verlauf ein/aus
+                </button>
+                <button class="menu-item" id="toggle-nav-sidebar-btn" role="menuitem">
+                    <span class="menu-icon">🗂️</span>
+                    Navigation ein/aus
+                </button>
+                <button class="menu-item" id="toggle-favorites-sidebar-btn" role="menuitem">
+                    <span class="menu-icon">⭐</span>
+                    Lesezeichen ein/aus
+                </button>
+                <button class="menu-item" id="toggle-tips-footer-btn" role="menuitem">
+                    <span class="menu-icon">💡</span>
+                    Tipps ein/aus
                 </button>
 
-                <!-- Close-Button im Header -->
-                <button class="sidebar-close-btn"
-                        aria-label="Navigation schließen"
-                        data-sidebar="navigation">
-                    ✕
+                <hr style="margin: 5px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <button class="menu-item" id="toggle-theme" role="menuitem" aria-label="Theme wechseln">
+                    <div class="theme-icon">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                    Theme: <span id="current-theme">System</span>
+                </button>
+
+                <button class="menu-item" id="toggle-media-layer" role="menuitem">
+                    <span class="menu-icon">🖼️</span>
+                    Medien: <span id="media-layer-status">Standard</span>
+                </button>
+
+                <button class="menu-item" id="toggle-contrast" role="menuitem">
+                    <span class="menu-icon">🌗</span>
+                    Bild-Kontrast erhöhen
                 </button>
             </div>
 
-            <div class="sidebar-tab-body">
-                <!-- Subheader (nur bei aktiver Sidebar) -->
-                <div class="sidebar-subheader">
-                    <span style="font-size: 0.9em; color: var(--color-text-secondary);">
-                        Abschnitte
-                    </span>
-                </div>
+            <!-- Sidebar Container (zentrale Verwaltung) -->
+            <div id="sidebar-container" class="sidebar-container">
 
-                <!-- Body (Content-Bereich) -->
-                <div class="sidebar-body">
-                    <ul class="nav-tree" role="tree">
-                        <!-- Wird dynamisch von script-navigation.js generiert -->
-                    </ul>
-                </div>
-
-                <!-- Footer (Footer-Bereich) -->
-                <div class="sidebar-footer">
-                </div>
-            </div>
-        </div>
-
-        <!-- Lesezeichen Sidebar -->
-        <div id="sidebar-favorites" class="sidebar-wrapper" data-sidebar="favorites" data-tab="favorites">
-            <!-- Tab Header (immer sichtbar) -->
-            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
-                <button class="sidebar-tab-button" aria-label="Lesezeichen öffnen/schließen" data-sidebar="favorites">
-                    <span class="sidebar-tab-icon">⭐</span>
-                    <span class="sidebar-tab-text">Lesezeichen</span>
-                </button>
-                <button class="sidebar-close-btn" aria-label="Lesezeichen schließen" data-sidebar="favorites">✕</button>
-            </div>
-
-            <div class="sidebar-tab-body">
-                <!-- Subheader (nur bei aktiver Sidebar) -->
-                <div class="sidebar-subheader">
-                    <!-- Folder Navigation -->
-                    <nav id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
-                        <button class="favorites-folder-tab favorites-folder-tab--active"
-                                data-folder-id="default"
-                                role="tab"
-                                aria-selected="true"
-                                aria-controls="favorites-list">
-                            Lesezeichen
-                            <span class="favorites-folder-tab__badge" id="favorites-default-count">0</span>
+                <!-- Navigation Sidebar -->
+                <div id="sidebar-navigation" class="sidebar-wrapper" data-sidebar="navigation">
+                    <!-- Tab Header (immer sichtbar) -->
+                    <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                        <button class="sidebar-tab-button" aria-label="Navigation öffnen/schließen" data-sidebar="navigation">
+                            <span class="sidebar-tab-icon">📑</span>
+                            <span class="sidebar-tab-text">Navigation</span>
                         </button>
 
-                    </nav>
-
-                </div>
-
-                <!-- Body (Content-Bereich) -->
-                <div class="sidebar-body">
-                    <!-- Empty State (initially visible) -->
-                    <div id="favorites-empty-state" class="favorites-empty-state hidden">
-                        <div class="favorites-empty-icon" aria-hidden="true">⭐</div>
-                        <strong class="favorites-empty-title">
-                            Noch keine Lesezeichen
-                        </strong>
-                        <p class="favorites-empty-description">
-                            Markieren Sie wichtige Abschnitte als Lesezeichen, um sie schnell wiederzufinden.
-                        </p>
-                        <div class="favorites-empty-actions">
-                            <!-- Button container -->
-                            <div class="favorites-suggestions-container">
-                                <button class="favorites-empty-suggestion hidden" data-section="dummy-1">
-                                    Dummy 1
-                                </button>
-                                <button class="favorites-empty-suggestion hidden" data-section="dummy-2">
-                                    Dummy 2
-                                </button>
-                                <button class="favorites-empty-suggestion hidden" data-section="dummy-3">
-                                    Dummy 3
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Guidance message (shown when no suggestions available) -->
-                        <p class="favorites-empty-hint hidden">
-                            Navigieren Sie durch die Anleitung und klicken Sie auf das Stern-Icon,
-                            um Abschnitte als Lesezeichen zu speichern.
-                        </p>
+                        <!-- Close-Button im Header -->
+                        <button class="sidebar-close-btn"
+                                aria-label="Navigation schließen"
+                                data-sidebar="navigation">
+                            ✕
+                        </button>
                     </div>
 
-                    <!-- Favorites List (initially hidden) -->
-                    <ul id="favorites-list" class="favorites-list hidden" role="list">
-                        <!-- Dynamic favorites will go here -->
-                    </ul>
+                    <div class="sidebar-tab-body">
+                        <!-- Subheader (nur bei aktiver Sidebar) -->
+                        <div class="sidebar-subheader">
+                            <span style="font-size: 0.9em; color: var(--color-text-secondary);">
+                                Abschnitte
+                            </span>
+                        </div>
 
-                    <!-- Static skeleton in HTML -->
-                    <div id="favorites-skeleton" class="favorites-skeleton">
-                        <div class="favorite-skeleton-item">
-                            <div class="favorite-skeleton-content">
-                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
-                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
-                            </div>
-                            <div class="favorite-skeleton-actions">
-                                <div class="favorite-skeleton-action"></div>
-                                <div class="favorite-skeleton-action"></div>
-                            </div>
+                        <!-- Body (Content-Bereich) -->
+                        <div class="sidebar-body">
+                            <ul class="nav-tree" role="tree">
+                                <!-- Wird dynamisch von script-navigation.js generiert -->
+                            </ul>
                         </div>
-                        <div class="favorite-skeleton-item">
-                            <div class="favorite-skeleton-content">
-                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
-                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
-                            </div>
-                            <div class="favorite-skeleton-actions">
-                                <div class="favorite-skeleton-action"></div>
-                                <div class="favorite-skeleton-action"></div>
-                            </div>
-                        </div>
-                        <div class="favorite-skeleton-item">
-                            <div class="favorite-skeleton-content">
-                                <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
-                                <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
-                            </div>
-                            <div class="favorite-skeleton-actions">
-                                <div class="favorite-skeleton-action"></div>
-                                <div class="favorite-skeleton-action"></div>
-                            </div>
+
+                        <!-- Footer (Footer-Bereich) -->
+                        <div class="sidebar-footer">
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer (Footer-Bereich) -->
-                <div class="sidebar-footer">
-                    <!-- Future: Add folder button, etc. -->
+                <!-- Lesezeichen Sidebar -->
+                <div id="sidebar-favorites" class="sidebar-wrapper" data-sidebar="favorites" data-tab="favorites">
+                    <!-- Tab Header (immer sichtbar) -->
+                    <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                        <button class="sidebar-tab-button" aria-label="Lesezeichen öffnen/schließen" data-sidebar="favorites">
+                            <span class="sidebar-tab-icon">⭐</span>
+                            <span class="sidebar-tab-text">Lesezeichen</span>
+                        </button>
+                        <button class="sidebar-close-btn" aria-label="Lesezeichen schließen" data-sidebar="favorites">✕</button>
+                    </div>
+
+                    <div class="sidebar-tab-body">
+                        <!-- Subheader (nur bei aktiver Sidebar) -->
+                        <div class="sidebar-subheader">
+                            <!-- Folder Navigation -->
+                            <nav id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
+                                <button class="favorites-folder-tab favorites-folder-tab--active"
+                                        data-folder-id="default"
+                                        role="tab"
+                                        aria-selected="true"
+                                        aria-controls="favorites-list">
+                                    Lesezeichen
+                                    <span class="favorites-folder-tab__badge" id="favorites-default-count">0</span>
+                                </button>
+                            </nav>
+
+                            <button class="subsection-selection-btn" aria-label="Präzises Lesezeichen setzen">
+                                <span class="subsection-selection-btn__icon"></span>
+                                <span class="subsection-selection-btn__text">Präzise</span>
+                            </button>
+                        </div>
+
+                        <!-- Body (Content-Bereich) -->
+                        <div class="sidebar-body">
+                            <!-- Empty State (initially visible) -->
+                            <div id="favorites-empty-state" class="favorites-empty-state hidden">
+                                <div class="favorites-empty-icon" aria-hidden="true">⭐</div>
+                                <strong class="favorites-empty-title">
+                                    Noch keine Lesezeichen
+                                </strong>
+                                <p class="favorites-empty-description">
+                                    Markieren Sie wichtige Abschnitte als Lesezeichen, um sie schnell wiederzufinden.
+                                </p>
+                                <div class="favorites-empty-actions">
+                                    <!-- Button container -->
+                                    <div class="favorites-suggestions-container">
+                                        <button class="favorites-empty-suggestion hidden" data-section="dummy-1">
+                                            Dummy 1
+                                        </button>
+                                        <button class="favorites-empty-suggestion hidden" data-section="dummy-2">
+                                            Dummy 2
+                                        </button>
+                                        <button class="favorites-empty-suggestion hidden" data-section="dummy-3">
+                                            Dummy 3
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Guidance message (shown when no suggestions available) -->
+                                <p class="favorites-empty-hint hidden">
+                                    Navigieren Sie durch die Anleitung und klicken Sie auf das Stern-Icon,
+                                    um Abschnitte als Lesezeichen zu speichern.
+                                </p>
+                            </div>
+
+                            <!-- Favorites List (initially hidden) -->
+                            <ul id="favorites-list" class="favorites-list hidden" role="list">
+                                <!-- Dynamic favorites will go here -->
+                            </ul>
+
+                            <!-- Static skeleton in HTML -->
+                            <div id="favorites-skeleton" class="favorites-skeleton">
+                                <div class="favorite-skeleton-item">
+                                    <div class="favorite-skeleton-content">
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                                    </div>
+                                    <div class="favorite-skeleton-actions">
+                                        <div class="favorite-skeleton-action"></div>
+                                        <div class="favorite-skeleton-action"></div>
+                                    </div>
+                                </div>
+                                <div class="favorite-skeleton-item">
+                                    <div class="favorite-skeleton-content">
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                                    </div>
+                                    <div class="favorite-skeleton-actions">
+                                        <div class="favorite-skeleton-action"></div>
+                                        <div class="favorite-skeleton-action"></div>
+                                    </div>
+                                </div>
+                                <div class="favorite-skeleton-item">
+                                    <div class="favorite-skeleton-content">
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--title"></div>
+                                        <div class="favorite-skeleton-line favorite-skeleton-line--meta"></div>
+                                    </div>
+                                    <div class="favorite-skeleton-actions">
+                                        <div class="favorite-skeleton-action"></div>
+                                        <div class="favorite-skeleton-action"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer (Footer-Bereich) -->
+                        <div class="sidebar-footer">
+                            <!-- Future: Add folder button, etc. -->
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Verlauf Sidebar -->
+                <div id="sidebar-history" class="sidebar-wrapper" data-sidebar="history">
+                    <!-- Tab Header (immer sichtbar) -->
+                    <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
+                        <button class="sidebar-tab-button"
+                                aria-label="Verlauf öffnen/schließen"
+                                data-sidebar="history">Verlauf
+                        </button>
+
+                        <!-- Close-Button im Header -->
+                        <button class="sidebar-close-btn"
+                                aria-label="Verlauf schließen"
+                                data-sidebar="history">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="sidebar-tab-body">
+                        <!-- Subheader (nur bei aktiver Sidebar) -->
+                        <div class="sidebar-subheader">
+                            <div id="history-controls-subheader" style="display: flex; gap: 10px;">
+                                <button id="time-format-toggle"
+                                        class="btn-secondary"
+                                        aria-label="Zeitformat umschalten">
+                                    🕐 Zeit: Relativ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Body (Content-Bereich) -->
+                        <div class="sidebar-body">
+                            <div id="history-list"></div>
+                            <div id="history-empty" class="history-empty">Noch keine Einträge</div>
+                        </div>
+
+                        <!-- Footer (Löschen-Button) -->
+                        <div class="sidebar-footer">
+                            <div id="history-controls-footer" style="display: flex; gap: 10px;">
+                                <button id="clear-history-btn"
+                                        class="btn-secondary btn-secondary-destructive"
+                                        aria-label="Verlauf löschen">
+                                    🗑️ Löschen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weitere Sidebars kommen hier später hinzu -->
+
             </div>
-        </div>
 
-        <!-- Verlauf Sidebar -->
-        <div id="sidebar-history" class="sidebar-wrapper" data-sidebar="history">
-            <!-- Tab Header (immer sichtbar) -->
-            <div class="sidebar-tab-header" tabindex="0" role="button" aria-expanded="false">
-                <button class="sidebar-tab-button"
-                        aria-label="Verlauf öffnen/schließen"
-                        data-sidebar="history">Verlauf
-                </button>
+            <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-                <!-- Close-Button im Header -->
-                <button class="sidebar-close-btn"
-                        aria-label="Verlauf schließen"
-                        data-sidebar="history">
-                    ✕
-                </button>
+            <!-- Main Container -->
+            <div class="container" id="main-content" tabindex="-1">
+                <!-- Header with descriptive class -->
+                <header class="content-header">
+                    <h1 data-ref="main-title">HTML-Report-Erstellung mit Magnet AXIOM Examiner</h1>
+                    <p class="subtitle" data-ref="main-subtitle">Interaktiver Leitfaden für polizeiliche Ermittlungsarbeit</p>
+                </header>
+
+                <!-- Footer with descriptive class -->
+                <footer class="content-footer">
+                    <p data-ref="disclaimer"><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
+                    <p data-ref="contact">Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
+                    <div class="footer-actions">
+                        <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
+                            💡 Tipps einblenden
+                        </button>
+                    </div>
+                </footer>
             </div>
 
-            <div class="sidebar-tab-body">
-                <!-- Subheader (nur bei aktiver Sidebar) -->
-                <div class="sidebar-subheader">
-                    <div id="history-controls-subheader" style="display: flex; gap: 10px;">
-                        <button id="time-format-toggle"
-                                class="btn-secondary"
-                                aria-label="Zeitformat umschalten">
-                            🕐 Zeit: Relativ
+            <!-- Agent Toggle Button -->
+            <button id="agent-toggle" class="agent-toggle" aria-label="Spürhund-Assistent öffnen/schließen" aria-expanded="false">
+                <span class="agent-icon">🐕‍🦺</span>
+                <span class="agent-notification-badge" id="agent-notification" style="display: none;">!</span>
+            </button>
+
+            <!-- Notizblock Toggle Button -->
+            <button id="notes-toggle" class="notes-toggle" aria-label="Notizblock öffnen/schließen" aria-expanded="false">
+                <span class="toggle-icon">📝</span>
+            </button>
+
+            <!-- Notizblock Sidebar -->
+            <aside id="notes-sidebar" class="notes-sidebar" aria-label="Notizblock">
+                <div class="notes-header">
+                    <h2 class="notes-title">Notizen</h2>
+                    <button id="close-notes-sidebar" class="close-btn" aria-label="Notizen schließen">✕</button>
+                </div>
+                <div class="notes-content">
+                    <textarea
+                        id="notes-textarea"
+                        placeholder="Hier können Sie Notizen eintragen. Diese werden automatisch gespeichert..."
+                        aria-label="Notizfeld"></textarea>
+                </div>
+                <div class="notes-footer">
+                    <button id="clear-notes" class="btn-secondary btn-secondary-destructive">🗑️  Notizen löschen</button>
+                    <span class="save-indicator" id="save-indicator">Automatisch gespeichert</span>
+                </div>
+            </aside>
+
+            <!-- Agent Sidebar -->
+            <aside id="agent-sidebar" class="agent-sidebar" aria-label="Spürhund-Assistent" role="complementary">
+                <div class="agent-header">
+                    <div class="agent-avatar">
+                        <div class="agent-dog">🐕‍🦺</div>
+                        <div class="agent-status-indicator" id="agent-status"></div>
+                    </div>
+                    <div class="agent-title">
+                        <h2>Spürhund Rex</h2>
+                        <p class="agent-subtitle">Ihr forensischer Begleiter</p>
+                    </div>
+                    <button id="close-agent-sidebar" class="close-btn" aria-label="Assistent schließen">✕</button>
+                </div>
+
+                <div class="agent-content" id="agent-chat-container">
+                    <div class="agent-welcome-message">
+                        <div class="agent-message agent-message-assistant">
+                            <div class="agent-message-avatar">🐕‍🦺</div>
+                            <div class="agent-message-bubble">
+                                <p>Wuff! 🎉 Ich bin Rex, Ihr forensischer Spürhund!</p>
+                                <p>Ich helfe Ihnen durch die AXIOM-Auswertung. Stellen Sie mir Fragen oder lassen Sie sich von mir durch den Prozess führen.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="agent-footer">
+                    <div class="agent-quick-actions" id="agent-quick-actions">
+                        <!-- Schnellaktionen werden hier dynamisch eingefügt -->
+                    </div>
+                    <div class="agent-input-container" style="display: none;" id="agent-input-container">
+                        <input
+                            type="text"
+                            id="agent-input"
+                            class="agent-input"
+                            placeholder="Antwort eingeben..."
+                            aria-label="Antwort an Spürhund"
+                        />
+                        <button id="agent-send-btn" class="agent-send-btn" aria-label="Antwort senden">
+                            ➤
                         </button>
                     </div>
                 </div>
+            </aside>
 
-                <!-- Body (Content-Bereich) -->
-                <div class="sidebar-body">
-                    <div id="history-list"></div>
-                    <div id="history-empty" class="history-empty">Noch keine Einträge</div>
+            <!-- Tips Footer -->
+            <div id="tips-footer" class="tips-footer" role="complementary" aria-label="Tipps und Tastenkombinationen">
+                <button id="tips-prev-btn" class="tips-nav-btn tips-prev-btn" aria-label="Vorheriger Tipp" title="Vorheriger Tipp">
+                    ◀
+                </button>
+
+                <div class="tips-content">
+                    <span class="tips-icon">💡</span>
+                    <p id="tips-text" class="tips-text">Laden...</p>
                 </div>
 
-                <!-- Footer (Löschen-Button) -->
-                <div class="sidebar-footer">
-                    <div id="history-controls-footer" style="display: flex; gap: 10px;">
-                        <button id="clear-history-btn"
-                                class="btn-secondary btn-secondary-destructive"
-                                aria-label="Verlauf löschen">
-                            🗑️ Löschen
-                        </button>
-                    </div>
-                </div>
+                <button id="tips-next-btn" class="tips-nav-btn tips-next-btn" aria-label="Nächster Tipp" title="Nächster Tipp">
+                    ▶
+                </button>
+
+                <button id="close-tips-footer" class="tips-close-btn" aria-label="Tipps ausblenden">✕</button>
             </div>
         </div>
-
-        <!-- Weitere Sidebars kommen hier später hinzu -->
-
-    </div>
-
-    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Main Container -->
-    <div class="container" id="main-content" tabindex="-1">
-        <header>
-            <h1 data-ref="main-title">HTML-Report-Erstellung mit Magnet AXIOM Examiner</h1>
-            <p class="subtitle" data-ref="main-subtitle">Interaktiver Leitfaden für polizeiliche Ermittlungsarbeit</p>
-        </header>
-
         <!-- Hauptinhalt -->
         <main>
-          <!-- Hier den Inhalt von main einfügen -->
-          <!--
-  Beispiel-Section 1: Template-Auswahl
-  Demonstriert: Hierarchie Level 3, Detail-Levels 1-3, Basic Content-Types, Screenshot
--->
-
-<!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
-<!--
-<article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
-  <section class="content-chapter" id="chapter-report-basics" data-level="2" data-parent="topic-preparation" data-title="Report-Grundlagen">
--->
-
-<!-- Beginn der eigentlichen Section -->
-<section class="content-section"
-         id="section-template-selection"
-         data-section="template-selection"
-         data-level="3"
-         data-parent="chapter-report-basics"
-         data-title="Template-Auswahl">
-
-    <!-- JSON-LD Metadaten -->
-    <script type="application/ld+json" class="section-metadata">
-    {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
-        "identifier": "template-selection",
-        "name": "Template-Auswahl in AXIOM Examine",
-        "version": "1.0.0",
-        "dateCreated": "2025-10-08T10:00:00Z",
-        "dateModified": "2025-10-08T10:00:00Z",
-        "author": {
-            "@type": "Person",
-            "name": "Forensik-Team",
-            "email": "forensik@example.com"
-        },
-        "dependencies": [],
-        "learningObjectives": [
-            "Verstehen der verschiedenen Template-Kategorien in AXIOM",
-            "Auswahl des richtigen Templates für den Anwendungsfall",
-            "Grundlegende Template-Anpassungen durchführen"
-        ],
-        "estimatedTime": "PT8M",
-        "difficultyLevel": "Beginner"
-    }
-    </script>
-
-    <!-- Section Heading -->
-    <h3 data-ref="template-selection-heading">Template-Auswahl in AXIOM Examine</h3>
-
-    <!-- Einleitungstext -->
-    <p data-ref="template-selection-intro" data-content-type="explanation">
-        Die Wahl des richtigen Report-Templates ist der erste Schritt zur Erstellung eines professionellen HTML-Reports in Magnet AXIOM Examine. Templates definieren Struktur, Layout und enthaltene Informationen des finalen Reports.
-    </p>
-
-    <!-- Detail Level 1: Grundlagen -->
-    <div class="detail-level-1" data-ref="template-selection-basics">
-
-        <h4 data-ref="template-selection-basics-heading">Grundlegende Schritte</h4>
-
-        <p data-ref="template-selection-start" data-content-type="instruction">
-            Öffnen Sie die Report-Erstellung über <strong>File → Create Report/Export</strong> oder durch Rechtsklick in der Artifact-Ansicht und Auswahl von <strong>"Create Report/Export"</strong>.
-        </p>
-
-        <figure data-ref="template-selection-interface">
-            <img src="media/screenshots/axiom-report-menu.png"
-                 alt="AXIOM Examine Report-Menü mit hervorgehobener Create Report Option"
-                 data-media-type="screenshot">
-            <figcaption>Report-Erstellung über das File-Menü starten</figcaption>
-        </figure>
-
-        <p data-ref="template-selection-dialog" data-content-type="explanation">
-            Im sich öffnenden Dialog sehen Sie die verfügbaren Template-Kategorien. AXIOM bietet zwei Hauptkategorien: <strong>Standard-Templates</strong> und <strong>Custom Templates</strong>.
-        </p>
-
-        <aside data-ref="template-selection-hint-quick" data-content-type="hint">
-            💡 <strong>Tipp:</strong> Für die meisten polizeilichen Ermittlungen reicht das Standard-Template "Case Summary" vollkommen aus. Es enthält alle relevanten Informationen in übersichtlicher Form.
-        </aside>
-
-    </div>
-
-    <!-- Detail Level 2: Vertiefung -->
-    <div class="detail-level-2" data-ref="template-selection-advanced">
-
-        <h4 data-ref="template-selection-categories-heading">Template-Kategorien im Detail</h4>
-
-        <p data-ref="template-selection-categories-intro" data-content-type="explanation">
-            Die Wahl zwischen Standard- und Custom-Templates hängt von den Anforderungen Ihrer Ermittlung ab. Hier die wichtigsten Unterschiede:
-        </p>
-
-        <ul data-ref="template-selection-categories-list">
-            <li data-ref="template-selection-standard" data-content-type="explanation">
-                <strong>Standard-Templates:</strong> Vorgefertigte Templates für typische Anwendungsfälle (Case Summary, Evidence Overview, Timeline Report). Diese Templates sind sofort einsatzbereit und enthalten alle wichtigen Sections wie Fallübersicht, Evidence-Quellen, Artifact-Zusammenfassung und Timeline-Visualisierung.
-            </li>
-            <li data-ref="template-selection-custom" data-content-type="explanation">
-                <strong>Custom Templates:</strong> Individuell angepasste Templates für spezielle Anforderungen (z.B. behördenspezifische Layouts, internationale Standards). Diese Templates können eigene Logo-Integration, spezifische Metadaten-Felder und angepasste Artifact-Gruppierungen enthalten.
-            </li>
-        </ul>
-
-        <aside data-ref="template-selection-attention-custom" data-content-type="attention">
-            ⚠️ <strong>Achtung:</strong> Custom Templates erfordern initiale Konfiguration und sollten einmal erstellt und dann als Vorlage gespeichert werden. Die Ersteinrichtung kann 15-30 Minuten in Anspruch nehmen.
-        </aside>
-
-        <p data-ref="template-selection-save" data-content-type="instruction">
-            Wählen Sie ein Template aus der Liste und klicken Sie auf <strong>"Select"</strong>. Das gewählte Template erscheint nun in der Konfigurationsübersicht.
-        </p>
-
-    </div>
-
-    <!-- Detail Level 3: Expertenwissen -->
-    <div class="detail-level-3" data-ref="template-selection-expert">
-
-        <h4 data-ref="template-selection-customization-heading">Template-Anpassungen</h4>
-
-        <p data-ref="template-selection-customization-intro" data-content-type="explanation">
-            Nach der Template-Auswahl können Sie spezifische Anpassungen vornehmen, um den Report auf Ihre Bedürfnisse zuzuschneiden.
-        </p>
-
-        <h5 data-ref="template-selection-metadata-heading">Metadaten-Felder konfigurieren</h5>
-
-        <p data-ref="template-selection-metadata-desc" data-content-type="explanation">
-            Standard-Templates enthalten Platzhalter für Fallmetadaten (Aktenzeichen, Ermittler, Datum). Diese können über <strong>"Template Settings → Metadata Fields"</strong> angepasst werden:
-        </p>
-
-        <ul data-ref="template-selection-metadata-fields">
-            <li data-ref="template-selection-field-case" data-content-type="explanation">
-                <strong>Case Number:</strong> Automatisch aus dem AXIOM-Case übernommen, kann manuell überschrieben werden
-            </li>
-            <li data-ref="template-selection-field-examiner" data-content-type="explanation">
-                <strong>Examiner Name:</strong> Name des durchführenden Ermittlers (wichtig für Nachvollziehbarkeit)
-            </li>
-            <li data-ref="template-selection-field-date" data-content-type="explanation">
-                <strong>Report Date:</strong> Standardmäßig aktuelles Datum, kann für Archivierungszwecke angepasst werden
-            </li>
-        </ul>
-
-        <aside data-ref="template-selection-hint-variables" data-content-type="hint">
-            💡 <strong>Expertentipp:</strong> Nutzen Sie Template-Variablen für wiederkehrende Informationen wie Behördenname oder Standard-Disclaimer-Texte. Diese können Sie in den Template-Settings unter "Custom Variables" definieren und in allen zukünftigen Reports wiederverwenden.
-        </aside>
-
-        <h5 data-ref="template-selection-sections-heading">Section-Auswahl</h5>
-
-        <p data-ref="template-selection-sections-desc" data-content-type="explanation">
-            Sie können einzelne Sections des Templates aktivieren oder deaktivieren, je nachdem welche Informationen für Ihren Report relevant sind:
-        </p>
-
-        <ul data-ref="template-selection-sections-list">
-            <li data-ref="template-selection-section-overview" data-content-type="explanation">
-                <strong>Case Overview:</strong> Zusammenfassung des Falls (empfohlen für alle Reports)
-            </li>
-            <li data-ref="template-selection-section-evidence" data-content-type="explanation">
-                <strong>Evidence Sources:</strong> Übersicht der analysierten Datenquellen
-            </li>
-            <li data-ref="template-selection-section-timeline" data-content-type="explanation">
-                <strong>Timeline Visualization:</strong> Chronologische Darstellung der Events (optional, erhöht Report-Größe erheblich)
-            </li>
-            <li data-ref="template-selection-section-artifacts" data-content-type="explanation">
-                <strong>Artifact Summary:</strong> Kategorisierte Übersicht aller gefundenen Artifacts
-            </li>
-        </ul>
-
-        <aside data-ref="template-selection-warning-size" data-content-type="warning">
-            🚨 <strong>Warnung:</strong> Die Aktivierung der Timeline Visualization kann bei großen Cases (>50.000 Artifacts) zu sehr großen HTML-Dateien führen (>100 MB). In solchen Fällen empfiehlt sich eine gefilterte Timeline oder ein separater Timeline-Export.
-        </aside>
-
-        <p data-ref="template-selection-save-template" data-content-type="instruction">
-            Nach Abschluss der Anpassungen können Sie die Konfiguration als neues Custom Template speichern über <strong>"Save as Custom Template"</strong>. Geben Sie einen aussagekräftigen Namen ein (z.B. "Polizei_Standard_Report_v1").
-        </p>
-
-    </div>
-
-    <!-- Agent-Context-Block (am Ende der Section) -->
-    <div class="agent-context-block"
-         data-ref="agent-context-template-selection"
-         data-context-id="template-selection-context"
-         style="display: none;">
-        <!-- Dynamisch vom Agent gefüllt -->
-    </div>
-
-</section>
-
-<!-- Ende der Section -->
-
-<!-- 
-  Beispiel-Section 2: Artifact-Filterung
-  Demonstriert: Hierarchie Level 3, Detail-Levels 1-2, Extended Content-Types, Annotation
--->
-
-<!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
-<!-- 
-<article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
-  <section class="content-chapter" id="chapter-report-config" data-level="2" data-parent="topic-preparation" data-title="Report-Konfiguration">
--->
-
-<!-- Beginn der eigentlichen Section -->
-<section class="content-section" 
-         id="section-artifact-filtering" 
-         data-section="artifact-filtering"
-         data-level="3"
-         data-parent="chapter-report-config"
-         data-title="Artifact-Filterung">
-    
-    <!-- JSON-LD Metadaten -->
-    <script type="application/ld+json" class="section-metadata">
-    {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
-        "identifier": "artifact-filtering",
-        "name": "Artifact-Filterung für Reports",
-        "version": "1.0.0",
-        "dateCreated": "2025-10-08T11:00:00Z",
-        "dateModified": "2025-10-08T11:00:00Z",
-        "author": {
-            "@type": "Person",
-            "name": "Forensik-Team",
-            "email": "forensik@example.com"
-        },
-        "dependencies": ["template-selection"],
-        "learningObjectives": [
-            "Filter-Interface in AXIOM Examine effektiv nutzen",
-            "Relevante Artifacts für Reports auswählen",
-            "Tag-basierte Filterung anwenden",
-            "Gefilterte Ansichten in Reports exportieren"
-        ],
-        "estimatedTime": "PT12M",
-        "difficultyLevel": "Intermediate"
-    }
-    </script>
-    
-    <!-- Section Heading -->
-    <h3 data-ref="artifact-filtering-heading">Artifact-Filterung für Reports</h3>
-    
-    <!-- Einleitungstext -->
-    <p data-ref="artifact-filtering-intro" data-content-type="explanation">
-        Nach der Template-Auswahl ist die Filterung der Artifacts der wichtigste Schritt zur Erstellung eines aussagekräftigen Reports. AXIOM Examine bietet leistungsstarke Filter-Mechanismen, um aus großen Datenmengen gezielt die relevanten Informationen zu extrahieren.
-    </p>
-    
-    <aside data-ref="artifact-filtering-context" data-content-type="info">
-        ℹ️ <strong>Kontext:</strong> Ein typischer AXIOM-Case kann 50.000 bis 500.000 Artifacts enthalten. Ohne Filterung würden HTML-Reports unpraktikabel groß und unübersichtlich werden. Die Filterung reduziert den Report auf die ermittlungsrelevanten Artifacts.
-    </aside>
-    
-    <!-- Detail Level 1: Grundlagen -->
-    <div class="detail-level-1" data-ref="artifact-filtering-basics">
-        
-        <h4 data-ref="artifact-filtering-basics-heading">Filter-Interface öffnen und nutzen</h4>
-        
-        <p data-ref="artifact-filtering-open" data-content-type="instruction">
-            Öffnen Sie das Filter-Panel über das <strong>Funnel-Symbol</strong> in der Toolbar oder über <strong>View → Filters</strong>. Das Panel erscheint auf der linken Seite der Artifact-Ansicht.
-        </p>
-        
-        <figure data-ref="artifact-filtering-interface">
-            <img src="media/annotated/axiom-filter-panel-marked.png" 
-                 alt="AXIOM Examine Filter-Panel mit markierten Bereichen: Artifact-Kategorien, Datum-Filter, Tag-Filter"
-                 data-media-type="annotation">
-            <figcaption>Filter-Panel mit den drei Hauptbereichen: Kategorien, Zeitraum und Tags</figcaption>
-        </figure>
-        
-        <h5 data-ref="artifact-filtering-basic-steps-heading">Grundlegende Filter-Schritte</h5>
-        
-        <ol data-ref="artifact-filtering-basic-steps-list">
-            <li data-ref="artifact-filtering-step-category" data-content-type="instruction">
-                <strong>Artifact-Kategorie wählen:</strong> Wählen Sie eine oder mehrere Kategorien aus der Liste (z.B. "Web Related", "Chat", "Email"). Die Artifact-Ansicht aktualisiert sich sofort und zeigt nur Artifacts der gewählten Kategorien.
-            </li>
-            <li data-ref="artifact-filtering-step-date" data-content-type="instruction">
-                <strong>Zeitraum eingrenzen:</strong> Nutzen Sie den Datum-Slider oder die Kalender-Eingabe, um einen relevanten Zeitraum zu definieren (z.B. nur Artifacts aus dem vermuteten Tatzeitraum).
-            </li>
-            <li data-ref="artifact-filtering-step-preview" data-content-type="instruction">
-                <strong>Vorschau prüfen:</strong> Die Anzahl der gefilterten Artifacts wird oben im Panel angezeigt (z.B. "Showing 1,247 of 127,893 artifacts"). Prüfen Sie, ob die Filterung sinnvoll ist.
-            </li>
-        </ol>
-        
-        <aside data-ref="artifact-filtering-hint-count" data-content-type="hint">
-            💡 <strong>Tipp:</strong> Für HTML-Reports sind 1.000-5.000 Artifacts eine gute Zielgröße. Weniger ist oft mehr – konzentrieren Sie sich auf die wirklich relevanten Informationen.
-        </aside>
-        
-        <p data-ref="artifact-filtering-apply" data-content-type="instruction">
-            Sobald Sie mit der Filterung zufrieden sind, klicken Sie auf <strong>"Apply to Report"</strong> im Filter-Panel. Die aktuelle Filterung wird für den Report-Export übernommen.
-        </p>
-        
-    </div>
-    
-    <!-- Detail Level 2: Vertiefung -->
-    <div class="detail-level-2" data-ref="artifact-filtering-advanced">
-        
-        <h4 data-ref="artifact-filtering-advanced-heading">Erweiterte Filter-Techniken</h4>
-        
-        <p data-ref="artifact-filtering-advanced-intro" data-content-type="explanation">
-            Für komplexe Ermittlungen bietet AXIOM zusätzliche Filter-Optionen, die eine präzisere Auswahl ermöglichen.
-        </p>
-        
-        <h5 data-ref="artifact-filtering-tags-heading">Tag-basierte Filterung</h5>
-        
-        <p data-ref="artifact-filtering-tags-intro" data-content-type="explanation">
-            Tags sind eine der mächtigsten Funktionen in AXIOM. Sie ermöglichen es, Artifacts während der Analyse zu markieren und später gezielt zu filtern.
-        </p>
-        
-        <div data-ref="artifact-filtering-tags-workflow" data-content-type="example">
-            <p data-ref="artifact-filtering-tags-example-intro"><strong>Beispiel-Workflow:</strong></p>
-            <ol data-ref="artifact-filtering-tags-example-steps">
-                <li data-ref="artifact-filtering-tags-step1">
-                    Während der Analyse taggen Sie verdächtige Chat-Nachrichten mit "Relevant" oder "Evidence_Group_A"
-                </li>
-                <li data-ref="artifact-filtering-tags-step2">
-                    Im Filter-Panel wählen Sie unter "Tags" den Tag "Relevant"
-                </li>
-                <li data-ref="artifact-filtering-tags-step3">
-                    Nur die getaggten Artifacts erscheinen in der Ansicht und können exportiert werden
-                </li>
-            </ol>
-        </div>
-        
-        <aside data-ref="artifact-filtering-hint-naming" data-content-type="hint">
-            💡 <strong>Tipp:</strong> Verwenden Sie eine konsistente Tag-Namenskonvention (z.B. "EV_" für Evidence, "QU_" für Questions, "IR_" für Irrelevant). Dies erleichtert die spätere Filterung erheblich.
-        </aside>
-        
-        <h5 data-ref="artifact-filtering-combine-heading">Filter kombinieren</h5>
-        
-        <p data-ref="artifact-filtering-combine-intro" data-content-type="explanation">
-            AXIOM erlaubt die Kombination mehrerer Filter für präzise Ergebnisse. Filter werden standardmäßig mit logischem AND verknüpft.
-        </p>
-        
-        <div data-ref="artifact-filtering-combine-example" data-content-type="example">
-            <p data-ref="artifact-filtering-combine-example-intro"><strong>Praxis-Beispiel:</strong></p>
-            <ul data-ref="artifact-filtering-combine-example-list">
-                <li data-ref="artifact-filtering-combine-ex1">
-                    <strong>Kategorie:</strong> "Chat" (nur Chat-Artifacts)
-                </li>
-                <li data-ref="artifact-filtering-combine-ex2">
-                    <strong>Zeitraum:</strong> 01.01.2025 - 15.01.2025 (Tatzeitraum)
-                </li>
-                <li data-ref="artifact-filtering-combine-ex3">
-                    <strong>Tag:</strong> "Relevant" (manuell markiert)
-                </li>
-                <li data-ref="artifact-filtering-combine-ex4">
-                    <strong>Ergebnis:</strong> Nur relevante Chat-Nachrichten aus dem Tatzeitraum (z.B. 47 von 15.000 Chat-Artifacts)
-                </li>
-            </ul>
-        </div>
-        
-        <aside data-ref="artifact-filtering-attention-export" data-content-type="attention">
-            ⚠️ <strong>Achtung:</strong> Stellen Sie sicher, dass Sie vor dem Export die korrekte Filterung aktiv haben. AXIOM exportiert exakt die aktuell sichtbaren Artifacts. Ein versehentlicher Export ohne Filter kann zu riesigen, unbrauchbaren Reports führen.
-        </aside>
-        
-        <h5 data-ref="artifact-filtering-save-heading">Filter-Ansichten speichern</h5>
-        
-        <p data-ref="artifact-filtering-save-intro" data-content-type="explanation">
-            AXIOM ermöglicht das Speichern von Filter-Konfigurationen als "Saved Views". Dies ist besonders nützlich bei wiederkehrenden Report-Anforderungen.
-        </p>
-        
-        <p data-ref="artifact-filtering-save-steps" data-content-type="instruction">
-            Nachdem Sie eine komplexe Filterung erstellt haben, klicken Sie auf <strong>"Save Current View"</strong> im Filter-Panel und geben Sie einen beschreibenden Namen ein (z.B. "Report_Evidence_Group_A"). Die gespeicherte Ansicht erscheint in der Dropdown-Liste "Saved Views" und kann jederzeit wieder aktiviert werden.
-        </p>
-        
-        <aside data-ref="artifact-filtering-hint-reuse" data-content-type="hint">
-            💡 <strong>Praxis-Tipp:</strong> Erstellen Sie Standard-Views für häufige Report-Typen (z.B. "Web_Activity_Summary", "Chat_Evidence", "Timeline_Key_Events"). Dies spart bei wiederkehrenden Aufgaben enorm viel Zeit.
-        </aside>
-        
-        <h5 data-ref="artifact-filtering-validation-heading">Filterung validieren</h5>
-        
-        <p data-ref="artifact-filtering-validation-intro" data-content-type="explanation">
-            Bevor Sie den finalen Export starten, sollten Sie die gefilterte Ansicht kurz durchscrollen und stichprobenartig prüfen:
-        </p>
-        
-        <ul data-ref="artifact-filtering-validation-checklist">
-            <li data-ref="artifact-filtering-check1" data-content-type="instruction">
-                Sind alle relevanten Artifact-Typen enthalten?
-            </li>
-            <li data-ref="artifact-filtering-check2" data-content-type="instruction">
-                Gibt es offensichtliche Ausreißer oder irrelevante Artifacts?
-            </li>
-            <li data-ref="artifact-filtering-check3" data-content-type="instruction">
-                Ist die Anzahl der Artifacts realistisch für einen Report?
-            </li>
-        </ul>
-        
-        <aside data-ref="artifact-filtering-warning-missing" data-content-type="warning">
-            🚨 <strong>Warnung:</strong> Eine zu restriktive Filterung kann dazu führen, dass wichtige Beweise im Report fehlen. Prüfen Sie im Zweifel lieber zweimal, ob die Filterung nicht zu eng ist. Ein nachträgliches Hinzufügen von Artifacts erfordert einen kompletten Neuexport.
-        </aside>
-        
-    </div>
-    
-    <!-- Agent-Context-Block (am Ende der Section) -->
-    <div class="agent-context-block"
-         data-ref="agent-context-artifact-filtering"
-         data-context-id="artifact-filtering-context"
-         style="display: none;">
-        <!-- Dynamisch vom Agent gefüllt -->
-    </div>
-    
-</section>
-
-<!-- Ende der Section -->
-
-<!--
-  Beispiel-Section 3: Export-Formate
-  Demonstriert: Hierarchie Level 4, Detail-Levels 1-3, ALLE Content-Types, Diagram + Video
--->
-
-<!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
-<!--
-<article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
-  <section class="content-chapter" id="chapter-report-creation" data-level="2" data-parent="topic-preparation" data-title="Report-Erstellung">
-    <section class="content-section" id="section-export-overview" data-level="3" data-parent="chapter-report-creation" data-title="Export-Grundlagen">
--->
-
-<!-- Beginn der eigentlichen Section (Level 4 - Subsection!) -->
-<section class="content-section"
-         id="section-export-formats"
-         data-section="export-formats"
-         data-level="4"
-         data-parent="section-export-overview"
-         data-title="Export-Formate im Detail">
-
-    <!-- JSON-LD Metadaten -->
-    <script type="application/ld+json" class="section-metadata">
-    {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
-        "identifier": "export-formats",
-        "name": "Export-Formate im Detail",
-        "version": "1.0.0",
-        "dateCreated": "2025-10-08T12:00:00Z",
-        "dateModified": "2025-10-08T12:00:00Z",
-        "author": {
-            "@type": "Person",
-            "name": "Forensik-Team",
-            "email": "forensik@example.com"
-        },
-        "dependencies": ["template-selection", "artifact-filtering"],
-        "learningObjectives": [
-            "Unterschiede zwischen HTML, PDF, CSV und Excel-Exporten verstehen",
-            "Das richtige Format für den Verwendungszweck auswählen",
-            "Format-spezifische Optionen konfigurieren",
-            "Technische Limitierungen der Formate kennen"
-        ],
-        "estimatedTime": "PT15M",
-        "difficultyLevel": "Intermediate"
-    }
-    </script>
-
-    <!-- Section Heading -->
-    <h4 data-ref="export-formats-heading">Export-Formate im Detail</h4>
-
-    <!-- Einleitungstext -->
-    <p data-ref="export-formats-intro" data-content-type="explanation">
-        Nach Template-Auswahl und Artifact-Filterung steht die Wahl des Export-Formats an. AXIOM Examine unterstützt verschiedene Formate, die jeweils für unterschiedliche Verwendungszwecke optimiert sind.
-    </p>
-
-    <aside data-ref="export-formats-info-context" data-content-type="info">
-        ℹ️ <strong>Kontext:</strong> Die Wahl des richtigen Formats hängt von der Zielgruppe ab. Technische Ermittler bevorzugen oft CSV/Excel für Weiterverarbeitung, während Staatsanwälte und Richter HTML/PDF-Reports benötigen, die ohne spezielle Software lesbar sind.
-    </aside>
-
-    <!-- Detail Level 1: Grundlagen -->
-    <div class="detail-level-1" data-ref="export-formats-basics">
-
-        <h5 data-ref="export-formats-overview-heading">Format-Übersicht</h5>
-
-        <p data-ref="export-formats-overview-intro" data-content-type="explanation">
-            AXIOM Examine bietet vier Hauptformate für den Report-Export. Jedes Format hat spezifische Stärken und Einsatzgebiete.
-        </p>
-
-        <figure data-ref="export-formats-decision-diagram">
-            <img src="media/other/export-format-decision-tree.png"
-                 alt="Entscheidungsbaum für Export-Format-Auswahl: Technische Analyse führt zu CSV/Excel, Präsentation zu HTML, Archivierung zu PDF"
-                 data-media-type="diagram">
-            <figcaption>Entscheidungsbaum: Welches Format für welchen Zweck?</figcaption>
-        </figure>
-
-        <h6 data-ref="export-formats-list-heading">Die vier Hauptformate</h6>
-
-        <ul data-ref="export-formats-list">
-            <li data-ref="export-formats-html" data-content-type="explanation">
-                <strong>HTML:</strong> Interaktiver Report mit Navigation, Suchfunktion und eingebetteten Medien. Ideal für technische Ermittler und interne Dokumentation. Keine zusätzliche Software erforderlich (Browser genügt).
-            </li>
-            <li data-ref="export-formats-pdf" data-content-type="explanation">
-                <strong>PDF:</strong> Statisches Dokument für Archivierung und offizielle Übergabe. Universell lesbar, nicht editierbar, geeignet für Gerichtsakten. Warnung: Bei großen Reports (>1000 Seiten) kann die PDF-Generierung sehr lange dauern.
-            </li>
-            <li data-ref="export-formats-csv" data-content-type="explanation">
-                <strong>CSV:</strong> Tabellarische Rohdaten für Analyse in Excel, Datenbanken oder Skripten. Enthält keine Formatierung oder Medien, nur Text und Metadaten. Ideal für statistische Auswertungen.
-            </li>
-            <li data-ref="export-formats-excel" data-content-type="explanation">
-                <strong>Excel (XLSX):</strong> Strukturierte Tabellen mit Formatierung und mehreren Arbeitsblättern. Kombination aus CSV-Daten und grundlegender Formatierung. Gut für Übergabe an Analysten.
-            </li>
-        </ul>
-
-        <aside data-ref="export-formats-hint-choice" data-content-type="hint">
-            💡 <strong>Tipp:</strong> In der Praxis werden oft mehrere Formate parallel erstellt: HTML für die interne Arbeit, PDF für die Akte und CSV für tiefergehende Analysen. AXIOM ermöglicht Batch-Exports für diesen Zweck.
-        </aside>
-
-    </div>
-
-    <!-- Detail Level 2: Vertiefung -->
-    <div class="detail-level-2" data-ref="export-formats-advanced">
-
-        <h5 data-ref="export-formats-options-heading">Format-spezifische Optionen</h5>
-
-        <p data-ref="export-formats-options-intro" data-content-type="explanation">
-            Jedes Export-Format bietet spezifische Konfigurationsoptionen, die das Ergebnis maßgeblich beeinflussen.
-        </p>
-
-        <h6 data-ref="export-formats-html-options-heading">HTML-Export-Optionen</h6>
-
-        <div data-ref="export-formats-html-config" data-content-type="example">
-            <p data-ref="export-formats-html-config-intro"><strong>Wichtigste Konfigurationen:</strong></p>
-            <ul data-ref="export-formats-html-config-list">
-                <li data-ref="export-formats-html-media">
-                    <strong>Embed Media:</strong> Medien direkt im HTML einbetten (Base64) vs. externe Dateien. Eingebettete Medien erhöhen Dateigröße erheblich, machen den Report aber portabel.
-                </li>
-                <li data-ref="export-formats-html-nav">
-                    <strong>Navigation Style:</strong> Sidebar-Navigation vs. Top-Navigation. Sidebar ist bei vielen Sections übersichtlicher.
-                </li>
-                <li data-ref="export-formats-html-search">
-                    <strong>Include Search:</strong> JavaScript-basierte Suchfunktion im Report. Erhöht Dateigröße um ca. 50 KB, aber sehr nützlich bei großen Reports.
-                </li>
-            </ul>
-        </div>
-
-        <aside data-ref="export-formats-attention-size" data-content-type="attention">
-            ⚠️ <strong>Achtung:</strong> HTML-Reports mit eingebetteten Medien können bei umfangreichen Cases mehrere Hundert Megabyte groß werden. Browser können beim Laden solcher Dateien träge reagieren. Bei mehr als 100 eingebetteten Screenshots sollten Sie externe Medien-Dateien bevorzugen.
-        </aside>
-
-        <h6 data-ref="export-formats-pdf-options-heading">PDF-Export-Optionen</h6>
-
-        <div data-ref="export-formats-pdf-config" data-content-type="example">
-            <p data-ref="export-formats-pdf-config-intro"><strong>PDF-spezifische Einstellungen:</strong></p>
-            <ul data-ref="export-formats-pdf-config-list">
-                <li data-ref="export-formats-pdf-quality">
-                    <strong>Image Quality:</strong> Niedrig (kleinere Datei) vs. Hoch (bessere Lesbarkeit). Für Gerichtsakten wird "Hoch" empfohlen.
-                </li>
-                <li data-ref="export-formats-pdf-toc">
-                    <strong>Table of Contents:</strong> Automatisches Inhaltsverzeichnis mit Seitenzahlen. Sollte immer aktiviert sein.
-                </li>
-                <li data-ref="export-formats-pdf-metadata">
-                    <strong>PDF Metadata:</strong> Fallnummer, Autor, Erstellungsdatum in PDF-Properties einbetten. Wichtig für Nachvollziehbarkeit.
-                </li>
-            </ul>
-        </div>
-
-        <aside data-ref="export-formats-hint-compression" data-content-type="hint">
-            💡 <strong>Praxis-Tipp:</strong> Nutzen Sie die PDF-Kompression-Option für Archivierungszwecke. AXIOM kann PDFs mit integrierter Kompression erstellen, die die Dateigröße um 40-60% reduzieren, ohne sichtbaren Qualitätsverlust.
-        </aside>
-
-        <h6 data-ref="export-formats-csv-excel-heading">CSV/Excel-Export-Optionen</h6>
-
-        <div data-ref="export-formats-tabular-config" data-content-type="example">
-            <p data-ref="export-formats-tabular-config-intro"><strong>Tabellarische Export-Einstellungen:</strong></p>
-            <ul data-ref="export-formats-tabular-config-list">
-                <li data-ref="export-formats-tabular-columns">
-                    <strong>Column Selection:</strong> Auswahl der zu exportierenden Spalten (z.B. Timestamp, Source, Content, Tags). Nicht alle Artifact-Felder sind für jeden Bericht relevant.
-                </li>
-                <li data-ref="export-formats-tabular-delimiter">
-                    <strong>CSV Delimiter:</strong> Komma vs. Semikolon (wichtig für deutsche Excel-Versionen, die Komma als Dezimaltrenner verwenden).
-                </li>
-                <li data-ref="export-formats-tabular-sheets">
-                    <strong>Excel Worksheets:</strong> Alle Artifacts auf ein Blatt vs. Artifact-Typen auf separate Blätter verteilen. Separate Blätter sind übersichtlicher bei vielen unterschiedlichen Artifact-Typen.
-                </li>
-            </ul>
-        </div>
-
-        <aside data-ref="export-formats-warning-excel-limits" data-content-type="warning">
-            🚨 <strong>Warnung:</strong> Excel hat eine Zeilen-Limitierung von 1.048.576 Zeilen pro Arbeitsblatt. Bei sehr großen Artifact-Mengen (>1 Million) kann nicht der gesamte Datensatz in eine Excel-Datei exportiert werden. In solchen Fällen ist CSV mit Datenbank-Import die bessere Wahl.
-        </aside>
-
-        <h6 data-ref="export-formats-video-heading">Video-Tutorial</h6>
-
-        <p data-ref="export-formats-video-intro" data-content-type="explanation">
-            Für eine praktische Demonstration der Export-Optionen steht ein Video-Tutorial zur Verfügung:
-        </p>
-
-        <figure data-ref="export-formats-video-tutorial">
-            <video controls
-                   src="media/videos/axiom-export-formats-tutorial.mp4"
-                   data-media-type="video"
-                   poster="media/screenshots/video-thumbnail-export.png">
-                <p>Ihr Browser unterstützt keine HTML5-Videos.
-                   <a href="media/videos/axiom-export-formats-tutorial.mp4">Download Video</a>
+            <!-- Hier den Inhalt von main einfügen -->
+            <!--
+            Beispiel-Section 1: Template-Auswahl
+            Demonstriert: Hierarchie Level 3, Detail-Levels 1-3, Basic Content-Types, Screenshot
+            -->
+
+            <!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
+            <!--
+            <article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
+            <section class="content-chapter" id="chapter-report-basics" data-level="2" data-parent="topic-preparation" data-title="Report-Grundlagen">
+            -->
+
+            <!-- Beginn der eigentlichen Section -->
+            <section class="content-section"
+                    id="section-template-selection"
+                    data-section="template-selection"
+                    data-level="3"
+                    data-parent="chapter-report-basics"
+                    data-title="Template-Auswahl">
+
+                <!-- JSON-LD Metadaten -->
+                <script type="application/ld+json" class="section-metadata">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "TechArticle",
+                    "identifier": "template-selection",
+                    "name": "Template-Auswahl in AXIOM Examine",
+                    "version": "1.0.0",
+                    "dateCreated": "2025-10-08T10:00:00Z",
+                    "dateModified": "2025-10-08T10:00:00Z",
+                    "author": {
+                        "@type": "Person",
+                        "name": "Forensik-Team",
+                        "email": "forensik@example.com"
+                    },
+                    "dependencies": [],
+                    "learningObjectives": [
+                        "Verstehen der verschiedenen Template-Kategorien in AXIOM",
+                        "Auswahl des richtigen Templates für den Anwendungsfall",
+                        "Grundlegende Template-Anpassungen durchführen"
+                    ],
+                    "estimatedTime": "PT8M",
+                    "difficultyLevel": "Beginner"
+                }
+                </script>
+
+                <!-- Section Heading -->
+                <h3 data-ref="template-selection-heading">Template-Auswahl in AXIOM Examine</h3>
+
+                <!-- Einleitungstext -->
+                <p data-ref="template-selection-intro" data-content-type="explanation">
+                    Die Wahl des richtigen Report-Templates ist der erste Schritt zur Erstellung eines professionellen HTML-Reports in Magnet AXIOM Examine. Templates definieren Struktur, Layout und enthaltene Informationen des finalen Reports.
                 </p>
-            </video>
-            <figcaption>Video-Tutorial: Export-Formate in der Praxis (Dauer: 8 Minuten)</figcaption>
-        </figure>
 
-    </div>
+                <!-- Detail Level 1: Grundlagen -->
+                <div class="detail-level-1" data-ref="template-selection-basics">
 
-    <!-- Detail Level 3: Expertenwissen -->
-    <div class="detail-level-3" data-ref="export-formats-expert">
+                    <h4 data-ref="template-selection-basics-heading">Grundlegende Schritte</h4>
 
-        <h5 data-ref="export-formats-technical-heading">Technische Details und Limitierungen</h5>
+                    <p data-ref="template-selection-start" data-content-type="instruction">
+                        Öffnen Sie die Report-Erstellung über <strong>File → Create Report/Export</strong> oder durch Rechtsklick in der Artifact-Ansicht und Auswahl von <strong>"Create Report/Export"</strong>.
+                    </p>
 
-        <p data-ref="export-formats-technical-intro" data-content-type="background">
-            Für fortgeschrittene Anwender sind die technischen Limitierungen und Performance-Aspekte der verschiedenen Export-Formate relevant.
-        </p>
+                    <figure data-ref="template-selection-interface">
+                        <img src="media/screenshots/axiom-report-menu.png"
+                            alt="AXIOM Examine Report-Menü mit hervorgehobener Create Report Option"
+                            data-media-type="screenshot">
+                        <figcaption>Report-Erstellung über das File-Menü starten</figcaption>
+                    </figure>
 
-        <h6 data-ref="export-formats-performance-heading">Performance-Vergleich</h6>
+                    <p data-ref="template-selection-dialog" data-content-type="explanation">
+                        Im sich öffnenden Dialog sehen Sie die verfügbaren Template-Kategorien. AXIOM bietet zwei Hauptkategorien: <strong>Standard-Templates</strong> und <strong>Custom Templates</strong>.
+                    </p>
 
-        <table data-ref="export-formats-performance-table">
-            <thead>
-                <tr>
-                    <th>Format</th>
-                    <th>Export-Zeit (10.000 Artifacts)</th>
-                    <th>Dateigröße</th>
-                    <th>Ladezeit Browser/Reader</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-ref="export-formats-perf-csv">
-                    <td>CSV</td>
-                    <td>~30 Sekunden</td>
-                    <td>~5 MB</td>
-                    <td>Sofort (Excel)</td>
-                </tr>
-                <tr data-ref="export-formats-perf-excel">
-                    <td>Excel</td>
-                    <td>~45 Sekunden</td>
-                    <td>~8 MB</td>
-                    <td>~2-3 Sekunden</td>
-                </tr>
-                <tr data-ref="export-formats-perf-html">
-                    <td>HTML (extern)</td>
-                    <td>~2 Minuten</td>
-                    <td>~20 MB + Medien</td>
-                    <td>~5 Sekunden</td>
-                </tr>
-                <tr data-ref="export-formats-perf-html-embed">
-                    <td>HTML (eingebettet)</td>
-                    <td>~3 Minuten</td>
-                    <td>~150 MB</td>
-                    <td>~15-30 Sekunden</td>
-                </tr>
-                <tr data-ref="export-formats-perf-pdf">
-                    <td>PDF</td>
-                    <td>~5-8 Minuten</td>
-                    <td>~30 MB</td>
-                    <td>~10 Sekunden</td>
-                </tr>
-            </tbody>
-        </table>
+                    <aside data-ref="template-selection-hint-quick" data-content-type="hint">
+                        💡 <strong>Tipp:</strong> Für die meisten polizeilichen Ermittlungen reicht das Standard-Template "Case Summary" vollkommen aus. Es enthält alle relevanten Informationen in übersichtlicher Form.
+                    </aside>
 
-        <aside data-ref="export-formats-info-benchmarks" data-content-type="info">
-            ℹ️ <strong>Hinweis:</strong> Die angegebenen Zeiten basieren auf einem Standard-PC (Intel i5, 16 GB RAM, SSD). Tatsächliche Zeiten variieren je nach Hardware und Komplexität der Artifacts.
-        </aside>
-
-        <h6 data-ref="export-formats-compatibility-heading">Format-Kompatibilität</h6>
-
-        <div data-ref="export-formats-compatibility" data-content-type="background">
-            <p data-ref="export-formats-compat-intro"><strong>Kompatibilitäts-Aspekte:</strong></p>
-            <ul data-ref="export-formats-compat-list">
-                <li data-ref="export-formats-compat-html">
-                    <strong>HTML:</strong> Funktioniert in allen modernen Browsern (Chrome, Firefox, Edge). Internet Explorer 11 wird nicht empfohlen (veraltete JavaScript-Unterstützung).
-                </li>
-                <li data-ref="export-formats-compat-pdf">
-                    <strong>PDF:</strong> Kompatibel mit Adobe Reader 9.0+. Ältere Versionen können Probleme mit eingebetteten Bildern haben.
-                </li>
-                <li data-ref="export-formats-compat-excel">
-                    <strong>Excel:</strong> XLSX-Format ist kompatibel mit Excel 2007+, LibreOffice Calc und Google Sheets. Makros werden nicht unterstützt.
-                </li>
-                <li data-ref="export-formats-compat-csv">
-                    <strong>CSV:</strong> Universell kompatibel, aber Encoding beachten: AXIOM exportiert standardmäßig UTF-8, was in älteren Excel-Versionen Umlaute-Probleme verursachen kann.
-                </li>
-            </ul>
-        </div>
-
-        <aside data-ref="export-formats-hint-encoding" data-content-type="hint">
-            💡 <strong>Experten-Tipp:</strong> Bei CSV-Exporten für deutsche Behörden nutzen Sie die Option "UTF-8 with BOM" (Byte Order Mark). Dies stellt sicher, dass Excel Umlaute korrekt darstellt, auch in älteren Versionen.
-        </aside>
-
-        <h6 data-ref="export-formats-automation-heading">Batch-Export und Automatisierung</h6>
-
-        <p data-ref="export-formats-automation-intro" data-content-type="background">
-            AXIOM Examine unterstützt Batch-Exports über die Command-Line-Interface (CLI). Dies ist besonders nützlich für wiederkehrende Report-Anforderungen.
-        </p>
-
-        <div data-ref="export-formats-cli-example" data-content-type="example">
-            <p data-ref="export-formats-cli-intro"><strong>Beispiel CLI-Befehl:</strong></p>
-            <pre data-ref="export-formats-cli-code"><code>axiom-cli.exe export
-  --case "C:\Cases\Case_2025_001\case.axiom"
-  --template "Standard_Report"
-  --format html,pdf,csv
-  --output "C:\Reports\Case_2025_001\"</code></pre>
-            <p data-ref="export-formats-cli-desc">Dieser Befehl erstellt automatisch alle drei Formate (HTML, PDF, CSV) mit dem Standard-Template.</p>
-        </div>
-
-        <aside data-ref="export-formats-attention-cli" data-content-type="attention">
-            ⚠️ <strong>Achtung:</strong> Die CLI-Funktionalität ist nur in AXIOM Examine Professional verfügbar. Die Standard-Lizenz unterstützt ausschließlich GUI-basierte Exports.
-        </aside>
-
-    </div>
-
-    <!-- Agent-Context-Block (am Ende der Section) -->
-    <div class="agent-context-block"
-         data-ref="agent-context-export-formats"
-         data-context-id="export-formats-context"
-         style="display: none;">
-        <!-- Dynamisch vom Agent gefüllt -->
-    </div>
-
-</section>
-
-<!-- Ende der Section -->
-
-<!-- 
-  Beispiel-Section 4: Häufige Fehler vermeiden
-  Demonstriert: Hierarchie Level 3 (zurück zu empfohlen), Detail-Levels 1-2, Audio, Advanced
--->
-
-<!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
-<!-- 
-<article class="content-topic" id="topic-best-practices" data-level="1" data-title="Best Practices">
-  <section class="content-chapter" id="chapter-troubleshooting" data-level="2" data-parent="topic-best-practices" data-title="Fehlervermeidung">
--->
-
-<!-- Beginn der eigentlichen Section -->
-<section class="content-section" 
-         id="section-common-mistakes" 
-         data-section="common-mistakes"
-         data-level="3"
-         data-parent="chapter-troubleshooting"
-         data-title="Häufige Fehler vermeiden">
-    
-    <!-- JSON-LD Metadaten -->
-    <script type="application/ld+json" class="section-metadata">
-    {
-        "@context": "https://schema.org",
-        "@type": "TechArticle",
-        "identifier": "common-mistakes",
-        "name": "Häufige Fehler bei der Report-Erstellung vermeiden",
-        "version": "1.0.0",
-        "dateCreated": "2025-10-08T13:00:00Z",
-        "dateModified": "2025-10-08T13:00:00Z",
-        "author": {
-            "@type": "Person",
-            "name": "Forensik-Team",
-            "email": "forensik@example.com"
-        },
-        "dependencies": ["artifact-filtering"],
-        "learningObjectives": [
-            "Typische Fehler bei Report-Erstellung erkennen",
-            "Präventionsmaßnahmen für häufige Probleme kennen",
-            "Fehlerhafte Reports nachträglich korrigieren",
-            "Qualitätssicherungs-Checkliste anwenden"
-        ],
-        "estimatedTime": "PT18M",
-        "difficultyLevel": "Advanced"
-    }
-    </script>
-    
-    <!-- Section Heading -->
-    <h3 data-ref="common-mistakes-heading">Häufige Fehler bei der Report-Erstellung vermeiden</h3>
-    
-    <!-- Einleitungstext -->
-    <p data-ref="common-mistakes-intro" data-content-type="explanation">
-        Trotz sorgfältiger Vorbereitung treten bei der Report-Erstellung in AXIOM Examine immer wieder typische Fehler auf, die zu unvollständigen oder fehlerhaften Reports führen. Diese Section zeigt die häufigsten Probleme und deren Lösungen.
-    </p>
-    
-    <aside data-ref="common-mistakes-warning-impact" data-content-type="warning">
-        🚨 <strong>Wichtig:</strong> Fehlerhafte Reports können schwerwiegende Konsequenzen haben – von Zeitverlust bei der Nacharbeit bis hin zu fehlenden Beweisen in Gerichtsverfahren. Nehmen Sie sich Zeit für die Qualitätssicherung!
-    </aside>
-    
-    <!-- Detail Level 1: Top-Fehler -->
-    <div class="detail-level-1" data-ref="common-mistakes-top">
-        
-        <h4 data-ref="common-mistakes-top-heading">Die drei häufigsten Fehler</h4>
-        
-        <p data-ref="common-mistakes-top-intro" data-content-type="explanation">
-            Aus der Praxis haben sich drei Fehlerquellen herauskristallisiert, die bei über 70% der fehlerhaften Reports auftreten.
-        </p>
-        
-        <h5 data-ref="common-mistakes-filter-heading">Fehler 1: Falsche oder fehlende Filterung</h5>
-        
-        <p data-ref="common-mistakes-filter-desc" data-content-type="explanation">
-            Der mit Abstand häufigste Fehler ist das Exportieren ohne oder mit falscher Filterung. Dies führt zu Reports, die entweder zu umfangreich (alle 500.000 Artifacts) oder zu lückenhaft (wichtige Beweise fehlen) sind.
-        </p>
-        
-        <figure data-ref="common-mistakes-filter-comparison">
-            <img src="media/annotated/filter-mistake-comparison.png" 
-                 alt="Vergleich: Links überladener Report ohne Filter (500 MB), rechts gefiltert und übersichtlich (15 MB)"
-                 data-media-type="annotation">
-            <figcaption>Links: Report ohne Filterung (unbrauchbar groß), Rechts: Korrekt gefiltert</figcaption>
-        </figure>
-        
-        <div data-ref="common-mistakes-filter-solution" data-content-type="instruction">
-            <p data-ref="common-mistakes-filter-solution-intro"><strong>Lösung – Checkliste vor Export:</strong></p>
-            <ol data-ref="common-mistakes-filter-checklist">
-                <li data-ref="common-mistakes-filter-check1">
-                    Prüfen Sie die Artifact-Anzahl im Filter-Panel (sollte zwischen 500 und 5.000 liegen für HTML-Reports)
-                </li>
-                <li data-ref="common-mistakes-filter-check2">
-                    Scrollen Sie stichprobenartig durch die gefilterte Ansicht – sind alle Artifacts relevant?
-                </li>
-                <li data-ref="common-mistakes-filter-check3">
-                    Testen Sie die Filter-Kombination mit einem kleinen Test-Export (nur erste 100 Artifacts)
-                </li>
-                <li data-ref="common-mistakes-filter-check4">
-                    Dokumentieren Sie die verwendeten Filter-Kriterien im Report-Header oder in den Fallnotizen
-                </li>
-            </ol>
-        </div>
-        
-        <aside data-ref="common-mistakes-hint-saved-views" data-content-type="hint">
-            💡 <strong>Praxis-Tipp:</strong> Erstellen Sie vor dem finalen Export eine "Saved View" der Filterung. So können Sie bei Bedarf den Report neu erstellen, ohne die Filter-Konfiguration zu verlieren.
-        </aside>
-        
-        <h5 data-ref="common-mistakes-media-heading">Fehler 2: Fehlende oder fehlerhafte Medien-Einbettung</h5>
-        
-        <p data-ref="common-mistakes-media-desc" data-content-type="explanation">
-            Ein weiteres häufiges Problem: Der HTML-Report wird exportiert, aber Screenshots oder andere Medien werden nicht angezeigt. Dies passiert, wenn externe Medien-Dateien nicht mit dem Report-Ordner übertragen werden.
-        </p>
-        
-        <aside data-ref="common-mistakes-warning-media-paths" data-content-type="warning">
-            🚨 <strong>Warnung:</strong> HTML-Reports mit externen Medien sind NICHT portabel. Wenn Sie den Report per E-Mail versenden oder auf einen anderen Computer kopieren, müssen Sie den gesamten Report-Ordner inklusive des "media"-Unterordners übertragen. Ein einzelnes HTML-File reicht nicht!
-        </aside>
-        
-        <figure data-ref="common-mistakes-audio-explanation">
-            <audio controls 
-                   src="media/audio/media-embedding-explained.mp3"
-                   data-media-type="audio">
-                <p>Ihr Browser unterstützt kein HTML5-Audio. 
-                   <a href="media/audio/media-embedding-explained.mp3">Download Audio</a>
-                </p>
-            </audio>
-            <figcaption>Audio-Erklärung: Eingebettete vs. externe Medien (Dauer: 3:45 Min)</figcaption>
-        </figure>
-        
-        <div data-ref="common-mistakes-media-solution" data-content-type="instruction">
-            <p data-ref="common-mistakes-media-solution-intro"><strong>Lösung – Medien-Strategie:</strong></p>
-            <ul data-ref="common-mistakes-media-strategy">
-                <li data-ref="common-mistakes-media-strategy1">
-                    <strong>Für interne Nutzung:</strong> Externe Medien-Dateien verwenden (kleinere HTML-Datei, schnelleres Laden)
-                </li>
-                <li data-ref="common-mistakes-media-strategy2">
-                    <strong>Für Versand/Archivierung:</strong> Medien einbetten (Base64) – der Report ist dann eine einzige, portierbare Datei
-                </li>
-                <li data-ref="common-mistakes-media-strategy3">
-                    <strong>Bei externen Medien:</strong> Immer den kompletten Report-Ordner als ZIP-Archiv verpacken und übertragen
-                </li>
-            </ul>
-        </div>
-        
-        <aside data-ref="common-mistakes-hint-test-transfer" data-content-type="hint">
-            💡 <strong>Test-Tipp:</strong> Kopieren Sie den Report-Ordner probeweise auf einen USB-Stick oder ein Netzlaufwerk und öffnen Sie den Report von dort. So stellen Sie sicher, dass alle Pfade korrekt sind und Medien angezeigt werden.
-        </aside>
-        
-        <h5 data-ref="common-mistakes-metadata-heading">Fehler 3: Unvollständige oder inkonsistente Metadaten</h5>
-        
-        <p data-ref="common-mistakes-metadata-desc" data-content-type="explanation">
-            Reports ohne aussagekräftige Metadaten (Aktenzeichen, Ermittler-Name, Datum) sind schwer nachvollziehbar und entsprechen oft nicht den behördlichen Anforderungen.
-        </p>
-        
-        <aside data-ref="common-mistakes-attention-metadata" data-content-type="attention">
-            ⚠️ <strong>Achtung:</strong> In vielen Behörden gibt es Vorgaben für Report-Metadaten (z.B. Aktenzeichen-Format, Disclaimer-Texte, Vertraulichkeits-Kennzeichnung). Klären Sie vor dem ersten Report die internen Standards.
-        </aside>
-        
-        <div data-ref="common-mistakes-metadata-solution" data-content-type="instruction">
-            <p data-ref="common-mistakes-metadata-solution-intro"><strong>Lösung – Metadaten-Checkliste:</strong></p>
-            <ul data-ref="common-mistakes-metadata-checklist">
-                <li data-ref="common-mistakes-metadata-check1">
-                    <strong>Pflichtfelder prüfen:</strong> Aktenzeichen, Ermittler-Name, Datum, Fall-Kurzbeschreibung
-                </li>
-                <li data-ref="common-mistakes-metadata-check2">
-                    <strong>Template-Variablen nutzen:</strong> Behördenname, Standard-Disclaimer, Kontaktdaten als Variablen hinterlegen
-                </li>
-                <li data-ref="common-mistakes-metadata-check3">
-                    <strong>Versionierung:</strong> Report-Version im Dateinamen (z.B. "Report_Case123_v1.html")
-                </li>
-                <li data-ref="common-mistakes-metadata-check4">
-                    <strong>Review-Hinweis:</strong> Optional einen Hinweis einfügen, dass der Report vor Versand geprüft wurde
-                </li>
-            </ul>
-        </div>
-        
-    </div>
-    
-    <!-- Detail Level 2: Prävention und Qualitätssicherung -->
-    <div class="detail-level-2" data-ref="common-mistakes-prevention">
-        
-        <h4 data-ref="common-mistakes-prevention-heading">Fehler-Prävention und Qualitätssicherung</h4>
-        
-        <p data-ref="common-mistakes-prevention-intro" data-content-type="explanation">
-            Die beste Strategie gegen fehlerhafte Reports ist eine systematische Qualitätssicherung vor dem finalen Export.
-        </p>
-        
-        <h5 data-ref="common-mistakes-qa-heading">Qualitätssicherungs-Workflow</h5>
-        
-        <p data-ref="common-mistakes-qa-desc" data-content-type="background">
-            Ein strukturierter QA-Prozess minimiert Fehlerquellen und erhöht die Report-Qualität signifikant. Der folgende Workflow hat sich in der Praxis bewährt:
-        </p>
-        
-        <ol data-ref="common-mistakes-qa-workflow">
-            <li data-ref="common-mistakes-qa-step1" data-content-type="instruction">
-                <strong>Phase 1 – Pre-Export (5-10 Min):</strong>
-                <ul data-ref="common-mistakes-qa-step1-details">
-                    <li data-ref="common-mistakes-qa-step1-filter">Filter-Validierung (Artifact-Anzahl, Stichproben-Check)</li>
-                    <li data-ref="common-mistakes-qa-step1-template">Template-Auswahl überprüfen (richtiges Template, korrekte Metadaten)</li>
-                    <li data-ref="common-mistakes-qa-step1-format">Export-Format und Optionen bestätigen (Medien-Einbettung, Dateigröße)</li>
-                </ul>
-            </li>
-            <li data-ref="common-mistakes-qa-step2" data-content-type="instruction">
-                <strong>Phase 2 – Test-Export (15-20 Min):</strong>
-                <ul data-ref="common-mistakes-qa-step2-details">
-                    <li data-ref="common-mistakes-qa-step2-small">Kleinen Test-Export erstellen (nur erste 100 Artifacts oder eine Section)</li>
-                    <li data-ref="common-mistakes-qa-step2-review">Test-Report im Browser öffnen und durchscrollen</li>
-                    <li data-ref="common-mistakes-qa-step2-media">Medien-Anzeige prüfen (alle Screenshots/Videos werden angezeigt?)</li>
-                    <li data-ref="common-mistakes-qa-step2-nav">Navigation testen (Links funktionieren, TOC korrekt?)</li>
-                </ul>
-            </li>
-            <li data-ref="common-mistakes-qa-step3" data-content-type="instruction">
-                <strong>Phase 3 – Finaler Export (je nach Größe):</strong>
-                <ul data-ref="common-mistakes-qa-step3-details">
-                    <li data-ref="common-mistakes-qa-step3-export">Vollständigen Report exportieren</li>
-                    <li data-ref="common-mistakes-qa-step3-validate">Export-Log auf Fehler prüfen (AXIOM zeigt Warnungen im Log)</li>
-                    <li data-ref="common-mistakes-qa-step3-size">Dateigröße validieren (ist sie realistisch?)</li>
-                </ul>
-            </li>
-            <li data-ref="common-mistakes-qa-step4" data-content-type="instruction">
-                <strong>Phase 4 – Post-Export-Review (10-15 Min):</strong>
-                <ul data-ref="common-mistakes-qa-step4-details">
-                    <li data-ref="common-mistakes-qa-step4-open">Report öffnen und erste/letzte Section prüfen</li>
-                    <li data-ref="common-mistakes-qa-step4-search">Suchfunktion testen (falls aktiviert)</li>
-                    <li data-ref="common-mistakes-qa-step4-portable">Portabilitäts-Test (Report auf anderen Computer/USB-Stick kopieren und öffnen)</li>
-                    <li data-ref="common-mistakes-qa-step4-archive">Archivierung: Report + Export-Konfiguration + Filter-Settings dokumentieren</li>
-                </ul>
-            </li>
-        </ol>
-        
-        <aside data-ref="common-mistakes-hint-peer-review" data-content-type="hint">
-            💡 <strong>Best Practice:</strong> Lassen Sie wichtige Reports (z.B. für Gerichtsverfahren) von einem Kollegen gegen-checken. Ein zweites Augenpaar erkennt oft Fehler, die man selbst übersehen hat.
-        </aside>
-        
-        <h5 data-ref="common-mistakes-recovery-heading">Fehlerhafte Reports nachträglich korrigieren</h5>
-        
-        <p data-ref="common-mistakes-recovery-intro" data-content-type="background">
-            Wenn ein fehlerhafter Report bereits erstellt wurde, gibt es je nach Problem verschiedene Korrektur-Strategien.
-        </p>
-        
-        <table data-ref="common-mistakes-recovery-table">
-            <thead>
-                <tr>
-                    <th>Problem</th>
-                    <th>Schnelle Korrektur möglich?</th>
-                    <th>Lösung</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-ref="common-mistakes-recovery-metadata">
-                    <td>Falsche Metadaten (Aktenzeichen, Datum)</td>
-                    <td>Nein</td>
-                    <td>Kompletter Neuexport erforderlich</td>
-                </tr>
-                <tr data-ref="common-mistakes-recovery-media">
-                    <td>Fehlende externe Medien</td>
-                    <td>Ja</td>
-                    <td>Media-Ordner nachträglich hinzufügen (bei externen Medien)</td>
-                </tr>
-                <tr data-ref="common-mistakes-recovery-filter">
-                    <td>Falsche Filterung (zu viel/zu wenig Artifacts)</td>
-                    <td>Nein</td>
-                    <td>Neuexport mit korrigierten Filtern</td>
-                </tr>
-                <tr data-ref="common-mistakes-recovery-format">
-                    <td>Falsches Export-Format</td>
-                    <td>Ja</td>
-                    <td>Zusätzliches Format nachträglich exportieren (ohne Neuverarbeitung)</td>
-                </tr>
-                <tr data-ref="common-mistakes-recovery-broken">
-                    <td>Korrupter/unvollständiger Export</td>
-                    <td>Nein</td>
-                    <td>Kompletter Neuexport, ggf. AXIOM-Case reparieren</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <aside data-ref="common-mistakes-warning-time" data-content-type="warning">
-            🚨 <strong>Zeit-Warnung:</strong> Ein Neuexport bei großen Cases (>100.000 Artifacts) kann mehrere Stunden dauern. Planen Sie ausreichend Zeit für Korrekturen ein, insbesondere vor wichtigen Terminen!
-        </aside>
-        
-        <h5 data-ref="common-mistakes-documentation-heading">Dokumentation für Nachvollziehbarkeit</h5>
-        
-        <p data-ref="common-mistakes-documentation-intro" data-content-type="background">
-            Dokumentieren Sie wichtige Entscheidungen und Parameter bei der Report-Erstellung. Dies ist besonders wichtig für gerichtliche Verwertbarkeit.
-        </p>
-        
-        <div data-ref="common-mistakes-documentation-checklist" data-content-type="instruction">
-            <p data-ref="common-mistakes-documentation-intro-text"><strong>Was sollte dokumentiert werden:</strong></p>
-            <ul data-ref="common-mistakes-documentation-items">
-                <li data-ref="common-mistakes-doc-filters">
-                    <strong>Filter-Einstellungen:</strong> Screenshot des Filter-Panels oder Export der Saved View
-                </li>
-                <li data-ref="common-mistakes-doc-template">
-                    <strong>Template-Konfiguration:</strong> Welches Template, welche Sections aktiviert
-                </li>
-                <li data-ref="common-mistakes-doc-export">
-                    <strong>Export-Parameter:</strong> Format, Optionen (Medien-Einbettung, etc.)
-                </li>
-                <li data-ref="common-mistakes-doc-version">
-                    <strong>Software-Version:</strong> AXIOM Examine Version (wichtig bei späteren Reproduktionen)
-                </li>
-                <li data-ref="common-mistakes-doc-date">
-                    <strong>Zeitstempel:</strong> Wann wurde der Report erstellt, von wem
-                </li>
-            </ul>
-        </div>
-        
-        <aside data-ref="common-mistakes-hint-export-log" data-content-type="hint">
-            💡 <strong>Experten-Tipp:</strong> AXIOM erstellt bei jedem Export ein Log-File im Report-Ordner ("export.log"). Archivieren Sie diese Datei zusammen mit dem Report – sie enthält wertvolle Informationen über den Export-Prozess und eventuelle Warnungen.
-        </aside>
-        
-        <h5 data-ref="common-mistakes-final-checklist-heading">Finale Checkliste vor Versand</h5>
-        
-        <p data-ref="common-mistakes-final-intro" data-content-type="explanation">
-            Bevor Sie einen Report an Staatsanwaltschaft, Gericht oder andere Stellen versenden, gehen Sie diese finale Checkliste durch:
-        </p>
-        
-        <ul data-ref="common-mistakes-final-checklist">
-            <li data-ref="common-mistakes-final-check1" data-content-type="instruction">
-                ✓ Report wurde vollständig durchgesehen (mindestens Anfang, Mitte, Ende)
-            </li>
-            <li data-ref="common-mistakes-final-check2" data-content-type="instruction">
-                ✓ Alle Metadaten sind korrekt und vollständig
-            </li>
-            <li data-ref="common-mistakes-final-check3" data-content-type="instruction">
-                ✓ Medien werden korrekt angezeigt (Stichproben-Check)
-            </li>
-            <li data-ref="common-mistakes-final-check4" data-content-type="instruction">
-                ✓ Report ist portabel (bei externen Medien: als ZIP-Archiv verpackt)
-            </li>
-            <li data-ref="common-mistakes-final-check5" data-content-type="instruction">
-                ✓ Dateiname ist aussagekräftig und enthält Versionsnummer
-            </li>
-            <li data-ref="common-mistakes-final-check6" data-content-type="instruction">
-                ✓ Dokumentation (Filter-Settings, Export-Log) ist archiviert
-            </li>
-            <li data-ref="common-mistakes-final-check7" data-content-type="instruction">
-                ✓ Bei PDF: Datei öffnet sich korrekt im PDF-Reader
-            </li>
-            <li data-ref="common-mistakes-final-check8" data-content-type="instruction">
-                ✓ Vertraulichkeits-Kennzeichnung ist korrekt (falls erforderlich)
-            </li>
-        </ul>
-        
-        <aside data-ref="common-mistakes-attention-final" data-content-type="attention">
-            ⚠️ <strong>Wichtig:</strong> Erstellen Sie vor dem Versand eine Backup-Kopie des Reports auf einem gesicherten Server. So können Sie bei Rückfragen oder Problemen auf die exakte Version zurückgreifen.
-        </aside>
-        
-    </div>
-    
-    <!-- Agent-Context-Block (am Ende der Section) -->
-    <div class="agent-context-block"
-         data-ref="agent-context-common-mistakes"
-         data-context-id="common-mistakes-context"
-         style="display: none;">
-        <!-- Dynamisch vom Agent gefüllt -->
-    </div>
-    
-</section>
-
-<!-- Ende der Section -->
-
-<!--
-  </section> (chapter-report-basics)
-</article> (topic-preparation)
--->
-
-        </main>
-
-        <!-- Footer -->
-        <footer>
-            <p data-ref="disclaimer"><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
-            <p data-ref="contact">Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
-            <div class="footer-actions">
-                <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
-                    💡 Tipps einblenden
-                </button>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Agent Toggle Button -->
-    <button id="agent-toggle" class="agent-toggle" aria-label="Spürhund-Assistent öffnen/schließen" aria-expanded="false">
-        <span class="agent-icon">🐕‍🦺</span>
-        <span class="agent-notification-badge" id="agent-notification" style="display: none;">!</span>
-    </button>
-
-    <!-- Notizblock Toggle Button -->
-    <button id="notes-toggle" class="notes-toggle" aria-label="Notizblock öffnen/schließen" aria-expanded="false">
-        <span class="toggle-icon">📝</span>
-    </button>
-
-    <!-- Notizblock Sidebar -->
-    <aside id="notes-sidebar" class="notes-sidebar" aria-label="Notizblock">
-        <div class="notes-header">
-            <h2 class="notes-title">Notizen</h2>
-            <button id="close-notes-sidebar" class="close-btn" aria-label="Notizen schließen">✕</button>
-        </div>
-        <div class="notes-content">
-            <textarea 
-                id="notes-textarea" 
-                placeholder="Hier können Sie Notizen eintragen. Diese werden automatisch gespeichert..."
-                aria-label="Notizfeld"></textarea>
-        </div>
-        <div class="notes-footer">
-            <button id="clear-notes" class="btn-secondary btn-secondary-destructive">🗑️  Notizen löschen</button>
-            <span class="save-indicator" id="save-indicator">Automatisch gespeichert</span>
-        </div>
-    </aside>
-
-    <!-- Agent Sidebar -->
-    <aside id="agent-sidebar" class="agent-sidebar" aria-label="Spürhund-Assistent" role="complementary">
-        <div class="agent-header">
-            <div class="agent-avatar">
-                <div class="agent-dog">🐕‍🦺</div>
-                <div class="agent-status-indicator" id="agent-status"></div>
-            </div>
-            <div class="agent-title">
-                <h2>Spürhund Rex</h2>
-                <p class="agent-subtitle">Ihr forensischer Begleiter</p>
-            </div>
-            <button id="close-agent-sidebar" class="close-btn" aria-label="Assistent schließen">✕</button>
-        </div>
-
-        <div class="agent-content" id="agent-chat-container">
-            <div class="agent-welcome-message">
-                <div class="agent-message agent-message-assistant">
-                    <div class="agent-message-avatar">🐕‍🦺</div>
-                    <div class="agent-message-bubble">
-                        <p>Wuff! 🎉 Ich bin Rex, Ihr forensischer Spürhund!</p>
-                        <p>Ich helfe Ihnen durch die AXIOM-Auswertung. Stellen Sie mir Fragen oder lassen Sie sich von mir durch den Prozess führen.</p>
-                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="agent-footer">
-            <div class="agent-quick-actions" id="agent-quick-actions">
-                <!-- Schnellaktionen werden hier dynamisch eingefügt -->
-            </div>
-            <div class="agent-input-container" style="display: none;" id="agent-input-container">
-                <input
-                    type="text"
-                    id="agent-input"
-                    class="agent-input"
-                    placeholder="Antwort eingeben..."
-                    aria-label="Antwort an Spürhund"
-                />
-                <button id="agent-send-btn" class="agent-send-btn" aria-label="Antwort senden">
-                    ➤
-                </button>
-            </div>
-        </div>
-    </aside>
+                <!-- Detail Level 2: Vertiefung -->
+                <div class="detail-level-2" data-ref="template-selection-advanced">
 
-    <!-- Tips Footer -->
-    <div id="tips-footer" class="tips-footer" role="complementary" aria-label="Tipps und Tastenkombinationen">
-        <button id="tips-prev-btn" class="tips-nav-btn tips-prev-btn" aria-label="Vorheriger Tipp" title="Vorheriger Tipp">
-            ◀
-        </button>
-        
-        <div class="tips-content">
-            <span class="tips-icon">💡</span>
-            <p id="tips-text" class="tips-text">Laden...</p>
-        </div>
-        
-        <button id="tips-next-btn" class="tips-nav-btn tips-next-btn" aria-label="Nächster Tipp" title="Nächster Tipp">
-            ▶
-        </button>
-        
-        <button id="close-tips-footer" class="tips-close-btn" aria-label="Tipps ausblenden">✕</button>
+                    <h4 data-ref="template-selection-categories-heading">Template-Kategorien im Detail</h4>
+
+                    <p data-ref="template-selection-categories-intro" data-content-type="explanation">
+                        Die Wahl zwischen Standard- und Custom-Templates hängt von den Anforderungen Ihrer Ermittlung ab. Hier die wichtigsten Unterschiede:
+                    </p>
+
+                    <ul data-ref="template-selection-categories-list">
+                        <li data-ref="template-selection-standard" data-content-type="explanation">
+                            <strong>Standard-Templates:</strong> Vorgefertigte Templates für typische Anwendungsfälle (Case Summary, Evidence Overview, Timeline Report). Diese Templates sind sofort einsatzbereit und enthalten alle wichtigen Sections wie Fallübersicht, Evidence-Quellen, Artifact-Zusammenfassung und Timeline-Visualisierung.
+                        </li>
+                        <li data-ref="template-selection-custom" data-content-type="explanation">
+                            <strong>Custom Templates:</strong> Individuell angepasste Templates für spezielle Anforderungen (z.B. behördenspezifische Layouts, internationale Standards). Diese Templates können eigene Logo-Integration, spezifische Metadaten-Felder und angepasste Artifact-Gruppierungen enthalten.
+                        </li>
+                    </ul>
+
+                    <aside data-ref="template-selection-attention-custom" data-content-type="attention">
+                        ⚠️ <strong>Achtung:</strong> Custom Templates erfordern initiale Konfiguration und sollten einmal erstellt und dann als Vorlage gespeichert werden. Die Ersteinrichtung kann 15-30 Minuten in Anspruch nehmen.
+                    </aside>
+
+                    <p data-ref="template-selection-save" data-content-type="instruction">
+                        Wählen Sie ein Template aus der Liste und klicken Sie auf <strong>"Select"</strong>. Das gewählte Template erscheint nun in der Konfigurationsübersicht.
+                    </p>
+
+                </div>
+
+                <!-- Detail Level 3: Expertenwissen -->
+                <div class="detail-level-3" data-ref="template-selection-expert">
+
+                    <h4 data-ref="template-selection-customization-heading">Template-Anpassungen</h4>
+
+                    <p data-ref="template-selection-customization-intro" data-content-type="explanation">
+                        Nach der Template-Auswahl können Sie spezifische Anpassungen vornehmen, um den Report auf Ihre Bedürfnisse zuzuschneiden.
+                    </p>
+
+                    <h5 data-ref="template-selection-metadata-heading">Metadaten-Felder konfigurieren</h5>
+
+                    <p data-ref="template-selection-metadata-desc" data-content-type="explanation">
+                        Standard-Templates enthalten Platzhalter für Fallmetadaten (Aktenzeichen, Ermittler, Datum). Diese können über <strong>"Template Settings → Metadata Fields"</strong> angepasst werden:
+                    </p>
+
+                    <ul data-ref="template-selection-metadata-fields">
+                        <li data-ref="template-selection-field-case" data-content-type="explanation">
+                            <strong>Case Number:</strong> Automatisch aus dem AXIOM-Case übernommen, kann manuell überschrieben werden
+                        </li>
+                        <li data-ref="template-selection-field-examiner" data-content-type="explanation">
+                            <strong>Examiner Name:</strong> Name des durchführenden Ermittlers (wichtig für Nachvollziehbarkeit)
+                        </li>
+                        <li data-ref="template-selection-field-date" data-content-type="explanation">
+                            <strong>Report Date:</strong> Standardmäßig aktuelles Datum, kann für Archivierungszwecke angepasst werden
+                        </li>
+                    </ul>
+
+                    <aside data-ref="template-selection-hint-variables" data-content-type="hint">
+                        💡 <strong>Expertentipp:</strong> Nutzen Sie Template-Variablen für wiederkehrende Informationen wie Behördenname oder Standard-Disclaimer-Texte. Diese können Sie in den Template-Settings unter "Custom Variables" definieren und in allen zukünftigen Reports wiederverwenden.
+                    </aside>
+
+                    <h5 data-ref="template-selection-sections-heading">Section-Auswahl</h5>
+
+                    <p data-ref="template-selection-sections-desc" data-content-type="explanation">
+                        Sie können einzelne Sections des Templates aktivieren oder deaktivieren, je nachdem welche Informationen für Ihren Report relevant sind:
+                    </p>
+
+                    <ul data-ref="template-selection-sections-list">
+                        <li data-ref="template-selection-section-overview" data-content-type="explanation">
+                            <strong>Case Overview:</strong> Zusammenfassung des Falls (empfohlen für alle Reports)
+                        </li>
+                        <li data-ref="template-selection-section-evidence" data-content-type="explanation">
+                            <strong>Evidence Sources:</strong> Übersicht der analysierten Datenquellen
+                        </li>
+                        <li data-ref="template-selection-section-timeline" data-content-type="explanation">
+                            <strong>Timeline Visualization:</strong> Chronologische Darstellung der Events (optional, erhöht Report-Größe erheblich)
+                        </li>
+                        <li data-ref="template-selection-section-artifacts" data-content-type="explanation">
+                            <strong>Artifact Summary:</strong> Kategorisierte Übersicht aller gefundenen Artifacts
+                        </li>
+                    </ul>
+
+                    <aside data-ref="template-selection-warning-size" data-content-type="warning">
+                        🚨 <strong>Warnung:</strong> Die Aktivierung der Timeline Visualization kann bei großen Cases (>50.000 Artifacts) zu sehr großen HTML-Dateien führen (>100 MB). In solchen Fällen empfiehlt sich eine gefilterte Timeline oder ein separater Timeline-Export.
+                    </aside>
+
+                    <p data-ref="template-selection-save-template" data-content-type="instruction">
+                        Nach Abschluss der Anpassungen können Sie die Konfiguration als neues Custom Template speichern über <strong>"Save as Custom Template"</strong>. Geben Sie einen aussagekräftigen Namen ein (z.B. "Polizei_Standard_Report_v1").
+                    </p>
+
+                </div>
+
+                <!-- Agent-Context-Block (am Ende der Section) -->
+                <div class="agent-context-block"
+                    data-ref="agent-context-template-selection"
+                    data-context-id="template-selection-context"
+                    style="display: none;">
+                    <!-- Dynamisch vom Agent gefüllt -->
+                </div>
+
+            </section>
+
+            <!-- Ende der Section -->
+
+            <!--
+            Beispiel-Section 2: Artifact-Filterung
+            Demonstriert: Hierarchie Level 3, Detail-Levels 1-2, Extended Content-Types, Annotation
+            -->
+
+            <!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
+            <!--
+            <article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
+            <section class="content-chapter" id="chapter-report-config" data-level="2" data-parent="topic-preparation" data-title="Report-Konfiguration">
+            -->
+
+            <!-- Beginn der eigentlichen Section -->
+            <section class="content-section"
+                    id="section-artifact-filtering"
+                    data-section="artifact-filtering"
+                    data-level="3"
+                    data-parent="chapter-report-config"
+                    data-title="Artifact-Filterung">
+
+                <!-- JSON-LD Metadaten -->
+                <script type="application/ld+json" class="section-metadata">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "TechArticle",
+                    "identifier": "artifact-filtering",
+                    "name": "Artifact-Filterung für Reports",
+                    "version": "1.0.0",
+                    "dateCreated": "2025-10-08T11:00:00Z",
+                    "dateModified": "2025-10-08T11:00:00Z",
+                    "author": {
+                        "@type": "Person",
+                        "name": "Forensik-Team",
+                        "email": "forensik@example.com"
+                    },
+                    "dependencies": ["template-selection"],
+                    "learningObjectives": [
+                        "Filter-Interface in AXIOM Examine effektiv nutzen",
+                        "Relevante Artifacts für Reports auswählen",
+                        "Tag-basierte Filterung anwenden",
+                        "Gefilterte Ansichten in Reports exportieren"
+                    ],
+                    "estimatedTime": "PT12M",
+                    "difficultyLevel": "Intermediate"
+                }
+                </script>
+
+                <!-- Section Heading -->
+                <h3 data-ref="artifact-filtering-heading">Artifact-Filterung für Reports</h3>
+
+                <!-- Einleitungstext -->
+                <p data-ref="artifact-filtering-intro" data-content-type="explanation">
+                    Nach der Template-Auswahl ist die Filterung der Artifacts der wichtigste Schritt zur Erstellung eines aussagekräftigen Reports. AXIOM Examine bietet leistungsstarke Filter-Mechanismen, um aus großen Datenmengen gezielt die relevanten Informationen zu extrahieren.
+                </p>
+
+                <aside data-ref="artifact-filtering-context" data-content-type="info">
+                    ℹ️ <strong>Kontext:</strong> Ein typischer AXIOM-Case kann 50.000 bis 500.000 Artifacts enthalten. Ohne Filterung würden HTML-Reports unpraktikabel groß und unübersichtlich werden. Die Filterung reduziert den Report auf die ermittlungsrelevanten Artifacts.
+                </aside>
+
+                <!-- Detail Level 1: Grundlagen -->
+                <div class="detail-level-1" data-ref="artifact-filtering-basics">
+
+                    <h4 data-ref="artifact-filtering-basics-heading">Filter-Interface öffnen und nutzen</h4>
+
+                    <p data-ref="artifact-filtering-open" data-content-type="instruction">
+                        Öffnen Sie das Filter-Panel über das <strong>Funnel-Symbol</strong> in der Toolbar oder über <strong>View → Filters</strong>. Das Panel erscheint auf der linken Seite der Artifact-Ansicht.
+                    </p>
+
+                    <figure data-ref="artifact-filtering-interface">
+                        <img src="media/annotated/axiom-filter-panel-marked.png"
+                            alt="AXIOM Examine Filter-Panel mit markierten Bereichen: Artifact-Kategorien, Datum-Filter, Tag-Filter"
+                            data-media-type="annotation">
+                        <figcaption>Filter-Panel mit den drei Hauptbereichen: Kategorien, Zeitraum und Tags</figcaption>
+                    </figure>
+
+                    <h5 data-ref="artifact-filtering-basic-steps-heading">Grundlegende Filter-Schritte</h5>
+
+                    <ol data-ref="artifact-filtering-basic-steps-list">
+                        <li data-ref="artifact-filtering-step-category" data-content-type="instruction">
+                            <strong>Artifact-Kategorie wählen:</strong> Wählen Sie eine oder mehrere Kategorien aus der Liste (z.B. "Web Related", "Chat", "Email"). Die Artifact-Ansicht aktualisiert sich sofort und zeigt nur Artifacts der gewählten Kategorien.
+                        </li>
+                        <li data-ref="artifact-filtering-step-date" data-content-type="instruction">
+                            <strong>Zeitraum eingrenzen:</strong> Nutzen Sie den Datum-Slider oder die Kalender-Eingabe, um einen relevanten Zeitraum zu definieren (z.B. nur Artifacts aus dem vermuteten Tatzeitraum).
+                        </li>
+                        <li data-ref="artifact-filtering-step-preview" data-content-type="instruction">
+                            <strong>Vorschau prüfen:</strong> Die Anzahl der gefilterten Artifacts wird oben im Panel angezeigt (z.B. "Showing 1,247 of 127,893 artifacts"). Prüfen Sie, ob die Filterung sinnvoll ist.
+                        </li>
+                    </ol>
+
+                    <aside data-ref="artifact-filtering-hint-count" data-content-type="hint">
+                        💡 <strong>Tipp:</strong> Für HTML-Reports sind 1.000-5.000 Artifacts eine gute Zielgröße. Weniger ist oft mehr – konzentrieren Sie sich auf die wirklich relevanten Informationen.
+                    </aside>
+
+                    <p data-ref="artifact-filtering-apply" data-content-type="instruction">
+                        Sobald Sie mit der Filterung zufrieden sind, klicken Sie auf <strong>"Apply to Report"</strong> im Filter-Panel. Die aktuelle Filterung wird für den Report-Export übernommen.
+                    </p>
+
+                </div>
+
+                <!-- Detail Level 2: Vertiefung -->
+                <div class="detail-level-2" data-ref="artifact-filtering-advanced">
+
+                    <h4 data-ref="artifact-filtering-advanced-heading">Erweiterte Filter-Techniken</h4>
+
+                    <p data-ref="artifact-filtering-advanced-intro" data-content-type="explanation">
+                        Für komplexe Ermittlungen bietet AXIOM zusätzliche Filter-Optionen, die eine präzisere Auswahl ermöglichen.
+                    </p>
+
+                    <h5 data-ref="artifact-filtering-tags-heading">Tag-basierte Filterung</h5>
+
+                    <p data-ref="artifact-filtering-tags-intro" data-content-type="explanation">
+                        Tags sind eine der mächtigsten Funktionen in AXIOM. Sie ermöglichen es, Artifacts während der Analyse zu markieren und später gezielt zu filtern.
+                    </p>
+
+                    <div data-ref="artifact-filtering-tags-workflow" data-content-type="example">
+                        <p data-ref="artifact-filtering-tags-example-intro"><strong>Beispiel-Workflow:</strong></p>
+                        <ol data-ref="artifact-filtering-tags-example-steps">
+                            <li data-ref="artifact-filtering-tags-step1">
+                                Während der Analyse taggen Sie verdächtige Chat-Nachrichten mit "Relevant" oder "Evidence_Group_A"
+                            </li>
+                            <li data-ref="artifact-filtering-tags-step2">
+                                Im Filter-Panel wählen Sie unter "Tags" den Tag "Relevant"
+                            </li>
+                            <li data-ref="artifact-filtering-tags-step3">
+                                Nur die getaggten Artifacts erscheinen in der Ansicht und können exportiert werden
+                            </li>
+                        </ol>
+                    </div>
+
+                    <aside data-ref="artifact-filtering-hint-naming" data-content-type="hint">
+                        💡 <strong>Tipp:</strong> Verwenden Sie eine konsistente Tag-Namenskonvention (z.B. "EV_" für Evidence, "QU_" für Questions, "IR_" für Irrelevant). Dies erleichtert die spätere Filterung erheblich.
+                    </aside>
+
+                    <h5 data-ref="artifact-filtering-combine-heading">Filter kombinieren</h5>
+
+                    <p data-ref="artifact-filtering-combine-intro" data-content-type="explanation">
+                        AXIOM erlaubt die Kombination mehrerer Filter für präzise Ergebnisse. Filter werden standardmäßig mit logischem AND verknüpft.
+                    </p>
+
+                    <div data-ref="artifact-filtering-combine-example" data-content-type="example">
+                        <p data-ref="artifact-filtering-combine-example-intro"><strong>Praxis-Beispiel:</strong></p>
+                        <ul data-ref="artifact-filtering-combine-example-list">
+                            <li data-ref="artifact-filtering-combine-ex1">
+                                <strong>Kategorie:</strong> "Chat" (nur Chat-Artifacts)
+                            </li>
+                            <li data-ref="artifact-filtering-combine-ex2">
+                                <strong>Zeitraum:</strong> 01.01.2025 - 15.01.2025 (Tatzeitraum)
+                            </li>
+                            <li data-ref="artifact-filtering-combine-ex3">
+                                <strong>Tag:</strong> "Relevant" (manuell markiert)
+                            </li>
+                            <li data-ref="artifact-filtering-combine-ex4">
+                                <strong>Ergebnis:</strong> Nur relevante Chat-Nachrichten aus dem Tatzeitraum (z.B. 47 von 15.000 Chat-Artifacts)
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="artifact-filtering-attention-export" data-content-type="attention">
+                        ⚠️ <strong>Achtung:</strong> Stellen Sie sicher, dass Sie vor dem Export die korrekte Filterung aktiv haben. AXIOM exportiert exakt die aktuell sichtbaren Artifacts. Ein versehentlicher Export ohne Filter kann zu riesigen, unbrauchbaren Reports führen.
+                    </aside>
+
+                    <h5 data-ref="artifact-filtering-save-heading">Filter-Ansichten speichern</h5>
+
+                    <p data-ref="artifact-filtering-save-intro" data-content-type="explanation">
+                        AXIOM ermöglicht das Speichern von Filter-Konfigurationen als "Saved Views". Dies ist besonders nützlich bei wiederkehrenden Report-Anforderungen.
+                    </p>
+
+                    <p data-ref="artifact-filtering-save-steps" data-content-type="instruction">
+                        Nachdem Sie eine komplexe Filterung erstellt haben, klicken Sie auf <strong>"Save Current View"</strong> im Filter-Panel und geben Sie einen beschreibenden Namen ein (z.B. "Report_Evidence_Group_A"). Die gespeicherte Ansicht erscheint in der Dropdown-Liste "Saved Views" und kann jederzeit wieder aktiviert werden.
+                    </p>
+
+                    <aside data-ref="artifact-filtering-hint-reuse" data-content-type="hint">
+                        💡 <strong>Praxis-Tipp:</strong> Erstellen Sie Standard-Views für häufige Report-Typen (z.B. "Web_Activity_Summary", "Chat_Evidence", "Timeline_Key_Events"). Dies spart bei wiederkehrenden Aufgaben enorm viel Zeit.
+                    </aside>
+
+                    <h5 data-ref="artifact-filtering-validation-heading">Filterung validieren</h5>
+
+                    <p data-ref="artifact-filtering-validation-intro" data-content-type="explanation">
+                        Bevor Sie den finalen Export starten, sollten Sie die gefilterte Ansicht kurz durchscrollen und stichprobenartig prüfen:
+                    </p>
+
+                    <ul data-ref="artifact-filtering-validation-checklist">
+                        <li data-ref="artifact-filtering-check1" data-content-type="instruction">
+                            Sind alle relevanten Artifact-Typen enthalten?
+                        </li>
+                        <li data-ref="artifact-filtering-check2" data-content-type="instruction">
+                            Gibt es offensichtliche Ausreißer oder irrelevante Artifacts?
+                        </li>
+                        <li data-ref="artifact-filtering-check3" data-content-type="instruction">
+                            Ist die Anzahl der Artifacts realistisch für einen Report?
+                        </li>
+                    </ul>
+
+                    <aside data-ref="artifact-filtering-warning-missing" data-content-type="warning">
+                        🚨 <strong>Warnung:</strong> Eine zu restriktive Filterung kann dazu führen, dass wichtige Beweise im Report fehlen. Prüfen Sie im Zweifel lieber zweimal, ob die Filterung nicht zu eng ist. Ein nachträgliches Hinzufügen von Artifacts erfordert einen kompletten Neuexport.
+                    </aside>
+
+                </div>
+
+                <!-- Agent-Context-Block (am Ende der Section) -->
+                <div class="agent-context-block"
+                    data-ref="agent-context-artifact-filtering"
+                    data-context-id="artifact-filtering-context"
+                    style="display: none;">
+                    <!-- Dynamisch vom Agent gefüllt -->
+                </div>
+
+            </section>
+
+            <!-- Ende der Section -->
+
+            <!--
+            Beispiel-Section 3: Export-Formate
+            Demonstriert: Hierarchie Level 4, Detail-Levels 1-3, ALLE Content-Types, Diagram + Video
+            -->
+
+            <!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
+            <!--
+            <article class="content-topic" id="topic-preparation" data-level="1" data-title="Vorbereitung">
+            <section class="content-chapter" id="chapter-report-creation" data-level="2" data-parent="topic-preparation" data-title="Report-Erstellung">
+                <section class="content-section" id="section-export-overview" data-level="3" data-parent="chapter-report-creation" data-title="Export-Grundlagen">
+            -->
+
+            <!-- Beginn der eigentlichen Section (Level 4 - Subsection!) -->
+            <section class="content-section"
+                    id="section-export-formats"
+                    data-section="export-formats"
+                    data-level="4"
+                    data-parent="section-export-overview"
+                    data-title="Export-Formate im Detail">
+
+                <!-- JSON-LD Metadaten -->
+                <script type="application/ld+json" class="section-metadata">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "TechArticle",
+                    "identifier": "export-formats",
+                    "name": "Export-Formate im Detail",
+                    "version": "1.0.0",
+                    "dateCreated": "2025-10-08T12:00:00Z",
+                    "dateModified": "2025-10-08T12:00:00Z",
+                    "author": {
+                        "@type": "Person",
+                        "name": "Forensik-Team",
+                        "email": "forensik@example.com"
+                    },
+                    "dependencies": ["template-selection", "artifact-filtering"],
+                    "learningObjectives": [
+                        "Unterschiede zwischen HTML, PDF, CSV und Excel-Exporten verstehen",
+                        "Das richtige Format für den Verwendungszweck auswählen",
+                        "Format-spezifische Optionen konfigurieren",
+                        "Technische Limitierungen der Formate kennen"
+                    ],
+                    "estimatedTime": "PT15M",
+                    "difficultyLevel": "Intermediate"
+                }
+                </script>
+
+                <!-- Section Heading -->
+                <h4 data-ref="export-formats-heading">Export-Formate im Detail</h4>
+
+                <!-- Einleitungstext -->
+                <p data-ref="export-formats-intro" data-content-type="explanation">
+                    Nach Template-Auswahl und Artifact-Filterung steht die Wahl des Export-Formats an. AXIOM Examine unterstützt verschiedene Formate, die jeweils für unterschiedliche Verwendungszwecke optimiert sind.
+                </p>
+
+                <aside data-ref="export-formats-info-context" data-content-type="info">
+                    ℹ️ <strong>Kontext:</strong> Die Wahl des richtigen Formats hängt von der Zielgruppe ab. Technische Ermittler bevorzugen oft CSV/Excel für Weiterverarbeitung, während Staatsanwälte und Richter HTML/PDF-Reports benötigen, die ohne spezielle Software lesbar sind.
+                </aside>
+
+                <!-- Detail Level 1: Grundlagen -->
+                <div class="detail-level-1" data-ref="export-formats-basics">
+
+                    <h5 data-ref="export-formats-overview-heading">Format-Übersicht</h5>
+
+                    <p data-ref="export-formats-overview-intro" data-content-type="explanation">
+                        AXIOM Examine bietet vier Hauptformate für den Report-Export. Jedes Format hat spezifische Stärken und Einsatzgebiete.
+                    </p>
+
+                    <figure data-ref="export-formats-decision-diagram">
+                        <img src="media/other/export-format-decision-tree.png"
+                            alt="Entscheidungsbaum für Export-Format-Auswahl: Technische Analyse führt zu CSV/Excel, Präsentation zu HTML, Archivierung zu PDF"
+                            data-media-type="diagram">
+                        <figcaption>Entscheidungsbaum: Welches Format für welchen Zweck?</figcaption>
+                    </figure>
+
+                    <h6 data-ref="export-formats-list-heading">Die vier Hauptformate</h6>
+
+                    <ul data-ref="export-formats-list">
+                        <li data-ref="export-formats-html" data-content-type="explanation">
+                            <strong>HTML:</strong> Interaktiver Report mit Navigation, Suchfunktion und eingebetteten Medien. Ideal für technische Ermittler und interne Dokumentation. Keine zusätzliche Software erforderlich (Browser genügt).
+                        </li>
+                        <li data-ref="export-formats-pdf" data-content-type="explanation">
+                            <strong>PDF:</strong> Statisches Dokument für Archivierung und offizielle Übergabe. Universell lesbar, nicht editierbar, geeignet für Gerichtsakten. Warnung: Bei großen Reports (>1000 Seiten) kann die PDF-Generierung sehr lange dauern.
+                        </li>
+                        <li data-ref="export-formats-csv" data-content-type="explanation">
+                            <strong>CSV:</strong> Tabellarische Rohdaten für Analyse in Excel, Datenbanken oder Skripten. Enthält keine Formatierung oder Medien, nur Text und Metadaten. Ideal für statistische Auswertungen.
+                        </li>
+                        <li data-ref="export-formats-excel" data-content-type="explanation">
+                            <strong>Excel (XLSX):</strong> Strukturierte Tabellen mit Formatierung und mehreren Arbeitsblättern. Kombination aus CSV-Daten und grundlegender Formatierung. Gut für Übergabe an Analysten.
+                        </li>
+                    </ul>
+
+                    <aside data-ref="export-formats-hint-choice" data-content-type="hint">
+                        💡 <strong>Tipp:</strong> In der Praxis werden oft mehrere Formate parallel erstellt: HTML für die interne Arbeit, PDF für die Akte und CSV für tiefergehende Analysen. AXIOM ermöglicht Batch-Exports für diesen Zweck.
+                    </aside>
+
+                </div>
+
+                <!-- Detail Level 2: Vertiefung -->
+                <div class="detail-level-2" data-ref="export-formats-advanced">
+
+                    <h5 data-ref="export-formats-options-heading">Format-spezifische Optionen</h5>
+
+                    <p data-ref="export-formats-options-intro" data-content-type="explanation">
+                        Jedes Export-Format bietet spezifische Konfigurationsoptionen, die das Ergebnis maßgeblich beeinflussen.
+                    </p>
+
+                    <h6 data-ref="export-formats-html-options-heading">HTML-Export-Optionen</h6>
+
+                    <div data-ref="export-formats-html-config" data-content-type="example">
+                        <p data-ref="export-formats-html-config-intro"><strong>Wichtigste Konfigurationen:</strong></p>
+                        <ul data-ref="export-formats-html-config-list">
+                            <li data-ref="export-formats-html-media">
+                                <strong>Embed Media:</strong> Medien direkt im HTML einbetten (Base64) vs. externe Dateien. Eingebettete Medien erhöhen Dateigröße erheblich, machen den Report aber portabel.
+                            </li>
+                            <li data-ref="export-formats-html-nav">
+                                <strong>Navigation Style:</strong> Sidebar-Navigation vs. Top-Navigation. Sidebar ist bei vielen Sections übersichtlicher.
+                            </li>
+                            <li data-ref="export-formats-html-search">
+                                <strong>Include Search:</strong> JavaScript-basierte Suchfunktion im Report. Erhöht Dateigröße um ca. 50 KB, aber sehr nützlich bei großen Reports.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="export-formats-attention-size" data-content-type="attention">
+                        ⚠️ <strong>Achtung:</strong> HTML-Reports mit eingebetteten Medien können bei umfangreichen Cases mehrere Hundert Megabyte groß werden. Browser können beim Laden solcher Dateien träge reagieren. Bei mehr als 100 eingebetteten Screenshots sollten Sie externe Medien-Dateien bevorzugen.
+                    </aside>
+
+                    <h6 data-ref="export-formats-pdf-options-heading">PDF-Export-Optionen</h6>
+
+                    <div data-ref="export-formats-pdf-config" data-content-type="example">
+                        <p data-ref="export-formats-pdf-config-intro"><strong>PDF-spezifische Einstellungen:</strong></p>
+                        <ul data-ref="export-formats-pdf-config-list">
+                            <li data-ref="export-formats-pdf-quality">
+                                <strong>Image Quality:</strong> Niedrig (kleinere Datei) vs. Hoch (bessere Lesbarkeit). Für Gerichtsakten wird "Hoch" empfohlen.
+                            </li>
+                            <li data-ref="export-formats-pdf-toc">
+                                <strong>Table of Contents:</strong> Automatisches Inhaltsverzeichnis mit Seitenzahlen. Sollte immer aktiviert sein.
+                            </li>
+                            <li data-ref="export-formats-pdf-metadata">
+                                <strong>PDF Metadata:</strong> Fallnummer, Autor, Erstellungsdatum in PDF-Properties einbetten. Wichtig für Nachvollziehbarkeit.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="export-formats-hint-compression" data-content-type="hint">
+                        💡 <strong>Praxis-Tipp:</strong> Nutzen Sie die PDF-Kompression-Option für Archivierungszwecke. AXIOM kann PDFs mit integrierter Kompression erstellen, die die Dateigröße um 40-60% reduzieren, ohne sichtbaren Qualitätsverlust.
+                    </aside>
+
+                    <h6 data-ref="export-formats-csv-excel-heading">CSV/Excel-Export-Optionen</h6>
+
+                    <div data-ref="export-formats-tabular-config" data-content-type="example">
+                        <p data-ref="export-formats-tabular-config-intro"><strong>Tabellarische Export-Einstellungen:</strong></p>
+                        <ul data-ref="export-formats-tabular-config-list">
+                            <li data-ref="export-formats-tabular-columns">
+                                <strong>Column Selection:</strong> Auswahl der zu exportierenden Spalten (z.B. Timestamp, Source, Content, Tags). Nicht alle Artifact-Felder sind für jeden Bericht relevant.
+                            </li>
+                            <li data-ref="export-formats-tabular-delimiter">
+                                <strong>CSV Delimiter:</strong> Komma vs. Semikolon (wichtig für deutsche Excel-Versionen, die Komma als Dezimaltrenner verwenden).
+                            </li>
+                            <li data-ref="export-formats-tabular-sheets">
+                                <strong>Excel Worksheets:</strong> Alle Artifacts auf ein Blatt vs. Artifact-Typen auf separate Blätter verteilen. Separate Blätter sind übersichtlicher bei vielen unterschiedlichen Artifact-Typen.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="export-formats-warning-excel-limits" data-content-type="warning">
+                        🚨 <strong>Warnung:</strong> Excel hat eine Zeilen-Limitierung von 1.048.576 Zeilen pro Arbeitsblatt. Bei sehr großen Artifact-Mengen (>1 Million) kann nicht der gesamte Datensatz in eine Excel-Datei exportiert werden. In solchen Fällen ist CSV mit Datenbank-Import die bessere Wahl.
+                    </aside>
+
+                    <h6 data-ref="export-formats-video-heading">Video-Tutorial</h6>
+
+                    <p data-ref="export-formats-video-intro" data-content-type="explanation">
+                        Für eine praktische Demonstration der Export-Optionen steht ein Video-Tutorial zur Verfügung:
+                    </p>
+
+                    <figure data-ref="export-formats-video-tutorial">
+                        <video controls
+                            src="media/videos/axiom-export-formats-tutorial.mp4"
+                            data-media-type="video"
+                            poster="media/screenshots/video-thumbnail-export.png">
+                            <p>Ihr Browser unterstützt keine HTML5-Videos.
+                            <a href="media/videos/axiom-export-formats-tutorial.mp4">Download Video</a>
+                            </p>
+                        </video>
+                        <figcaption>Video-Tutorial: Export-Formate in der Praxis (Dauer: 8 Minuten)</figcaption>
+                    </figure>
+
+                </div>
+
+                <!-- Detail Level 3: Expertenwissen -->
+                <div class="detail-level-3" data-ref="export-formats-expert">
+
+                    <h5 data-ref="export-formats-technical-heading">Technische Details und Limitierungen</h5>
+
+                    <p data-ref="export-formats-technical-intro" data-content-type="background">
+                        Für fortgeschrittene Anwender sind die technischen Limitierungen und Performance-Aspekte der verschiedenen Export-Formate relevant.
+                    </p>
+
+                    <h6 data-ref="export-formats-performance-heading">Performance-Vergleich</h6>
+
+                    <table data-ref="export-formats-performance-table">
+                        <thead>
+                            <tr>
+                                <th>Format</th>
+                                <th>Export-Zeit (10.000 Artifacts)</th>
+                                <th>Dateigröße</th>
+                                <th>Ladezeit Browser/Reader</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ref="export-formats-perf-csv">
+                                <td>CSV</td>
+                                <td>~30 Sekunden</td>
+                                <td>~5 MB</td>
+                                <td>Sofort (Excel)</td>
+                            </tr>
+                            <tr data-ref="export-formats-perf-excel">
+                                <td>Excel</td>
+                                <td>~45 Sekunden</td>
+                                <td>~8 MB</td>
+                                <td>~2-3 Sekunden</td>
+                            </tr>
+                            <tr data-ref="export-formats-perf-html">
+                                <td>HTML (extern)</td>
+                                <td>~2 Minuten</td>
+                                <td>~20 MB + Medien</td>
+                                <td>~5 Sekunden</td>
+                            </tr>
+                            <tr data-ref="export-formats-perf-html-embed">
+                                <td>HTML (eingebettet)</td>
+                                <td>~3 Minuten</td>
+                                <td>~150 MB</td>
+                                <td>~15-30 Sekunden</td>
+                            </tr>
+                            <tr data-ref="export-formats-perf-pdf">
+                                <td>PDF</td>
+                                <td>~5-8 Minuten</td>
+                                <td>~30 MB</td>
+                                <td>~10 Sekunden</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <aside data-ref="export-formats-info-benchmarks" data-content-type="info">
+                        ℹ️ <strong>Hinweis:</strong> Die angegebenen Zeiten basieren auf einem Standard-PC (Intel i5, 16 GB RAM, SSD). Tatsächliche Zeiten variieren je nach Hardware und Komplexität der Artifacts.
+                    </aside>
+
+                    <h6 data-ref="export-formats-compatibility-heading">Format-Kompatibilität</h6>
+
+                    <div data-ref="export-formats-compatibility" data-content-type="background">
+                        <p data-ref="export-formats-compat-intro"><strong>Kompatibilitäts-Aspekte:</strong></p>
+                        <ul data-ref="export-formats-compat-list">
+                            <li data-ref="export-formats-compat-html">
+                                <strong>HTML:</strong> Funktioniert in allen modernen Browsern (Chrome, Firefox, Edge). Internet Explorer 11 wird nicht empfohlen (veraltete JavaScript-Unterstützung).
+                            </li>
+                            <li data-ref="export-formats-compat-pdf">
+                                <strong>PDF:</strong> Kompatibel mit Adobe Reader 9.0+. Ältere Versionen können Probleme mit eingebetteten Bildern haben.
+                            </li>
+                            <li data-ref="export-formats-compat-excel">
+                                <strong>Excel:</strong> XLSX-Format ist kompatibel mit Excel 2007+, LibreOffice Calc und Google Sheets. Makros werden nicht unterstützt.
+                            </li>
+                            <li data-ref="export-formats-compat-csv">
+                                <strong>CSV:</strong> Universell kompatibel, aber Encoding beachten: AXIOM exportiert standardmäßig UTF-8, was in älteren Excel-Versionen Umlaute-Probleme verursachen kann.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="export-formats-hint-encoding" data-content-type="hint">
+                        💡 <strong>Experten-Tipp:</strong> Bei CSV-Exporten für deutsche Behörden nutzen Sie die Option "UTF-8 with BOM" (Byte Order Mark). Dies stellt sicher, dass Excel Umlaute korrekt darstellt, auch in älteren Versionen.
+                    </aside>
+
+                    <h6 data-ref="export-formats-automation-heading">Batch-Export und Automatisierung</h6>
+
+                    <p data-ref="export-formats-automation-intro" data-content-type="background">
+                        AXIOM Examine unterstützt Batch-Exports über die Command-Line-Interface (CLI). Dies ist besonders nützlich für wiederkehrende Report-Anforderungen.
+                    </p>
+
+                    <div data-ref="export-formats-cli-example" data-content-type="example">
+                        <p data-ref="export-formats-cli-intro"><strong>Beispiel CLI-Befehl:</strong></p>
+                        <pre data-ref="export-formats-cli-code"><code>axiom-cli.exe export
+            --case "C:\Cases\Case_2025_001\case.axiom"
+            --template "Standard_Report"
+            --format html,pdf,csv
+            --output "C:\Reports\Case_2025_001\"</code></pre>
+                        <p data-ref="export-formats-cli-desc">Dieser Befehl erstellt automatisch alle drei Formate (HTML, PDF, CSV) mit dem Standard-Template.</p>
+                    </div>
+
+                    <aside data-ref="export-formats-attention-cli" data-content-type="attention">
+                        ⚠️ <strong>Achtung:</strong> Die CLI-Funktionalität ist nur in AXIOM Examine Professional verfügbar. Die Standard-Lizenz unterstützt ausschließlich GUI-basierte Exports.
+                    </aside>
+
+                </div>
+
+                <!-- Agent-Context-Block (am Ende der Section) -->
+                <div class="agent-context-block"
+                    data-ref="agent-context-export-formats"
+                    data-context-id="export-formats-context"
+                    style="display: none;">
+                    <!-- Dynamisch vom Agent gefüllt -->
+                </div>
+
+            </section>
+
+            <!-- Ende der Section -->
+
+            <!--
+            Beispiel-Section 4: Häufige Fehler vermeiden
+            Demonstriert: Hierarchie Level 3 (zurück zu empfohlen), Detail-Levels 1-2, Audio, Advanced
+            -->
+
+            <!-- Parent Context (zur Orientierung, nicht Teil dieser Section) -->
+            <!--
+            <article class="content-topic" id="topic-best-practices" data-level="1" data-title="Best Practices">
+            <section class="content-chapter" id="chapter-troubleshooting" data-level="2" data-parent="topic-best-practices" data-title="Fehlervermeidung">
+            -->
+
+            <!-- Beginn der eigentlichen Section -->
+            <section class="content-section"
+                    id="section-common-mistakes"
+                    data-section="common-mistakes"
+                    data-level="3"
+                    data-parent="chapter-troubleshooting"
+                    data-title="Häufige Fehler vermeiden">
+
+                <!-- JSON-LD Metadaten -->
+                <script type="application/ld+json" class="section-metadata">
+                {
+                    "@context": "https://schema.org",
+                    "@type": "TechArticle",
+                    "identifier": "common-mistakes",
+                    "name": "Häufige Fehler bei der Report-Erstellung vermeiden",
+                    "version": "1.0.0",
+                    "dateCreated": "2025-10-08T13:00:00Z",
+                    "dateModified": "2025-10-08T13:00:00Z",
+                    "author": {
+                        "@type": "Person",
+                        "name": "Forensik-Team",
+                        "email": "forensik@example.com"
+                    },
+                    "dependencies": ["artifact-filtering"],
+                    "learningObjectives": [
+                        "Typische Fehler bei Report-Erstellung erkennen",
+                        "Präventionsmaßnahmen für häufige Probleme kennen",
+                        "Fehlerhafte Reports nachträglich korrigieren",
+                        "Qualitätssicherungs-Checkliste anwenden"
+                    ],
+                    "estimatedTime": "PT18M",
+                    "difficultyLevel": "Advanced"
+                }
+                </script>
+
+                <!-- Section Heading -->
+                <h3 data-ref="common-mistakes-heading">Häufige Fehler bei der Report-Erstellung vermeiden</h3>
+
+                <!-- Einleitungstext -->
+                <p data-ref="common-mistakes-intro" data-content-type="explanation">
+                    Trotz sorgfältiger Vorbereitung treten bei der Report-Erstellung in AXIOM Examine immer wieder typische Fehler auf, die zu unvollständigen oder fehlerhaften Reports führen. Diese Section zeigt die häufigsten Probleme und deren Lösungen.
+                </p>
+
+                <aside data-ref="common-mistakes-warning-impact" data-content-type="warning">
+                    🚨 <strong>Wichtig:</strong> Fehlerhafte Reports können schwerwiegende Konsequenzen haben – von Zeitverlust bei der Nacharbeit bis hin zu fehlenden Beweisen in Gerichtsverfahren. Nehmen Sie sich Zeit für die Qualitätssicherung!
+                </aside>
+
+                <!-- Detail Level 1: Top-Fehler -->
+                <div class="detail-level-1" data-ref="common-mistakes-top">
+
+                    <h4 data-ref="common-mistakes-top-heading">Die drei häufigsten Fehler</h4>
+
+                    <p data-ref="common-mistakes-top-intro" data-content-type="explanation">
+                        Aus der Praxis haben sich drei Fehlerquellen herauskristallisiert, die bei über 70% der fehlerhaften Reports auftreten.
+                    </p>
+
+                    <h5 data-ref="common-mistakes-filter-heading">Fehler 1: Falsche oder fehlende Filterung</h5>
+
+                    <p data-ref="common-mistakes-filter-desc" data-content-type="explanation">
+                        Der mit Abstand häufigste Fehler ist das Exportieren ohne oder mit falscher Filterung. Dies führt zu Reports, die entweder zu umfangreich (alle 500.000 Artifacts) oder zu lückenhaft (wichtige Beweise fehlen) sind.
+                    </p>
+
+                    <figure data-ref="common-mistakes-filter-comparison">
+                        <img src="media/annotated/filter-mistake-comparison.png"
+                            alt="Vergleich: Links überladener Report ohne Filter (500 MB), rechts gefiltert und übersichtlich (15 MB)"
+                            data-media-type="annotation">
+                        <figcaption>Links: Report ohne Filterung (unbrauchbar groß), Rechts: Korrekt gefiltert</figcaption>
+                    </figure>
+
+                    <div data-ref="common-mistakes-filter-solution" data-content-type="instruction">
+                        <p data-ref="common-mistakes-filter-solution-intro"><strong>Lösung – Checkliste vor Export:</strong></p>
+                        <ol data-ref="common-mistakes-filter-checklist">
+                            <li data-ref="common-mistakes-filter-check1">
+                                Prüfen Sie die Artifact-Anzahl im Filter-Panel (sollte zwischen 500 und 5.000 liegen für HTML-Reports)
+                            </li>
+                            <li data-ref="common-mistakes-filter-check2">
+                                Scrollen Sie stichprobenartig durch die gefilterte Ansicht – sind alle Artifacts relevant?
+                            </li>
+                            <li data-ref="common-mistakes-filter-check3">
+                                Testen Sie die Filter-Kombination mit einem kleinen Test-Export (nur erste 100 Artifacts)
+                            </li>
+                            <li data-ref="common-mistakes-filter-check4">
+                                Dokumentieren Sie die verwendeten Filter-Kriterien im Report-Header oder in den Fallnotizen
+                            </li>
+                        </ol>
+                    </div>
+
+                    <aside data-ref="common-mistakes-hint-saved-views" data-content-type="hint">
+                        💡 <strong>Praxis-Tipp:</strong> Erstellen Sie vor dem finalen Export eine "Saved View" der Filterung. So können Sie bei Bedarf den Report neu erstellen, ohne die Filter-Konfiguration zu verlieren.
+                    </aside>
+
+                    <h5 data-ref="common-mistakes-media-heading">Fehler 2: Fehlende oder fehlerhafte Medien-Einbettung</h5>
+
+                    <p data-ref="common-mistakes-media-desc" data-content-type="explanation">
+                        Ein weiteres häufiges Problem: Der HTML-Report wird exportiert, aber Screenshots oder andere Medien werden nicht angezeigt. Dies passiert, wenn externe Medien-Dateien nicht mit dem Report-Ordner übertragen werden.
+                    </p>
+
+                    <aside data-ref="common-mistakes-warning-media-paths" data-content-type="warning">
+                        🚨 <strong>Warnung:</strong> HTML-Reports mit externen Medien sind NICHT portabel. Wenn Sie den Report per E-Mail versenden oder auf einen anderen Computer kopieren, müssen Sie den gesamten Report-Ordner inklusive des "media"-Unterordners übertragen. Ein einzelnes HTML-File reicht nicht!
+                    </aside>
+
+                    <figure data-ref="common-mistakes-audio-explanation">
+                        <audio controls
+                            src="media/audio/media-embedding-explained.mp3"
+                            data-media-type="audio">
+                            <p>Ihr Browser unterstützt kein HTML5-Audio.
+                            <a href="media/audio/media-embedding-explained.mp3">Download Audio</a>
+                            </p>
+                        </audio>
+                        <figcaption>Audio-Erklärung: Eingebettete vs. externe Medien (Dauer: 3:45 Min)</figcaption>
+                    </figure>
+
+                    <div data-ref="common-mistakes-media-solution" data-content-type="instruction">
+                        <p data-ref="common-mistakes-media-solution-intro"><strong>Lösung – Medien-Strategie:</strong></p>
+                        <ul data-ref="common-mistakes-media-strategy">
+                            <li data-ref="common-mistakes-media-strategy1">
+                                <strong>Für interne Nutzung:</strong> Externe Medien-Dateien verwenden (kleinere HTML-Datei, schnelleres Laden)
+                            </li>
+                            <li data-ref="common-mistakes-media-strategy2">
+                                <strong>Für Versand/Archivierung:</strong> Medien einbetten (Base64) – der Report ist dann eine einzige, portierbare Datei
+                            </li>
+                            <li data-ref="common-mistakes-media-strategy3">
+                                <strong>Bei externen Medien:</strong> Immer den kompletten Report-Ordner als ZIP-Archiv verpacken und übertragen
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="common-mistakes-hint-test-transfer" data-content-type="hint">
+                        💡 <strong>Test-Tipp:</strong> Kopieren Sie den Report-Ordner probeweise auf einen USB-Stick oder ein Netzlaufwerk und öffnen Sie den Report von dort. So stellen Sie sicher, dass alle Pfade korrekt sind und Medien angezeigt werden.
+                    </aside>
+
+                    <h5 data-ref="common-mistakes-metadata-heading">Fehler 3: Unvollständige oder inkonsistente Metadaten</h5>
+
+                    <p data-ref="common-mistakes-metadata-desc" data-content-type="explanation">
+                        Reports ohne aussagekräftige Metadaten (Aktenzeichen, Ermittler-Name, Datum) sind schwer nachvollziehbar und entsprechen oft nicht den behördlichen Anforderungen.
+                    </p>
+
+                    <aside data-ref="common-mistakes-attention-metadata" data-content-type="attention">
+                        ⚠️ <strong>Achtung:</strong> In vielen Behörden gibt es Vorgaben für Report-Metadaten (z.B. Aktenzeichen-Format, Disclaimer-Texte, Vertraulichkeits-Kennzeichnung). Klären Sie vor dem ersten Report die internen Standards.
+                    </aside>
+
+                    <div data-ref="common-mistakes-metadata-solution" data-content-type="instruction">
+                        <p data-ref="common-mistakes-metadata-solution-intro"><strong>Lösung – Metadaten-Checkliste:</strong></p>
+                        <ul data-ref="common-mistakes-metadata-checklist">
+                            <li data-ref="common-mistakes-metadata-check1">
+                                <strong>Pflichtfelder prüfen:</strong> Aktenzeichen, Ermittler-Name, Datum, Fall-Kurzbeschreibung
+                            </li>
+                            <li data-ref="common-mistakes-metadata-check2">
+                                <strong>Template-Variablen nutzen:</strong> Behördenname, Standard-Disclaimer, Kontaktdaten als Variablen hinterlegen
+                            </li>
+                            <li data-ref="common-mistakes-metadata-check3">
+                                <strong>Versionierung:</strong> Report-Version im Dateinamen (z.B. "Report_Case123_v1.html")
+                            </li>
+                            <li data-ref="common-mistakes-metadata-check4">
+                                <strong>Review-Hinweis:</strong> Optional einen Hinweis einfügen, dass der Report vor Versand geprüft wurde
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- Detail Level 2: Prävention und Qualitätssicherung -->
+                <div class="detail-level-2" data-ref="common-mistakes-prevention">
+
+                    <h4 data-ref="common-mistakes-prevention-heading">Fehler-Prävention und Qualitätssicherung</h4>
+
+                    <p data-ref="common-mistakes-prevention-intro" data-content-type="explanation">
+                        Die beste Strategie gegen fehlerhafte Reports ist eine systematische Qualitätssicherung vor dem finalen Export.
+                    </p>
+
+                    <h5 data-ref="common-mistakes-qa-heading">Qualitätssicherungs-Workflow</h5>
+
+                    <p data-ref="common-mistakes-qa-desc" data-content-type="background">
+                        Ein strukturierter QA-Prozess minimiert Fehlerquellen und erhöht die Report-Qualität signifikant. Der folgende Workflow hat sich in der Praxis bewährt:
+                    </p>
+
+                    <ol data-ref="common-mistakes-qa-workflow">
+                        <li data-ref="common-mistakes-qa-step1" data-content-type="instruction">
+                            <strong>Phase 1 – Pre-Export (5-10 Min):</strong>
+                            <ul data-ref="common-mistakes-qa-step1-details">
+                                <li data-ref="common-mistakes-qa-step1-filter">Filter-Validierung (Artifact-Anzahl, Stichproben-Check)</li>
+                                <li data-ref="common-mistakes-qa-step1-template">Template-Auswahl überprüfen (richtiges Template, korrekte Metadaten)</li>
+                                <li data-ref="common-mistakes-qa-step1-format">Export-Format und Optionen bestätigen (Medien-Einbettung, Dateigröße)</li>
+                            </ul>
+                        </li>
+                        <li data-ref="common-mistakes-qa-step2" data-content-type="instruction">
+                            <strong>Phase 2 – Test-Export (15-20 Min):</strong>
+                            <ul data-ref="common-mistakes-qa-step2-details">
+                                <li data-ref="common-mistakes-qa-step2-small">Kleinen Test-Export erstellen (nur erste 100 Artifacts oder eine Section)</li>
+                                <li data-ref="common-mistakes-qa-step2-review">Test-Report im Browser öffnen und durchscrollen</li>
+                                <li data-ref="common-mistakes-qa-step2-media">Medien-Anzeige prüfen (alle Screenshots/Videos werden angezeigt?)</li>
+                                <li data-ref="common-mistakes-qa-step2-nav">Navigation testen (Links funktionieren, TOC korrekt?)</li>
+                            </ul>
+                        </li>
+                        <li data-ref="common-mistakes-qa-step3" data-content-type="instruction">
+                            <strong>Phase 3 – Finaler Export (je nach Größe):</strong>
+                            <ul data-ref="common-mistakes-qa-step3-details">
+                                <li data-ref="common-mistakes-qa-step3-export">Vollständigen Report exportieren</li>
+                                <li data-ref="common-mistakes-qa-step3-validate">Export-Log auf Fehler prüfen (AXIOM zeigt Warnungen im Log)</li>
+                                <li data-ref="common-mistakes-qa-step3-size">Dateigröße validieren (ist sie realistisch?)</li>
+                            </ul>
+                        </li>
+                        <li data-ref="common-mistakes-qa-step4" data-content-type="instruction">
+                            <strong>Phase 4 – Post-Export-Review (10-15 Min):</strong>
+                            <ul data-ref="common-mistakes-qa-step4-details">
+                                <li data-ref="common-mistakes-qa-step4-open">Report öffnen und erste/letzte Section prüfen</li>
+                                <li data-ref="common-mistakes-qa-step4-search">Suchfunktion testen (falls aktiviert)</li>
+                                <li data-ref="common-mistakes-qa-step4-portable">Portabilitäts-Test (Report auf anderen Computer/USB-Stick kopieren und öffnen)</li>
+                                <li data-ref="common-mistakes-qa-step4-archive">Archivierung: Report + Export-Konfiguration + Filter-Settings dokumentieren</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <aside data-ref="common-mistakes-hint-peer-review" data-content-type="hint">
+                        💡 <strong>Best Practice:</strong> Lassen Sie wichtige Reports (z.B. für Gerichtsverfahren) von einem Kollegen gegen-checken. Ein zweites Augenpaar erkennt oft Fehler, die man selbst übersehen hat.
+                    </aside>
+
+                    <h5 data-ref="common-mistakes-recovery-heading">Fehlerhafte Reports nachträglich korrigieren</h5>
+
+                    <p data-ref="common-mistakes-recovery-intro" data-content-type="background">
+                        Wenn ein fehlerhafter Report bereits erstellt wurde, gibt es je nach Problem verschiedene Korrektur-Strategien.
+                    </p>
+
+                    <table data-ref="common-mistakes-recovery-table">
+                        <thead>
+                            <tr>
+                                <th>Problem</th>
+                                <th>Schnelle Korrektur möglich?</th>
+                                <th>Lösung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ref="common-mistakes-recovery-metadata">
+                                <td>Falsche Metadaten (Aktenzeichen, Datum)</td>
+                                <td>Nein</td>
+                                <td>Kompletter Neuexport erforderlich</td>
+                            </tr>
+                            <tr data-ref="common-mistakes-recovery-media">
+                                <td>Fehlende externe Medien</td>
+                                <td>Ja</td>
+                                <td>Media-Ordner nachträglich hinzufügen (bei externen Medien)</td>
+                            </tr>
+                            <tr data-ref="common-mistakes-recovery-filter">
+                                <td>Falsche Filterung (zu viel/zu wenig Artifacts)</td>
+                                <td>Nein</td>
+                                <td>Neuexport mit korrigierten Filtern</td>
+                            </tr>
+                            <tr data-ref="common-mistakes-recovery-format">
+                                <td>Falsches Export-Format</td>
+                                <td>Ja</td>
+                                <td>Zusätzliches Format nachträglich exportieren (ohne Neuverarbeitung)</td>
+                            </tr>
+                            <tr data-ref="common-mistakes-recovery-broken">
+                                <td>Korrupter/unvollständiger Export</td>
+                                <td>Nein</td>
+                                <td>Kompletter Neuexport, ggf. AXIOM-Case reparieren</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <aside data-ref="common-mistakes-warning-time" data-content-type="warning">
+                        🚨 <strong>Zeit-Warnung:</strong> Ein Neuexport bei großen Cases (>100.000 Artifacts) kann mehrere Stunden dauern. Planen Sie ausreichend Zeit für Korrekturen ein, insbesondere vor wichtigen Terminen!
+                    </aside>
+
+                    <h5 data-ref="common-mistakes-documentation-heading">Dokumentation für Nachvollziehbarkeit</h5>
+
+                    <p data-ref="common-mistakes-documentation-intro" data-content-type="background">
+                        Dokumentieren Sie wichtige Entscheidungen und Parameter bei der Report-Erstellung. Dies ist besonders wichtig für gerichtliche Verwertbarkeit.
+                    </p>
+
+                    <div data-ref="common-mistakes-documentation-checklist" data-content-type="instruction">
+                        <p data-ref="common-mistakes-documentation-intro-text"><strong>Was sollte dokumentiert werden:</strong></p>
+                        <ul data-ref="common-mistakes-documentation-items">
+                            <li data-ref="common-mistakes-doc-filters">
+                                <strong>Filter-Einstellungen:</strong> Screenshot des Filter-Panels oder Export der Saved View
+                            </li>
+                            <li data-ref="common-mistakes-doc-template">
+                                <strong>Template-Konfiguration:</strong> Welches Template, welche Sections aktiviert
+                            </li>
+                            <li data-ref="common-mistakes-doc-export">
+                                <strong>Export-Parameter:</strong> Format, Optionen (Medien-Einbettung, etc.)
+                            </li>
+                            <li data-ref="common-mistakes-doc-version">
+                                <strong>Software-Version:</strong> AXIOM Examine Version (wichtig bei späteren Reproduktionen)
+                            </li>
+                            <li data-ref="common-mistakes-doc-date">
+                                <strong>Zeitstempel:</strong> Wann wurde der Report erstellt, von wem
+                            </li>
+                        </ul>
+                    </div>
+
+                    <aside data-ref="common-mistakes-hint-export-log" data-content-type="hint">
+                        💡 <strong>Experten-Tipp:</strong> AXIOM erstellt bei jedem Export ein Log-File im Report-Ordner ("export.log"). Archivieren Sie diese Datei zusammen mit dem Report – sie enthält wertvolle Informationen über den Export-Prozess und eventuelle Warnungen.
+                    </aside>
+
+                    <h5 data-ref="common-mistakes-final-checklist-heading">Finale Checkliste vor Versand</h5>
+
+                    <p data-ref="common-mistakes-final-intro" data-content-type="explanation">
+                        Bevor Sie einen Report an Staatsanwaltschaft, Gericht oder andere Stellen versenden, gehen Sie diese finale Checkliste durch:
+                    </p>
+
+                    <ul data-ref="common-mistakes-final-checklist">
+                        <li data-ref="common-mistakes-final-check1" data-content-type="instruction">
+                            ✓ Report wurde vollständig durchgesehen (mindestens Anfang, Mitte, Ende)
+                        </li>
+                        <li data-ref="common-mistakes-final-check2" data-content-type="instruction">
+                            ✓ Alle Metadaten sind korrekt und vollständig
+                        </li>
+                        <li data-ref="common-mistakes-final-check3" data-content-type="instruction">
+                            ✓ Medien werden korrekt angezeigt (Stichproben-Check)
+                        </li>
+                        <li data-ref="common-mistakes-final-check4" data-content-type="instruction">
+                            ✓ Report ist portabel (bei externen Medien: als ZIP-Archiv verpackt)
+                        </li>
+                        <li data-ref="common-mistakes-final-check5" data-content-type="instruction">
+                            ✓ Dateiname ist aussagekräftig und enthält Versionsnummer
+                        </li>
+                        <li data-ref="common-mistakes-final-check6" data-content-type="instruction">
+                            ✓ Dokumentation (Filter-Settings, Export-Log) ist archiviert
+                        </li>
+                        <li data-ref="common-mistakes-final-check7" data-content-type="instruction">
+                            ✓ Bei PDF: Datei öffnet sich korrekt im PDF-Reader
+                        </li>
+                        <li data-ref="common-mistakes-final-check8" data-content-type="instruction">
+                            ✓ Vertraulichkeits-Kennzeichnung ist korrekt (falls erforderlich)
+                        </li>
+                    </ul>
+
+                    <aside data-ref="common-mistakes-attention-final" data-content-type="attention">
+                        ⚠️ <strong>Wichtig:</strong> Erstellen Sie vor dem Versand eine Backup-Kopie des Reports auf einem gesicherten Server. So können Sie bei Rückfragen oder Problemen auf die exakte Version zurückgreifen.
+                    </aside>
+
+                </div>
+
+                <!-- Agent-Context-Block (am Ende der Section) -->
+                <div class="agent-context-block"
+                    data-ref="agent-context-common-mistakes"
+                    data-context-id="common-mistakes-context"
+                    style="display: none;">
+                    <!-- Dynamisch vom Agent gefüllt -->
+                </div>
+
+            </section>
+
+            <!-- Ende der Section -->
+
+            <!--
+            </section> (chapter-report-basics)
+            </article> (topic-preparation)
+            -->
+        </main>
     </div>
-
     <!-- Scripts -->
     <!-- WICHTIG: Reihenfolge ist kritisch für die Initialisierung! -->
 
@@ -1557,6 +1562,9 @@
 
     <!-- 19. FAVORITES-HEADER-STARS - Favorite indicators after section header -->
     <script src="js/script-favorites-header-stars.js"></script>
+
+    <!-- 20. SUBSECTION-SELECTION - select a subsection from a section -->
+    <script src="js/script-subsection-selection.js"></script>
 
     <!-- Last INIT - Haupt-Initialisierung (MUSS ZULETZT geladen werden) -->
     <script src="js/script-init.js"></script>

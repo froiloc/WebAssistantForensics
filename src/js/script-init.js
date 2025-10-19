@@ -43,6 +43,7 @@
             { name: 'HeaderStarsManager', required: false },
             { name: 'GlossaryManager', required: false },
             { name: 'ThemeManager', required: false },
+            { name: 'SubsectionSelection', required: false}
         ];
 
         // Initialize in proper dependency order

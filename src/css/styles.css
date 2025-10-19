@@ -26,19 +26,25 @@
     --color-shadow-strong: rgba(0, 0, 0, 0.2);
     --color-focus: #ff9900;
 
+    /* MISSING VARIABLES - ADDED */
+    --surface-color: var(--color-surface-elevated); /* For UI surfaces */
+    --accent-color: var(--color-primary); /* For interactive elements */
+    --surface-hover-color: #F0F0F0; /* For button hover states */
+    --text-muted: var(--color-text-disabled); /* For secondary text */
+
     --tooltip-bg: #222222;
     --tooltip-color: #FFFFFF;
     --button-bg: #444444;
     --button-color: #EEEEEE;
     --button-hover-bg: #666666;
-    
+
     /* Dimensions */
     --top-nav-height: 60px;
     --tips-footer-height: 80px;
     --sidebar-top: var(--top-nav-height);
     --focus-outline-width: 2px;
     --border-width: 1px;
-    
+
     /* Transitions */
     --transition-fast: 0.2s ease;
     --transition-medium: 0.3s ease;
@@ -86,6 +92,12 @@
     --color-shadow-strong: rgba(0, 0, 0, 0.5);
     --color-focus: #FFB74D;
 
+    /* MISSING VARIABLES - ADDED */
+    --surface-color: var(--color-surface-elevated);
+    --accent-color: var(--color-primary);
+    --surface-hover-color: #2A2A2A;
+    --text-muted: var(--color-text-disabled);
+
     --tooltip-bg: #222222;
     --tooltip-color: #FFFFFF;
     --button-bg: #444444;
@@ -114,6 +126,12 @@
     --color-focus: #000000;
     --border-width: 2px;
     --focus-outline-width: 4px;
+
+    /* MISSING VARIABLES - ADDED */
+    --surface-color: var(--color-surface-elevated);
+    --accent-color: var(--color-primary);
+    --surface-hover-color: #F0F0F0;
+    --text-muted: var(--color-text-disabled);
 
     --tooltip-bg: #222222;
     --tooltip-color: #FFFFFF;
@@ -144,6 +162,12 @@
     --border-width: 2px;
     --focus-outline-width: 4px;
 
+    /* MISSING VARIABLES - ADDED */
+    --surface-color: var(--color-surface-elevated);
+    --accent-color: var(--color-primary);
+    --surface-hover-color: #222222;
+    --text-muted: var(--color-text-disabled);
+
     --tooltip-bg: #222222;
     --tooltip-color: #FFFFFF;
     --button-bg: #444444;
@@ -169,7 +193,7 @@ body.tips-hidden {
 }
 
 .skip-link {
-    position: absolute;
+    position: fixed;
     top: -40px; /* Versteckt außerhalb des Viewports */
     left: 0;
     background: var(--color-primary);
@@ -3688,4 +3712,460 @@ body.tips-hidden .sidebar-container {
         z-index: 1;
     }
 
+}
+
+/**************************************************/
+/* Subsection favorite                            */
+/**************************************************/
+
+/* Subsection selection button styles */
+.subsection-selection-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--surface-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.subsection-selection-btn:hover {
+    background: var(--surface-hover-color);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.subsection-selection-btn__icon::before {
+    content: '🎯';
+    font-size: 14px;
+    line-height: 1;
+    display: block;
+}
+
+.subsection-selection-btn__text {
+    white-space: nowrap;
+}
+
+/* Active selection mode state */
+.subsection-selection-btn--active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.subsection-selection-btn--active:hover {
+    background: var(--accent-hover-color);
+    border-color: var(--accent-hover-color);
+    color: white;
+}
+
+/* Mobile responsive touch targets */
+@media (max-width: 768px) {
+    .subsection-selection-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+        gap: 8px;
+    }
+
+    .subsection-selection-btn__icon::before {
+        font-size: 16px;
+    }
+}
+
+/* Ensure proper positioning context */
+.sidebar-subheader {
+    position: relative;
+    padding-right: 120px; /* Make space for the button */
+}
+
+@media (max-width: 768px) {
+    .sidebar-subheader {
+        padding-right: 140px; /* More space on mobile */
+    }
+}
+
+/* Hide text on mobile, show only icon */
+@media (max-width: 768px) {
+    .subsection-selection-btn__text {
+        display: none;
+    }
+
+    .subsection-selection-btn {
+        padding: 8px;
+        width: 40px;
+        justify-content: center;
+    }
+
+    .sidebar-subheader {
+        padding-right: 60px;
+    }
+}
+
+/* Show tooltip on mobile when icon-only */
+@media (max-width: 768px) {
+    .subsection-selection-btn:hover::after {
+        content: 'Präzises Lesezeichen setzen';
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+    }
+}
+
+/********************************************/
+/* sections header icons                    */
+/********************************************/
+
+/* HEADER ICONS - FIXED VERSION */
+.header-with-icons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+    max-width: calc( 2 * 32px + 21px);
+}
+
+/* Header text takes available space */
+.header-with-icons > :not(.section-header-icons) {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Icons wrapper - fixed on the right */
+.section-header-icons {
+    display: flex;
+    gap: 8px;
+    flex: none !important; /* CRITICAL FIX */
+    margin-left: auto;
+}
+
+/* Button fixes - remove flex stretching */
+.header-star,
+.subsection-target {
+    flex: none !important; /* CRITICAL FIX */
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    background: var(--surface-color, #fff);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Remove problematic positioning */
+.header-star {
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+}
+
+/* Icon content */
+.header-star::before {
+    content: '⭐';
+    font-size: 16px;
+}
+
+.subsection-target::before {
+    content: '🎯';
+    font-size: 16px;
+}
+
+/* Active states */
+.header-star--active {
+    background: var(--accent-color, #0066cc);
+    border-color: var(--accent-color, #0066cc);
+}
+
+.header-star--active::before {
+    filter: brightness(0) invert(1);
+}
+
+/* Hover effects */
+.header-star:hover,
+.subsection-target:hover {
+    background: var(--surface-hover-color, #f5f5f5);
+    border-color: var(--accent-color, #0066cc);
+    transform: translateY(-1px);
+}
+
+/* NUCLEAR FIX - REMOVE ALL EXISTING STYLES AND START FRESH */
+.section-header-icons {
+    all: unset !important;
+    display: flex !important;
+    gap: 8px !important;
+    margin-left: auto !important;
+}
+
+.header-star,
+.subsection-target {
+    all: unset !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    background: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+.header-star::before {
+    content: '⭐' !important;
+    font-size: 16px !important;
+}
+
+.subsection-target::before {
+    content: '🎯' !important;
+    font-size: 16px !important;
+}
+
+/* Active star state */
+.header-star--active {
+    background: #0066cc !important;
+    border-color: #0066cc !important;
+}
+
+.header-star--active::before {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Hover states */
+.header-star:hover,
+.subsection-target:hover {
+    background: #f0f0f0 !important;
+    border-color: #0066cc !important;
+}
+
+/* Header with proper structure */
+.header-with-icons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Header text takes available space */
+.header-text-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Icons stay on the right */
+.section-header-icons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
+/* Button styles */
+.header-star,
+.subsection-target {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+h1:has(.header-with-icons),
+h2:has(.header-with-icons),
+h3:has(.header-with-icons),
+h4:has(.header-with-icons),
+h5:has(.header-with-icons),
+h6:has(.header-with-icons)
+{
+    display: flex;
+}
+
+/*****************************/
+/* footer quickfix           */
+/*****************************/
+
+.content-footer {
+    display: none !important;
+}
+
+/* ============================================================================
+   SUBSECTION SELECTION STYLES - CLEAN VERSION
+   ============================================================================ */
+
+/* Active state for sidebar subsection button */
+.subsection-selection-btn--active {
+    background: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: white !important;
+}
+
+.subsection-selection-btn--active .subsection-selection-btn__icon::before {
+    filter: brightness(0) invert(1) !important;
+}
+
+/* Selection mode - blur chrome elements, keep main clear */
+.subsection-selection--active .app-chrome {
+    filter: blur(3px);
+    opacity: 0.8;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Hide footer during selection to prevent content covering */
+.subsection-selection--active footer {
+    display: none !important;
+}
+
+.subsection-selection--active .app-main {
+    /* Crystal clear and fully interactive */
+    filter: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Selection instructions */
+/* Selection instructions - more opaque background */
+.subsection-selection-instructions {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-color); /* Make this more solid */
+    border: 2px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+    z-index: 10001;
+    text-align: center;
+    max-width: 400px;
+    pointer-events: auto;
+
+    /* Ensure good contrast */
+    color: var(--text-color);
+    font-weight: 500;
+    backdrop-filter: none; /* Remove any transparency effects */
+}
+
+/* Make the instructions content even more readable */
+.instructions-content p {
+    margin: 0 0 8px 0;
+    font-weight: 600; /* Bolder text */
+    line-height: 1.4;
+}
+
+.instructions-hint {
+    font-size: 0.9em;
+    color: var(--text-color); /* Use main text color instead of muted */
+    font-style: italic;
+    opacity: 0.9; /* Still slightly different but readable */
+}
+
+/* Element highlighting during selection */
+.subsection-element-hover {
+    outline: 2px solid var(--accent-color) !important;
+    background: rgba(0, 102, 204, 0.1) !important;
+    cursor: pointer !important;
+}
+
+/* Cursor during selection mode */
+.subsection-selection--active {
+    cursor: crosshair;
+}
+
+/* Ensure footer stays at bottom in normal mode */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-main {
+    flex: 1; /* This pushes footer to bottom */
+}
+
+.app-chrome .content-footer {
+    margin-top: auto; /* Footer stays at bottom */
+}
+
+/* Selection mode - blur content header and footer */
+.subsection-selection--active .content-header,
+.subsection-selection--active .content-footer {
+    filter: blur(3px);
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+/* Hide the floating tips footer completely */
+.subsection-selection--active .tips-footer {
+    display: none !important;
+}
+
+/* Main documentation content stays crystal clear */
+.subsection-selection--active .app-main {
+    filter: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/****************************/
+/* slide out sidebars       */
+/****************************/
+
+/* Sidebar transitions */
+.sidebar-container,
+.notes-sidebar,
+.agent-sidebar {
+    transition: transform 0.3s var(--ease-smooth);
+}
+
+/* Hide during selection */
+.subsection-selection--active .sidebar-container {
+    transform: translateX(-110%);
+    pointer-events: none;
+}
+
+.subsection-selection--active .notes-sidebar,
+.subsection-selection--active .agent-sidebar {
+    transform: translateX(110%);
+    pointer-events: none;
+}
+
+.subsection-selection--active .skip-link {
+    display: none;
+}
+
+/* Main content expansion */
+.app-main {
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.subsection-selection--active .app-main {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }

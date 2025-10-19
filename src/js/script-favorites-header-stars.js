@@ -11,7 +11,8 @@
     let _isInitialized = false;
     let _scrollTimeout = null;
     let _unsubscribeFunctions = [];
-    let _headersWithListeners = new Set(); // Track headers with active listeners
+    let _headersWithStarListeners = new Set();
+    let _headersWithTargetListeners = new Set();
 
     // Configuration
     const CONFIG = {
@@ -19,12 +20,18 @@
             star: 'header-star',
             active: 'header-star--active',
             loading: 'header-star--loading',
-            headerWithStar: 'header-with-star'
+            target: 'subsection-target',
+            iconsWrapper: 'header-with-icons',
+            headerTextContent: 'header-text-content',
+            subsectionTargetActive: 'subsection-target--active'
         },
         selectors: {
             mainContent: 'main section[data-section]',
             headers: 'h2, h3, h4, h5, h6',
-            star: '.header-star'
+            star: '.header-star',
+            target: '.subsection-target',
+            iconsWrapper: '.header-with-icons',
+            subsectionTargetActive: '.subsection-target--active'
         },
         favoriteScopes: {
             section: 'section',    // Current: whole section favorites
@@ -35,7 +42,10 @@
         i18n: {
             de: {
                 addFavorite: 'Abschnitt als Favorit speichern',
-                removeFavorite: 'Favorit entfernen'
+                removeFavorite: 'Favorit entfernen',
+                addSubsectionFavorite: 'Präzises Lesezeichen setzen',
+                ariaSubsectionButton: (textContent) => `Präzises Lesezeichen für ${textContent} setzen`,
+                errorNoSubsection: 'Präzises Lesezeichen-System nicht verfügbar'
             }
         }
     };
@@ -82,37 +92,13 @@
     // ========================================================================
 
     /**
-     * Add stars to ALL headers (one-time initialization)
-     */
-    function addStarsToAllHeaders() {
-        const headers = document.querySelectorAll(CONFIG.selectors.headers);
-        LOG.debug(MODULE, `Adding stars to ${headers.length} headers`);
-
-        headers.forEach((header, index) => {
-            if (!header.querySelector(CONFIG.selectors.star)) {
-                createHeaderStar(header);
-                LOG.debug(MODULE, `Added star to header ${index + 1}`);
-            }
-        });
-
-        LOG.success(MODULE, `Stars added to ${headers.length} headers`);
-    }
-
-    // In the future, we could add:
-    function createSubsectionStar(header, headerId) {
-        // Would use header ID or generated selector instead of sectionId
-        // Would store different favorite data structure
-        // TODO for future implementation
-    }
-
-    /**
-    * Add stars only to the first header in each section
+    * Add stars and target icons to the first header in each section
     */
-    function addStarsToSectionHeaders() {
+    function addIconsToSectionHeaders() {
         const sections = document.querySelectorAll(CONFIG.selectors.mainContent);
-        LOG.debug(MODULE, `Processing ${sections.length} sections for header stars`);
+        LOG.debug(MODULE, `Processing ${sections.length} sections for header icons`);
 
-        let starCount = 0;
+        let iconCount = 0;
 
         sections.forEach(section => {
             const sectionId = section.dataset.section;
@@ -120,44 +106,82 @@
             // Find the FIRST header in this section (any level)
             const firstHeader = section.querySelector('h1, h2, h3, h4, h5, h6');
 
-            if (firstHeader && !firstHeader.querySelector(CONFIG.selectors.star)) {
-                createHeaderStar(firstHeader, sectionId);
-                starCount++;
-                LOG.debug(MODULE, `Added star to first header in section: ${sectionId}`);
+            if (firstHeader && !firstHeader.querySelector(CONFIG.selectors.iconsWrapper)) {
+                // Create both icons at once
+                createHeaderIcons(firstHeader, sectionId);
+                iconCount++;
+                LOG.debug(MODULE, `Added icons to header in section: ${sectionId}`);
             } else if (!firstHeader) {
                 LOG.warn(MODULE, `Section ${sectionId} has no headers`, section);
-            } else {
-                LOG.debug(MODULE, `Section ${sectionId} already has star or no suitable header`);
             }
         });
 
-        LOG.success(MODULE, `Stars added to ${starCount} section headers`);
+        LOG.success(MODULE, `Icons added: ${iconCount} stars and targets`);
+    }
+
+    /**
+     * Create a wrapper for the icons in the header
+     */
+    function createHeaderIcons(header, sectionId) {
+        // FIRST: Wrap the header text content in a span
+        const headerText = document.createElement('span');
+        headerText.className = CONFIG.classes.headerTextContent;
+
+        // Move all existing child nodes into the text wrapper
+        while (header.firstChild) {
+            headerText.appendChild(header.firstChild);
+        }
+
+        // Create icons wrapper
+        const iconsWrapper = document.createElement('div');
+        iconsWrapper.classList.add(CONFIG.classes.iconsWrapper);
+
+        // Add buttons to wrapper
+        const starButton = createHeaderStarButton(header, sectionId)
+        iconsWrapper.appendChild(starButton);
+
+        const targetButton = createHeaderTargetButton(header, sectionId)
+        iconsWrapper.appendChild(targetButton);
+
+        header.appendChild(headerText);
+        header.appendChild(iconsWrapper);
+
+        // Initial visual state
+        updateHeaderStarState(starButton, sectionId);
+
+        LOG.debug(MODULE, `Created star and target icons for section: ${sectionId}`);
     }
 
     /**
      * Create and add star button to header
      */
-    function createHeaderStar(header, sectionId) {
+    function createHeaderStarButton(header, sectionId) {
         const starButton = document.createElement('button');
         starButton.className = CONFIG.classes.star;
         starButton.setAttribute('type', 'button');
         starButton.dataset.sectionId = sectionId;
 
         // Minimal HTML - CSS pseudo-elements will handle visuals
-        starButton.innerHTML = `<span class="sr-only">${header.textContent} ${CONFIG.i18n.de.addFavorite}</span>`;
-
-        // Add to header (floating right - Option B)
-        header.classList.add(CONFIG.classes.headerWithStar);
-        header.appendChild(starButton);
-
-        // Initial visual state
-        updateHeaderStarState(starButton, sectionId);
-
-        LOG.debug(MODULE, `Created star for section: ${sectionId}`);
+        starButton.setAttribute('aria-label', `${header.textContent} ${CONFIG.i18n.de.addFavorite}`);
+        return starButton;
     }
 
     /**
-     * Manage event listeners based on viewport
+     * Create and add target button to header
+     */
+    function createHeaderTargetButton(header, sectionId) {
+        const targetButton = document.createElement('button');
+        targetButton.className = CONFIG.classes.target;
+        targetButton.setAttribute('type', 'button');
+        targetButton.dataset.sectionId = sectionId;
+
+        // Minimal HTML - CSS pseudo-elements will handle visuals
+        targetButton.setAttribute('aria-label', CONFIG.i18n.de.ariaSubsectionButton(header.textContent));
+        return targetButton;
+    }
+
+    /**
+     * Manage event listeners for both star and target buttons based on viewport
      */
     function manageViewportEventListeners() {
         const viewportRange = ViewportManager.getViewportRange();
@@ -167,21 +191,39 @@
 
         // Add listeners to headers in viewport
         headersInViewport.forEach(header => {
+            // Handle star button
             const star = header.querySelector(CONFIG.selectors.star);
-            if (star && !_headersWithListeners.has(star)) {
+            if (star && !_headersWithStarListeners.has(star)) {
                 star.addEventListener('click', handleStarClick);
-                _headersWithListeners.add(star);
-                LOG.debug(MODULE, `Added listener to header: ${star.dataset.sectionId}`);
+                _headersWithStarListeners.add(star);
+                LOG.debug(MODULE, `Added star listener to header: ${star.dataset.sectionId}`);
+            }
+
+            // Handle target button
+            const target = header.querySelector(CONFIG.selectors.target);
+            if (target && !_headersWithTargetListeners.has(target)) {
+                target.addEventListener('click', handleTargetClick);
+                _headersWithTargetListeners.add(target);
+                LOG.debug(MODULE, `Added target listener to header: ${target.dataset.sectionId}`);
             }
         });
 
         // Remove listeners from headers outside viewport
-        _headersWithListeners.forEach(star => {
-            const header = star.parentElement;
+        _headersWithStarListeners.forEach(star => {
+            const header = star.closest('.header-with-icons') || star.parentElement;
             if (header && !ViewportManager.isInViewportRange(header, viewportRange)) {
                 star.removeEventListener('click', handleStarClick);
-                _headersWithListeners.delete(star);
-                LOG.debug(MODULE, `Removed listener from header: ${star.dataset.sectionId}`);
+                _headersWithStarListeners.delete(star);
+                LOG.debug(MODULE, `Removed star listener from header: ${star.dataset.sectionId}`);
+            }
+        });
+
+        _headersWithTargetListeners.forEach(target => {
+            const header = target.closest('.header-with-icons') || target.parentElement;
+            if (header && !ViewportManager.isInViewportRange(header, viewportRange)) {
+                target.removeEventListener('click', handleTargetClick);
+                _headersWithTargetListeners.delete(target);
+                LOG.debug(MODULE, `Removed target listener from header: ${target.dataset.sectionId}`);
             }
         });
     }
@@ -251,6 +293,34 @@
         // Loading state will be cleared by StateManager subscription
     }
 
+    /**
+     * Handle target button click - enter subsection selection mode
+     */
+    function handleTargetClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const targetButton = event.currentTarget;
+        const sectionId = targetButton.dataset.sectionId;
+
+        LOG.debug(MODULE, `Target button clicked for section: ${sectionId}`);
+
+        // Visual feedback
+        targetButton.classList.add(CONFIG.classes.subsectionTargetActive);
+
+        // Enter subsection selection mode
+        if (window.SubsectionSelection) {
+            window.SubsectionSelection.enterSelectionMode(sectionId, () => {
+                // Callback when selection mode exits - remove active state
+                targetButton.classList.remove(CONFIG.classes.subsectionTargetActive);
+            });
+        } else {
+            LOG.error(MODULE, 'SubsectionSelection module not available');
+            Toast.show(CONFIG.i18n.de.errorNoSubsection, 'error');
+            targetButton.classList.remove(CONFIG.classes.subsectionTargetActive);
+        }
+    }
+
     function handleScroll() {
         if (!_isInitialized) return;
 
@@ -274,7 +344,7 @@
         LOG.debug(MODULE, 'Initializing header stars');
 
         // ONE-TIME: Add stars only to first header in each section
-        addStarsToSectionHeaders();
+        addIconsToSectionHeaders();
 
         // INITIAL: Manage event listeners for current viewport
         manageViewportEventListeners();
