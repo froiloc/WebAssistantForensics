@@ -18,3 +18,4 @@ Context:
 - Hamburgermenü aus script-navigation.js heraustrennen in eigenes Script.
 - introduce CONFIG.i18n.de in all classes.
 - implement in StateManager code, the subscription is path-based but doesn't have bubbling behavior for nested properties. We should add this.
+- tooltip for favorite items with a preview.

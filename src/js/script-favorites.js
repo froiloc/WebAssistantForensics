@@ -317,6 +317,11 @@
         }
     }
 
+    function updateStatsBadge(statsBadge, favorite) {
+        // this is a dummy function, because these badges are not implemented yet.
+        return true;
+    }
+
     // ============================================================
     //  Add/Remove Favorites functions
     // ============================================================
@@ -943,7 +948,7 @@
 
         // Find ALL favorites that match this sectionId, not just the first
         favorites.forEach(favorite => {
-            if (favorite && favorite.sectionPath === sectionId) {
+            if (favorite && favorite.sectionId === sectionId) {
                 // Update access count and last accessed for each matching favorite
                 favorite.accessCount = (favorite.accessCount || 0) + 1;
                 favorite.lastAccessed = timestamp;

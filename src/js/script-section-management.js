@@ -61,6 +61,23 @@
     function initSectionTracking() {
         LOG(MODULE, 'Initializing section tracking...');
 
+        // Get the current active section and fire event for it
+        const currentActive = getCurrentActiveSection();
+        if (currentActive) {
+            const timestamp = Date.now();
+            sectionEnterTime[currentActive] = timestamp;
+
+            // Fire initial section activation
+            window.dispatchEvent(new CustomEvent('sectionActivated', {
+                detail: {
+                    sectionId: currentActive,
+                    timestamp: timestamp
+                }
+            }));
+
+            LOG.debug(MODULE, `Initial section tracking started for: ${currentActive}`);
+        }
+
         // Listen for section activation and track dwell time
         window.addEventListener('sectionActivated', (e) => {
             const sectionId = e.detail.sectionId;
