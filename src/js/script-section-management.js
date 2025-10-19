@@ -11,6 +11,12 @@
     const MODULE = 'SECTION';
 
     // ========================================================================
+    // MODUL-LOKALE KONSTANTEN (nicht im State gespeichert)
+    // ========================================================================
+    const MIN_DWELL_TIME = 10000; // 10 seconds
+    const sectionEnterTime = {};
+
+    // ========================================================================
     // MODUL-LOKALE VARIABLEN (nicht im State gespeichert)
     // ========================================================================
 
@@ -46,8 +52,50 @@
 
         initScrollHandling();
         initFocusObserver();
+        initSectionTracking();
 
         LOG.success(MODULE, 'Section management initialized');
+    }
+
+    // Enhance the existing scrollToSection function or create new timing logic
+    function initSectionTracking() {
+        LOG(MODULE, 'Initializing section tracking...');
+
+        // Listen for section activation and track dwell time
+        window.addEventListener('sectionActivated', (e) => {
+            const sectionId = e.detail.sectionId;
+            const timestamp = e.detail.timestamp;
+
+            // Check previous sections for minimum dwell time
+            for (const [prevSectionId, enterTime] of Object.entries(sectionEnterTime)) {
+                if (prevSectionId !== sectionId) {
+                    const dwellTime = timestamp - enterTime;
+
+                    if (dwellTime >= MIN_DWELL_TIME) {
+                        LOG.debug(MODULE, `Section ${prevSectionId} visited (dwelled ${dwellTime}ms)`);
+
+                        // Emit clean, generic event for consumers
+                        window.dispatchEvent(new CustomEvent('sectionVisited', {
+                            detail: {
+                                sectionId: prevSectionId,
+                                dwellTime: dwellTime,
+                                timestamp: timestamp
+                            }
+                        }));
+                    } else {
+                        LOG.debug(MODULE, `Section ${prevSectionId} skipped (dwelled only ${dwellTime}ms)`);
+                    }
+
+                    // Clean up tracking
+                    delete sectionEnterTime[prevSectionId];
+                }
+            }
+
+            // Track new section entry
+            sectionEnterTime[sectionId] = timestamp;
+        });
+
+        LOG.success(MODULE, 'Section tracking initialized');
     }
 
     // ========================================================================

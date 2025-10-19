@@ -40,11 +40,14 @@
             suggestionButtons: '.favorites-empty-suggestion',
             emptyStateHint: '.favorites-empty-hint',
             folderTabs: '.favorites-folder-tab',
-            favoriteItems: '.favorite-item',
+            favoriteItem: '.favorite-item',
             favoriteLink: '.favorite-link',
             favoriteEditBtn: '.favorite-action--edit',
             favoriteRemoveBtn: '.favorite-remove-btn',
-            favoriteDetailsBtn: '.favorite-details-toggle'
+            favoriteDetailsBtn: '.favorite-details-toggle',
+            favoriteCreated: '.favorite-created .stat-value',
+            favoriteAccessCount: '.favorite-access-count .stat-value',
+            favoriteLastAccessed: '.favorite-last-accessed .stat-value'
         },
         classes: {
             active: 'active',
@@ -65,7 +68,10 @@
             statItem: 'stat-item',
             statLabel: 'stat-label',
             statValue: 'stat-value',
-            favoritesEmptySuggestion: 'favorites-empty-suggestion'
+            favoritesEmptySuggestion: 'favorites-empty-suggestion',
+            favoriteCreated: 'favorite-created',
+            favoriteAccessCount: 'favorite-access-count',
+            favoriteLastAccessed: 'favorite-last-accessed'
         }
     };
     const CONFIG_I18N = {
@@ -140,15 +146,15 @@
 
             return `
                 <div class="${CONFIG.classes.accessStats}">
-                    <div class="${CONFIG.classes.statItem}">
+                    <div class="${CONFIG.classes.statItem} ${CONFIG.classes.favoriteAccessCount}">
                         <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.accessCount}:</span>
                         <span class="${CONFIG.classes.statValue}">${accessCount}</span>
                     </div>
-                    <div class="${CONFIG.classes.statItem}">
+                    <div class="${CONFIG.classes.statItem} ${CONFIG.classes.favoriteLastAccessed}">
                         <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.lastAccessed}:</span>
                         <span class="${CONFIG.classes.statValue}">${lastAccessed}</span>
                     </div>
-                    <div class="${CONFIG.classes.statItem}">
+                    <div class="${CONFIG.classes.statItem} ${CONFIG.classes.favoriteCreated}">
                         <span class="${CONFIG.classes.statLabel}">${CONFIG.i18n.de.created}:</span>
                         <span class="${CONFIG.classes.statValue}">${createdAt}</span>
                     </div>
@@ -186,8 +192,9 @@
                 const date = new Date(timestamp);
                 const now = new Date();
                 const diffTime = Math.abs(now - date);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+                if (diffDays < 1) return window.getRelativeTime(date);
                 if (diffDays === 1) return CONFIG.i18n.de.yesterday;
                 if (diffDays < 7) return CONFIG.i18n.de.daysAgo.replace('%d', diffDays);
                 if (diffDays < 30) return CONFIG.i18n.de.weeksAgo.replace('%d', Math.floor(diffDays / 7));
@@ -216,6 +223,7 @@
     // ============================================================
     //  Favorites List Rendering Function
     // ============================================================
+
     function renderFavoritesList(folderId = 'default') {
         const favorites = window.StateManager.get('favorites.items') || [];
         const folderFavorites = favorites.filter(fav => fav.folderId === folderId);
@@ -260,6 +268,53 @@
             tab.classList.toggle(CONFIG.classes.folderActive, isActive);
             tab.setAttribute('aria-selected', isActive.toString());
         });
+    }
+
+    function updateFavoritesDisplay(updatedFavorite = null) {
+        LOG.debug(MODULE, `Updating favorites display for section: ${updatedFavorite?.sectionId || 'all'}`);
+
+        const favoritesList = document.querySelector(CONFIG.selectors.favoritesList);
+
+        if (!favoritesList) {
+            LOG.warn(MODULE, 'Favorites list element not found');
+            return;
+        }
+
+        // If we have a specific section update and the favorite data
+        if (updatedFavorite) {
+            // Find and update the specific favorite item in the DOM
+            const favoriteElement = favoritesList.querySelector(`${CONFIG.selectors.favoriteItem}[data-favorite-id="${updatedFavorite.id}"]`);
+            if (favoriteElement) {
+                updateSingleFavoriteElement(favoriteElement, updatedFavorite);
+                LOG.debug(MODULE, `Updated display for section: ${updatedFavorite.sectionId}`);
+                return; // Early return - we updated just one element
+            }
+        }
+
+        // Fallback: Update the entire favorites list
+        const favorites = window.StateManager.get('favorites.items') || [];
+        renderFavoritesList(favorites);
+        LOG.debug(MODULE, 'Updated entire favorites display');
+    }
+
+    function updateSingleFavoriteElement(element, favorite) {
+        // Update access count display if it exists
+        const accessCountElement = element.querySelector(CONFIG.selectors.favoriteAccessCount);
+        if (accessCountElement && favorite.accessCount) {
+            accessCountElement.textContent = favorite.accessCount;
+        }
+
+        // Update last accessed display if it exists
+        const lastAccessedElement = element.querySelector(CONFIG.selectors.favoriteLastAccessed);
+        if (lastAccessedElement && favorite.lastAccessed) {
+            lastAccessedElement.textContent = StatisticsManager.formatLastAccessed(favorite.lastAccessed);
+        }
+
+        // Update statistics badge if it exists
+        const statsBadge = element.querySelector('.favorite-stats-badge');
+        if (statsBadge) {
+            updateStatsBadge(statsBadge, favorite);
+        }
     }
 
     // ============================================================
@@ -870,6 +925,47 @@
         return CONFIG.i18n.de.monthsAgo.replace('%d', Math.floor(diffDays / 30));
     }
 
+    function initVisitTracking() {
+        LOG(MODULE, 'Initializing favorites visit tracking...');
+
+        window.addEventListener('sectionVisited', (e) => {
+            const { sectionId, timestamp } = e.detail;
+            updateFavoriteAccessStats(sectionId, timestamp);
+        });
+
+        LOG.debug(MODULE, 'Visit tracking initialized');
+    }
+
+    function updateFavoriteAccessStats(sectionId, timestamp) {
+        const favorites = window.StateManager.get('favorites.items') || [];
+        let updatedFavorites = [];
+        let hasUpdates = false;
+
+        // Find ALL favorites that match this sectionId, not just the first
+        favorites.forEach(favorite => {
+            if (favorite && favorite.sectionPath === sectionId) {
+                // Update access count and last accessed for each matching favorite
+                favorite.accessCount = (favorite.accessCount || 0) + 1;
+                favorite.lastAccessed = timestamp;
+                updatedFavorites.push(favorite);
+                hasUpdates = true;
+
+                LOG.debug(MODULE, `Updated access stats for ${sectionId}: count=${favorite.accessCount}`);
+            }
+        });
+
+        if (hasUpdates) {
+            // Save all updated favorites
+            window.StateManager.set('favorites.items', favorites);
+            LOG.debug(MODULE, `Updated ${updatedFavorites.length} favorites for section: ${sectionId}`);
+
+            // Update UI for all affected favorites
+            updatedFavorites.forEach(updatedFavorite => {
+                updateFavoritesDisplay(updatedFavorite);
+            });
+        }
+    }
+
     /**
     * Refreshes the favorites display
     */
@@ -920,6 +1016,7 @@
 
             // Initial render
             initializeFavorites();
+            initVisitTracking();
             _isInitialized = true;
 
             LOG.success(MODULE, 'Favorites Manager initialized successfully');
