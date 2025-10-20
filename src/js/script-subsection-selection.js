@@ -82,7 +82,7 @@
         // Update UI state - blur only the chrome elements
         document.body.classList.add(CONFIG.classes.selectionActive);
 
-        LOG.success(MODULE, 'Selection mode activated');
+        LOG.info(MODULE, 'Selection mode activated');
     }
 
     /**
@@ -114,7 +114,7 @@
         _currentSectionId = null;
         _selectionCallback = null;
 
-        LOG.success(MODULE, 'Selection mode deactivated');
+        LOG.info(MODULE, 'Selection mode deactivated');
     }
 
     // ========================================================================
@@ -384,7 +384,7 @@
 
         LOG.debug(MODULE, 'Initializing subsection selection');
         _isInitialized = true;
-        LOG.success(MODULE, 'Subsection selection initialized');
+        LOG.info(MODULE, 'Subsection selection initialized');
     }
 
     function destroy() {
@@ -393,7 +393,7 @@
         }
 
         _isInitialized = false;
-        LOG.success(MODULE, 'Subsection selection destroyed');
+        LOG.info(MODULE, 'Subsection selection destroyed');
     }
 
     // ========================================================================

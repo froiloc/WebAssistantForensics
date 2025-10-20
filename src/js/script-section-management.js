@@ -47,14 +47,14 @@
             }
 
             allSections[0].classList.add('active');
-            LOG.success(MODULE, `Initial active section: ${initialSection}`);
+            LOG.info(MODULE, `Initial active section: ${initialSection}`);
         }
 
         initScrollHandling();
         initFocusObserver();
         initSectionTracking();
 
-        LOG.success(MODULE, 'Section management initialized');
+        LOG.info(MODULE, 'Section management initialized');
     }
 
     // Enhance the existing scrollToSection function or create new timing logic
@@ -112,7 +112,7 @@
             sectionEnterTime[sectionId] = timestamp;
         });
 
-        LOG.success(MODULE, 'Section tracking initialized');
+        LOG.info(MODULE, 'Section tracking initialized');
     }
 
     // ========================================================================
@@ -196,7 +196,7 @@
             }
         }, { passive: true });
 
-        LOG.success(MODULE, 'Scroll event listeners initialized');
+        LOG.info(MODULE, 'Scroll event listeners initialized');
     }
 
     // ========================================================================
@@ -500,7 +500,7 @@
         scored.sort((a, b) => b.score - a.score);
 
         const winner = scored[0];
-        LOG.success(MODULE, `Winner: ${winner.id} (score=${Math.round(winner.score)})`);
+        LOG.info(MODULE, `Winner: ${winner.id} (score=${Math.round(winner.score)})`);
 
         return winner;
     }
@@ -536,6 +536,89 @@
         }));
     }
 
+    function scrollTo(target, highlight = false) {
+        LOG(MODULE, `🎯 scrollTo() called with: ${target}, highlight: ${highlight}`);
+
+        // Start with the full selector including main
+        let targetQuery = `main ${target}`;
+        let targetElement = null;
+        let fallbackAttempts = 0;
+        const maxFallbackAttempts = 10;
+
+        // Smart fallback loop
+        while (!targetElement && fallbackAttempts < maxFallbackAttempts) {
+            targetElement = document.querySelector(targetQuery);
+
+            if (targetElement) {
+                LOG.debug(MODULE, `✅ Found element with query: ${targetQuery}`);
+                break;
+            }
+
+            // Store previous query for comparison
+            const previousQuery = targetQuery;
+
+            // Remove the last selector component
+            targetQuery = targetQuery.replace(/\s*[>~+ ]?[^\s>~+]*$/, '').trim();
+
+            // Safety check - if we can't reduce further, break
+            if (targetQuery === previousQuery || targetQuery === 'main' || targetQuery === '') {
+                LOG.error(MODULE, `❌ Cannot find element and no more fallbacks: started with "${target}"`);
+
+                // Ultimate fallback: try to find any containing section
+                const fallbackSection = findContainingSection(target);
+                if (fallbackSection) {
+                    LOG.debug(MODULE, `🔄 Ultimate fallback to section: ${fallbackSection}`);
+                    return scrollTo(`[data-section="${fallbackSection}"]`, false);
+                }
+
+                Toast.show('Ziel nicht gefunden', 'error');
+                return;
+            }
+
+            fallbackAttempts++;
+            LOG.debug(MODULE, `🔄 Fallback attempt ${fallbackAttempts}: trying "${targetQuery}"`);
+        }
+
+        if (!targetElement) {
+            LOG.error(MODULE, `❌ Element not found after ${fallbackAttempts} fallback attempts`);
+            Toast.show('Ziel nicht gefunden', 'error');
+            return;
+        }
+
+        LOG.debug(MODULE, `✅ Navigation target found: ${targetQuery}, offsetTop=${targetElement.offsetTop}`);
+
+        // Update StateManager with section context
+        const sectionId = findContainingSection(target);
+        if (window.StateManager) {
+            window.StateManager.set('sections.lastNavigatedTarget', target);      // The actual target (for UI)
+            window.StateManager.set('sections.lastNavigatedSection', sectionId);  // For statistics
+            window.StateManager.set('sections.lastNavigationTime', Date.now());
+
+            // Update section activation for statistics
+            if (sectionId) {
+                activateSection(sectionId);
+            }
+        }
+
+        // Calculate scroll position
+        const rect = targetElement.getBoundingClientRect();
+        const scrollY = window.scrollY;
+        const targetPosition = scrollY + rect.top - CONST.NAVIGATION_PRIORITY_OFFSET;
+
+        // Smooth scroll
+        window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+        });
+
+        // Highlight element if requested
+        if (highlight && targetElement) {
+            highlightElementTemporarily(targetElement);
+        }
+
+        LOG.info(MODULE, `✅ Navigation complete: ${target} (after ${fallbackAttempts} fallbacks)`);
+    }
+
     function scrollToSection(sectionId) {
         LOG(MODULE, `🎯 scrollToSection() called with: ${sectionId}`);
 
@@ -565,7 +648,7 @@
             behavior: 'smooth'
         });
 
-        LOG.success(MODULE, `✅ Scrolling to: ${sectionId}`);
+        LOG.info(MODULE, `✅ Scrolling to: ${sectionId}`);
 
         activateSection(sectionId);
     }
@@ -596,7 +679,7 @@
             observer.observe(section);
         });
 
-        LOG.success(MODULE, `Intersection Observer initialized for ${allSections.length} sections`);
+        LOG.info(MODULE, `Intersection Observer initialized for ${allSections.length} sections`);
     }
 
     function handleIntersection(entries, observer) {

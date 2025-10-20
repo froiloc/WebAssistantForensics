@@ -80,7 +80,7 @@
         }
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Main menu initialized');
+        LOG.info(MODULE, 'Main menu initialized');
     }
 
     function toggleMenu() {

@@ -52,7 +52,7 @@
         initializeModuleGroup(uiModules, 'UI Enhancements');
 
         LOG.separator(MODULE, '✅ INITIALIZATION COMPLETE');
-        LOG.success(MODULE, `✅ All modules initialized! Build ${window.BUILD_INFO.version}`);
+        LOG.info(MODULE, `✅ All modules initialized! Build ${window.BUILD_INFO.version}`);
 
         // Final system ready event
         window.dispatchEvent(new CustomEvent('appInitialized'));
@@ -71,7 +71,7 @@
             if (manager && typeof manager.init === 'function') {
                 try {
                     manager.init();
-                    LOG.success(MODULE, `✅ ${globalName} initialized`);
+                    LOG.info(MODULE, `✅ ${globalName} initialized`);
                 } catch (error) {
                     LOG.error(MODULE, `❌ ${globalName} initialization failed:`, error);
                 }

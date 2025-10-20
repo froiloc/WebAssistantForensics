@@ -142,7 +142,7 @@
             nav.appendChild(li);
         });
 
-        LOG.success(MODULE, `Navigation tree built with ${allSections.length} items`);
+        LOG.info(MODULE, `Navigation tree built with ${allSections.length} items`);
     }
 
     function updateActiveNavItem() {
@@ -176,7 +176,7 @@
             const registered = window.SidebarManager.registerShortcut('navigation', 'n');
 
             if (registered) {
-                LOG.success(MODULE, 'Shortcut Alt+n registered with SidebarManager');
+                LOG.info(MODULE, 'Shortcut Alt+n registered with SidebarManager');
             } else {
                 LOG.warn(MODULE, 'Shortcut Alt+n already taken');
             }
@@ -184,7 +184,7 @@
             LOG.error(MODULE, 'SidebarManager not available!');
         }
 
-        LOG.success(MODULE, 'Navigation sidebar initialized');
+        LOG.info(MODULE, 'Navigation sidebar initialized');
     }
 
     // ========================================================================
@@ -203,7 +203,7 @@
             updateActiveNavItem();
         });
 
-        LOG.success(MODULE, 'Section change listeners initialized');
+        LOG.info(MODULE, 'Section change listeners initialized');
     }
 
     // ========================================================================
@@ -223,7 +223,7 @@
         initSectionChangeListeners();
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Navigation module initialized');
+        LOG.info(MODULE, 'Navigation module initialized');
     }
 
     // ========================================================================

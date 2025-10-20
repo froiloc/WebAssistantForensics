@@ -13,6 +13,10 @@
     // HISTORY MANAGEMENT
     // ========================================================================
 
+    // Tracking für Mindest-Verweilzeit
+    let sectionEnterTime = {};
+    const MIN_DWELL_TIME = 5000; // 5 Sekunden
+
     function addToHistory(sectionId) {
         if (!window.StateManager) {
             LOG.error(MODULE, 'StateManager not available!');
@@ -78,7 +82,7 @@
         const stored = window.StateManager.get('history.entries');
 
         if (stored && Array.isArray(stored)) {
-            LOG.success(MODULE, `✓ Loaded ${stored.length} entries`);
+            LOG.info(MODULE, `✓ Loaded ${stored.length} entries`);
         } else {
             LOG.debug(MODULE, 'No stored history found');
         }
@@ -94,7 +98,7 @@
             const registered = window.SidebarManager.registerShortcut('history', 'h');
 
             if (registered) {
-                LOG.success(MODULE, 'Shortcut Alt+h registered with SidebarManager');
+                LOG.info(MODULE, 'Shortcut Alt+h registered with SidebarManager');
             } else {
                 LOG.warn(MODULE, 'Shortcut Alt+h already taken');
             }
@@ -119,7 +123,7 @@
             LOG.debug(MODULE, 'Time format toggle listener attached');
         }
 
-        LOG.success(MODULE, 'History sidebar initialized');
+        LOG.info(MODULE, 'History sidebar initialized');
     }
 
     function toggleTimeFormat() {
@@ -227,7 +231,7 @@
             updateHistoryDisplay();
         });
 
-        LOG.success(MODULE, 'History event listeners initialized');
+        LOG.info(MODULE, 'History event listeners initialized');
     }
 
     // ========================================================================
@@ -242,7 +246,7 @@
         initEventListeners();
         updateHistoryDisplay();
 
-        LOG.success(MODULE, 'History module initialized');
+        LOG.info(MODULE, 'History module initialized');
     }
 
     // ========================================================================

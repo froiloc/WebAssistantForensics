@@ -52,7 +52,7 @@
         const stored = window.StateManager.get('notes.content');
 
         if (stored) {
-            LOG.success(MODULE, `Loaded ${stored.length} characters`);
+            LOG.info(MODULE, `Loaded ${stored.length} characters`);
 
             const textarea = document.getElementById('notes-textarea');
             if (textarea) {
@@ -156,7 +156,7 @@
             }
         }
 
-        LOG.success(MODULE, 'Notes feature initialized');
+        LOG.info(MODULE, 'Notes feature initialized');
     }
 
     function toggleNotesSidebar() {
@@ -269,7 +269,7 @@
 
         initNotesFeature();
 
-        LOG.success(MODULE, 'Notes module initialized');
+        LOG.info(MODULE, 'Notes module initialized');
     }
 
     // ========================================================================

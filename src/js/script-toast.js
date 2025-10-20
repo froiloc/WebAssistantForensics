@@ -48,7 +48,7 @@
             return false;
         }
 
-        LOG.success(MODULE, 'Toast System: Initialized successfully');
+        LOG.info(MODULE, 'Toast System: Initialized successfully');
         return true;
     }
 
@@ -175,5 +175,5 @@
         clearAll
     };
 
-    LOG.success(MODULE, 'Toast System: Module loaded and ready');
+    LOG.info(MODULE, 'Toast System: Module loaded and ready');
 })();

@@ -116,7 +116,7 @@
             }
         });
 
-        LOG.success(MODULE, `Icons added: ${iconCount} stars and targets`);
+        LOG.info(MODULE, `Icons added: ${iconCount} stars and targets`);
     }
 
     /**
@@ -249,7 +249,9 @@
     function updateHeaderStarState(starButton, sectionId) {
         if (!starButton || !sectionId) return;
 
-        const isFavorited = window.FavoritesManager.isSectionFavorited(sectionId);
+        // Convert to proper target selector because stars are only for sections
+        const target = `[data-section="${sectionId}"]`;
+        const isFavorited = window.FavoritesManager.isSectionFavorited(target);
 
         // Single class toggle - CSS handles the visual change via pseudo-elements
         starButton.classList.toggle(CONFIG.classes.active, isFavorited);
@@ -258,9 +260,9 @@
         const header = starButton.parentElement;
         const headerText = header?.textContent?.replace(starButton.textContent, '').trim() || sectionId;
         starButton.setAttribute('aria-label',
-            isFavorited ?
-            `${headerText} ${CONFIG.i18n.de.removeFavorite}` :
-            `${headerText} ${CONFIG.i18n.de.addFavorite}`
+                                isFavorited ?
+                                `${headerText} ${CONFIG.i18n.de.removeFavorite}` :
+                                `${headerText} ${CONFIG.i18n.de.addFavorite}`
         );
 
         // Remove loading state
@@ -282,15 +284,16 @@
             return;
         }
 
-        LOG.debug(MODULE, `Toggling favorite for section: ${sectionId}`);
+        // Convert to proper target selector because we only deal with sections
+        const target = `[data-section="${sectionId}"]`;
+
+        LOG.debug(MODULE, `Toggling favorite for target: ${target}`);
 
         // Show loading state
         starButton.classList.add(CONFIG.classes.loading);
 
-        // Toggle favorite
-        window.FavoritesManager.toggleFavorite(sectionId);
-
-        // Loading state will be cleared by StateManager subscription
+        // Toggle favorite with correct target
+        window.FavoritesManager.toggleFavorite(target);
     }
 
     /**
@@ -363,7 +366,7 @@
         window.addEventListener('resize', handleScroll, { passive: true });
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Header stars initialized');
+        LOG.info(MODULE, 'Header stars initialized');
     }
 
     function destroy() {
@@ -382,7 +385,7 @@
         _unsubscribeFunctions = [];
 
         _isInitialized = false;
-        LOG.success(MODULE, 'Header stars destroyed');
+        LOG.info(MODULE, 'Header stars destroyed');
     }
 
     // ========================================================================

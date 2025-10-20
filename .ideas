@@ -19,3 +19,6 @@ Context:
 - introduce CONFIG.i18n.de in all classes.
 - implement in StateManager code, the subscription is path-based but doesn't have bubbling behavior for nested properties. We should add this.
 - tooltip for favorite items with a preview.
+- in selection mode for subsection, after click highlight the element selected for a short period.
+- add button in selection mode to cancel selection mode. Maybe also a timeout.
+- 7. Mobile Touch Considerations: For the BFSG compliance on mobile: How should the two-click selection work on touch devices? What touch-friendly alternatives to hover previews? Any specific mobile gesture patterns we should support?

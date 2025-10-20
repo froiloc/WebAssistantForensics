@@ -541,7 +541,7 @@
             setTimeout(() => _processViewportContent(), 100);
 
             _isInitialized = true;
-            window.LOG.success(MODULE, 'Glossary manager initialized');
+            window.LOG.info(MODULE, 'Glossary manager initialized');
 
             window.dispatchEvent(new CustomEvent('glossaryReady', {
                 detail: { termCount: _searchIndex.metadata.term_count }
@@ -572,7 +572,7 @@
         _patternCompiler = null;
         _activeHighlights.clear();
 
-        window.LOG.success(MODULE, 'Glossary manager destroyed');
+        window.LOG.info(MODULE, 'Glossary manager destroyed');
     }
 
     // Export public API

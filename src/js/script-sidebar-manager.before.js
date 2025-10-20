@@ -27,7 +27,7 @@
         }
 
         shortcuts.set(normalizedKey, sidebarName);
-        LOG.success(MODULE, `Registered shortcut: Alt+${normalizedKey.toUpperCase()} â†’ ${sidebarName}`);
+        LOG.info(MODULE, `Registered shortcut: Alt+${normalizedKey.toUpperCase()} â†’ ${sidebarName}`);
         return true;
     }
 
@@ -65,7 +65,7 @@
         }
 
         saveSidebarPreferences();
-        LOG.success(MODULE, `âœ“ Sidebar activated: ${sidebarName}`);
+        LOG.info(MODULE, `âœ“ Sidebar activated: ${sidebarName}`);
     }
 
     function deactivateSidebar(sidebarName) {
@@ -140,7 +140,7 @@
 
         saveSidebarPreferences();
 
-        LOG.success(MODULE, 'Sidebar container closed');
+        LOG.info(MODULE, 'Sidebar container closed');
     }
 
     // ========================================================================
@@ -218,7 +218,7 @@
             }
         });
 
-        LOG.success(MODULE, 'Keyboard shortcuts initialized');
+        LOG.info(MODULE, 'Keyboard shortcuts initialized');
     }
 
     // ========================================================================
@@ -274,7 +274,7 @@
             // Schritt 2: Nur die aktive Sidebar aktivieren (mit deactivateAllSidebars)
             if (activeSidebarTab && sidebarsOpen.includes(activeSidebarTab)) {
                 activateSidebar(activeSidebarTab);
-                LOG.success(MODULE, `âœ“ Restored active sidebar: ${activeSidebarTab}`);
+                LOG.info(MODULE, `âœ“ Restored active sidebar: ${activeSidebarTab}`);
             }
 
             // Schritt 3: Container Ã¶ffnen
@@ -345,7 +345,7 @@
             LOG.debug(MODULE, `Close button registered: ${sidebarName}`);
         });
 
-        LOG.success(MODULE, 'Close buttons initialized');
+        LOG.info(MODULE, 'Close buttons initialized');
     }
 
     /**
@@ -392,7 +392,7 @@
             LOG.debug(MODULE, `Tab header registered: ${sidebarName}`);
         });
 
-        LOG.success(MODULE, 'Tab header click handlers initialized');
+        LOG.info(MODULE, 'Tab header click handlers initialized');
     }
 
     /**
@@ -423,7 +423,7 @@
             }
         });
 
-        LOG.success(MODULE, 'Mobile auto-close initialized');
+        LOG.info(MODULE, 'Mobile auto-close initialized');
     }
 
     // ========================================================================
@@ -442,7 +442,7 @@
             loadSidebarStates();
         }, 100);
 
-        LOG.success(MODULE, 'Sidebar manager initialized');
+        LOG.info(MODULE, 'Sidebar manager initialized');
     }
 
     // ========================================================================

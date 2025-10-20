@@ -111,7 +111,7 @@
         });
 
         if (activeButtons.length > 0) {
-            LOG.success(MODULE, `Active button(s) updated: ${level} (${activeButtons.length} buttons)`);
+            LOG.info(MODULE, `Active button(s) updated: ${level} (${activeButtons.length} buttons)`);
         } else {
             LOG.warn(MODULE, `No buttons found for level: ${level}/${levelNumber}`);
 
@@ -163,7 +163,7 @@
         updateInfoText(initialLevel);
         updateActiveButton(initialLevel);
 
-        LOG.success(MODULE, 'Detail level controls initialized');
+        LOG.info(MODULE, 'Detail level controls initialized');
     }
 
     // ========================================================================
@@ -193,7 +193,7 @@
             updateActiveButton(level);
         });
 
-        LOG.success(MODULE, 'Event listeners initialized');
+        LOG.info(MODULE, 'Event listeners initialized');
     }
 
     // ========================================================================
@@ -211,7 +211,7 @@
         initDetailLevelListeners();
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Detail level module initialized');
+        LOG.info(MODULE, 'Detail level module initialized');
     }
 
     // ========================================================================

@@ -48,7 +48,7 @@
             }
             window.NavigationManager.registerAfterItemCreation(addStarToNavItem);
 
-            LOG.success(MODULE, 'Registered navigation item creation hook');
+            LOG.info(MODULE, 'Registered navigation item creation hook');
         } else {
             LOG.error(MODULE, 'Navigation hook system not available');
             return;
@@ -66,7 +66,7 @@
         }
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Navigation stars initialized');
+        LOG.info(MODULE, 'Navigation stars initialized');
     }
 
     /**
@@ -102,17 +102,18 @@
      * Handle star button click
      */
     function handleStarClick(sectionId, starButton) {
-        LOG.debug(MODULE, `Toggling favorite for section: ${sectionId}`);
+        // Convert to proper target selector because links in navigation sidebar are only for sections
+        const target = `[data-section="${sectionId}"]`;
+
+        LOG.debug(MODULE, `Toggling favorite for target: ${target}`);
 
         LOG.debug(MODULE, "0) starButton is: ", starButton);
         // Show loading state
         starButton.classList.add(CONFIG.classes.loading);
         LOG.debug(MODULE, `Added loading class to star for: ${sectionId}`);
 
-        // Toggle favorite
-        window.FavoritesManager.toggleFavorite(sectionId);
-
-        // Loading state will be cleared by StateManager subscription
+        // Toggle favorite with correct target
+        window.FavoritesManager.toggleFavorite(target);
     }
 
     /**
@@ -121,7 +122,9 @@
     function updateStarAppearance(starButton, sectionId) {
         if (!starButton || !sectionId) return;
 
-        const isFavorited = window.FavoritesManager.isSectionFavorited(sectionId);
+        // Convert to proper target selector because links in navigation sidebar are only for sections
+        const target = `[data-section="${sectionId}"]`;
+        const isFavorited = window.FavoritesManager.isSectionFavorited(target);
 
         // Single class toggle - CSS handles the visual change
         starButton.classList.toggle(CONFIG.classes.active, isFavorited);

@@ -56,7 +56,7 @@
             window.StateManager.set('preferences', prefs);
         }
 
-        LOG.success(MODULE, 'Loaded preferences:', prefs);
+        LOG.info(MODULE, 'Loaded preferences:', prefs);
 
         window.dispatchEvent(new CustomEvent('preferencesLoaded', {
             detail: { preferences: prefs }
@@ -126,7 +126,7 @@
 
         loadUserPreferences();
 
-        LOG.success(MODULE, 'Preferences module initialized');
+        LOG.info(MODULE, 'Preferences module initialized');
     }
 
     // ========================================================================

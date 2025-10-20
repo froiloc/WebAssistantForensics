@@ -832,7 +832,7 @@
         // localStorage löschen
         clearStorage();
 
-        LOG.success(MODULE, '✅ State reset complete');
+        LOG.info(MODULE, '✅ State reset complete');
     }
 
     // In der Public API hinzufügen
@@ -900,7 +900,7 @@
             } : undefined
         };
 
-        LOG.success(MODULE, '✅ State Manager initialized');
+        LOG.info(MODULE, '✅ State Manager initialized');
         LOG.debug(MODULE, `   - Preferences loaded: ${Object.keys(_state.preferences).length} keys`);
         LOG.debug(MODULE, `   - History entries: ${_state.history.entries.length}`);
         LOG.debug(MODULE, `   - Notes length: ${_state.notes.content.length} chars`);

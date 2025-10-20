@@ -142,7 +142,7 @@
         // WICHTIG: Warte auf Preferences-Loaded Event
         applyTipsPreference();
 
-        LOG.success(MODULE, 'Tips footer initialized');
+        LOG.info(MODULE, 'Tips footer initialized');
     }
 
     function applyTipsPreference() {
@@ -239,7 +239,7 @@
         initTipsFooter();
         initTipsListeners();
 
-        LOG.success(MODULE, 'Tips module initialized');
+        LOG.info(MODULE, 'Tips module initialized');
     }
 
     // ========================================================================

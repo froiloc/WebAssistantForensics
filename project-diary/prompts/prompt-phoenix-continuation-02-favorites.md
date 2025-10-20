@@ -254,4 +254,222 @@ You can learn more about the content section in the schema files:
 31. **Code Organization** - Consider splitting large files if needed
 32. **Documentation** - Update manuals with new favorite features
 
+As you might notice, we have a tendency to go astray. In the next steps, we have planned this:
+
+🎯 The Vision: Subsection Favorites with Live DOM Previews
+Imagine this workflow:
+
+1. Investigator finds a crucial table deep in the documentation
+2. Clicks 🎯 button, then clicks the table
+3. System creates a favorite with live HTML preview
+4. Later, hovering the favorite shows the actual table rendering in a tooltip
+5. One click takes them directly to that exact table
+
+This is next-level documentation navigation!
+
+🛠 Let's Start with Phase 1: Two-Click Selection Mode
+I'll begin implementing the core selection system:
+
+Step 1: Add 🎯 Buttons to UI
+* Section headers (next to star)
+* Favorites sidebar subheader
+* Visual selection mode overlay
+
+Step 2: Robust Selector Generation
+* CSS selector creation with fallbacks
+* Auto-naming from context
+* Error handling for edge cases
+
+Step 3: Basic Navigation
+* Scroll to element + highlight
+* Simple text previews initially
+
+Once we have the core working flawlessly, we'll layer in the crazy live DOM previews!
+Live DOM Preview (enhanced) draft:
+```
+function createLivePreviewTooltip(favorite, hoverElement) {
+    const targetElement = document.querySelector(favorite.target);
+    if (!targetElement) return createFallbackPreview(favorite);
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'subsection-live-preview';
+    
+    // Clone the element and its context
+    const previewContent = cloneElementWithContext(targetElement);
+    
+    tooltip.innerHTML = `
+        <div class="preview-header">
+            <strong>${favorite.title}</strong>
+            <span class="preview-context">${getParentSectionName(favorite)}</span>
+        </div>
+        <div class="preview-scroll-container">
+            ${previewContent.outerHTML}
+        </div>
+        <div class="preview-actions">
+            <button onclick="navigateToSubsection('${favorite.id}')">Go to</button>
+        </div>
+    `;
+    
+    document.body.appendChild(tooltip);
+    positionTooltip(tooltip, hoverElement);
+}
+
+function cloneElementWithContext(element) {
+    // Clone the target element
+    const clone = element.cloneNode(true);
+    
+    // Walk up the DOM and create minimal parent structure
+    let current = element.parentElement;
+    let contextClone = clone;
+    
+    while (current && current !== document.body && current !== document.documentElement) {
+        if (current.closest('main')) {
+            const parentClone = current.cloneNode(false); // Shallow clone
+            parentClone.appendChild(contextClone);
+            contextClone = parentClone;
+        }
+        current = current.parentElement;
+    }
+    
+    // Apply constrained styling
+    contextClone.style.maxHeight = '200px';
+    contextClone.style.overflow = 'hidden';
+    contextClone.style.pointerEvents = 'none';
+    
+    return contextClone;
+}
+```
+
+```
+.subsection-live-preview {
+    position: fixed;
+    max-width: 400px;
+    max-height: 300px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+.preview-scroll-container {
+    max-height: 200px;
+    overflow: auto;
+    padding: 8px;
+}
+
+/* Ensure the cloned content maintains its styling */
+.preview-scroll-container * {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Cut off overflow with a subtle gradient */
+.preview-scroll-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(transparent, var(--surface-color));
+    pointer-events: none;
+}
+```
+
+```
+function createSmartPreview(favorite, hoverElement) {
+    const targetElement = document.querySelector(favorite.target);
+    
+    // Use live preview for complex elements
+    if (isComplexElement(targetElement)) {
+        return createLivePreviewTooltip(favorite, hoverElement);
+    }
+    
+    // Use simple preview for text content
+    return createSimplePreviewTooltip(favorite, hoverElement);
+}
+
+function isComplexElement(element) {
+    if (!element) return false;
+    
+    // Check for elements that benefit from live preview
+    const complexSelectors = ['table', 'pre', 'code', '.diagram', '.chart', '.grid', '.flex'];
+    return complexSelectors.some(selector => element.matches(selector)) ||
+           element.querySelector(complexSelectors.join(','));
+}
+```
+This was a plan for our roadmap:
+
+Phase 1: Two-Click Selection Mode
+1. Add 🎯 button to section headers and favorites sidebar
+2. Implement selection mode with visual overlay
+3. Create robust selector generation
+4. Auto-name using surrounding context
+5. Basic navigation with highlighting
+
+Phase 2: Enhanced Features
+1. Right-click context menu integration
+2. Preview tooltips on hover
+3. Text selection method
+4. Advanced error handling
+
+Then today we decided for this roadmap:
+
+🚀 Immediate Next Steps
+1. Complete the Subsection Favorite Creation
+We have the selection working, but we need to actually create the favorite when an element is clicked. The createSubsectionFavorite() function currently just logs data.
+
+2. Integrate with Favorites System
+We need to hook into the existing FavoritesManager to:
+* Store subsection favorites in the StateManager
+* Display them in the favorites sidebar
+* Handle navigation to precise locations
+
+3. Enhanced Element Naming
+Make the auto-naming smarter - currently it's basic, but we can extract more meaningful names from the DOM context.
+
+4. Error Handling & Edge Cases
+* What happens if the selected element disappears?
+* How to handle duplicate selections?
+* Validation for invalid selectors
+
+Where We Left Off: Phase 2 Implementation - Step 2.1 (Favorite Data Structure)
+
+Current Issues Resolved:
+✅ Unified favorite creation with createFavorite(target, customTitle)
+✅ Event-driven StateManager observation for automatic UI updates
+✅ Template compatibility fixes (no more "undefined" displays)
+✅ CONFIG-based selector usage throughout
+
+Current Issues Pending:
+❌ Breadcrumb star not updating with new favorites
+❌ Navigation stars not reflecting favorite status
+❌ Header stars not updating properly
+❌ Need enhanced scrollTo(target, highlight) function
+
+Key Code Changes Made:
+1. New createFavorite() - Unified favorite creation
+2. StateManager observer - Automatic UI updates on favorites changes
+3. Updated templates - Work with new {target, title, meta} structure
+4. Helper functions - getSectionIdFromTarget(), getFavoriteType()
+
+Next Priority Steps:
+1. Fix star indicator updates across breadcrumb, navigation, headers
+2. Implement enhanced scrollTo() with fallback logic
+3. Update star detection logic to work with new target-based favorites
+4. Test complete favorites workflow - add, view, navigate, remove
+
+Technical Context:
+* Using type-free favorites: {target, title, folderId, meta}
+* Target examples: [data-section="template-selection"] or h2.specific-class
+* StateManager drives all UI updates via subscriptions
+* All selectors use CONFIG system
+
+Ready for: Step 2.2 - Fix star indicator synchronization across all UI components
+
+We should never use hardcoded selectors or classes. Always use the CONFIG.selectors or CONFIG.classes approach.
+Please help me to better understand when I have to take action. If you publish code, then please write an initial sentence, like: "Please, implement the following code now." or "This is only a suggestion and base for discussion. DO NOT IMPLEMENT!"
+
 Do you have any more questions or comments for me before we continue?

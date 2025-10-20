@@ -46,7 +46,7 @@
         const themeButton = document.getElementById('toggle-theme');
         if (themeButton) {
             themeButton.addEventListener('click', cycleTheme);
-            LOG.success(MODULE, 'Theme toggle button initialized');
+            LOG.info(MODULE, 'Theme toggle button initialized');
         } else {
             LOG.warn(MODULE, 'Theme toggle button (#toggle-theme) not found');
         }
@@ -57,7 +57,7 @@
 
         _isInitialized = true;
 
-        LOG.success(MODULE, `Theme system initialized with theme: ${currentTheme}`);
+        LOG.info(MODULE, `Theme system initialized with theme: ${currentTheme}`);
     }
 
     // ===== THEME LADEN =====

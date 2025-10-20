@@ -87,7 +87,7 @@ window.LOG.error = function(module, message, data) {
 /**
  * Success-Level Logging (für wichtige Erfolgs-Meldungen)
  */
-window.LOG.success = function(module, message, data) {
+window.LOG.info = function(module, message, data) {
     if (!window.BUILD_INFO.debugMode) return;
 
     const stack = new Error().stack;
@@ -392,7 +392,7 @@ function testLoggingSystem() {
     function testDifferentLevels() {
         LOG.warn('TEST', 'Warning message');
         LOG.error('TEST', 'Error message');
-        LOG.success('TEST', 'Success message');
+        LOG.info('TEST', 'Success message');
         LOG.debug('TEST', 'Debug message');
     }
 
@@ -428,7 +428,7 @@ function testLoggingSystem() {
     ✓ Basic LOG shows correct file and line number
     ✓ LOG.warn shows correct file and line number
     ✓ LOG.error shows correct file and line number
-    ✓ LOG.success shows correct file and line number
+    ✓ LOG.info shows correct file and line number
     ✓ LOG.debug shows correct file and line number
     ✓ Nested function calls show correct location
     ✓ All logs show the module name and version

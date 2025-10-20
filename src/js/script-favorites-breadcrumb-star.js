@@ -69,7 +69,7 @@
         subscribeToStateChanges();
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Breadcrumb star initialized');
+        LOG.info(MODULE, 'Breadcrumb star initialized');
     }
 
     /**
@@ -158,8 +158,11 @@
             return;
         }
 
-        LOG.debug(MODULE, `Toggling favorite for section: ${_currentSectionId}`);
-        window.FavoritesManager.toggleFavorite(_currentSectionId);
+        // Convert to proper target selector because stars are only for sections
+        const target = `[data-section="${_currentSectionId}"]`;
+
+        LOG.debug(MODULE, `Toggling favorite for target: ${target}`);
+        window.FavoritesManager.toggleFavorite(target);
     }
 
     /**

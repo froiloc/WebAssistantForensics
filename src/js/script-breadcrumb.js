@@ -52,7 +52,7 @@
         initSectionChangeListeners();
 
         _isInitialized = true;
-        LOG.success(MODULE, 'Breadcrumb initialized');
+        LOG.info(MODULE, 'Breadcrumb initialized');
     }
 
     function updateBreadcrumb(title) {
@@ -89,7 +89,7 @@
             }
         });
 
-        LOG.success(MODULE, 'Breadcrumb section change listeners initialized');
+        LOG.info(MODULE, 'Breadcrumb section change listeners initialized');
     }
 
     // ========================================================================

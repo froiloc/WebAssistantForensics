@@ -24,6 +24,23 @@
     let _currentFolder = 'default';
     let _unsubscribeFromHistory = null;
     let _unsubscribeFunctions = [];
+    // Event target for native event system
+    let _eventTarget;
+
+    // ============================================================
+    //  Event System Constants & Variables
+    // ============================================================
+
+    /**
+     * Event types for favorites system
+     * @constant
+     */
+    const FAVORITES_EVENTS = {
+        CHANGED: 'favorites:changed',
+        SECTION_STATUS: 'favorites:section-status',
+        INITIALIZED: 'favorites:initialized',
+        STATS_UPDATED: 'favorites:stats-updated'
+    };
 
     // Configuration
     const CONFIG_BASE = {
@@ -248,6 +265,78 @@
     };
 
     // ============================================================
+    //  Native Event System
+    // ============================================================
+
+    /**
+     * Initialize the native event system for favorites
+     */
+    function initFavoritesEventSystem() {
+        _eventTarget = new EventTarget();
+        LOG.debug(MODULE, 'Native event system initialized');
+    }
+
+    /**
+     * Dispatch custom event with structured data
+     * @param {string} eventType - One of FAVORITES_EVENTS
+     * @param {object} detail - Event payload data
+     */
+    function dispatchFavoritesEvent(eventType, detail = {}) {
+        if (!_eventTarget) {
+            LOG.error(MODULE, `Event system not initialized - cannot dispatch: ${eventType}`);
+            return false;
+        }
+
+        // Validate event type
+        if (!Object.values(FAVORITES_EVENTS).includes(eventType)) {
+            LOG.error(MODULE, `Invalid event type: ${eventType}`);
+            return false;
+        }
+
+        const event = new CustomEvent(eventType, {
+            detail: {
+                timestamp: Date.now(),
+                                      ...detail
+            },
+            bubbles: true,
+            cancelable: true
+        });
+
+        LOG.debug(MODULE, `📢 Dispatching event: ${eventType}`, detail);
+        return _eventTarget.dispatchEvent(event);
+    }
+
+    /**
+     * Add event listener for favorites events (native DOM API pattern)
+     * @param {string} eventType - One of FAVORITES_EVENTS
+     * @param {Function} callback - Event handler function
+     * @param {object} options - Native addEventListener options
+     */
+    function addEventListener(eventType, callback, options) {
+        if (!_eventTarget) {
+            LOG.error(MODULE, `Event system not initialized - cannot listen to: ${eventType}`);
+            return;
+        }
+
+        _eventTarget.addEventListener(eventType, callback, options);
+        LOG.debug(MODULE, `👂 Event listener added for: ${eventType}`);
+    }
+
+    /**
+     * Remove event listener for favorites events
+     * @param {string} eventType - One of FAVORITES_EVENTS
+     * @param {Function} callback - Event handler function
+     * @param {object} options - Native removeEventListener options
+     */
+    function removeEventListener(eventType, callback, options) {
+        if (!_eventTarget) return;
+
+        _eventTarget.removeEventListener(eventType, callback, options);
+        LOG.debug(MODULE, `🔇 Event listener removed for: ${eventType}`);
+    }
+
+
+    // ============================================================
     //  Favorites List Rendering Function
     // ============================================================
 
@@ -429,28 +518,40 @@
         favorites.push(favorite);
         window.StateManager.set('favorites.items', favorites);
 
-        LOG.success(MODULE, `Favorite created: ${favorite.title} (${getFavoriteType(target)})`);
+        LOG.info(MODULE, `Favorite created: ${favorite.title} (${getFavoriteType(target)})`);
         return { success: true, favorite: favorite };
     }
-
 
     /**
      * Add section favorite (existing API - now a wrapper)
      */
-    function addFavorite(sectionId, sectionName = null, sectionPath = null) {
-        // Convert sectionId to proper selector format
-        const target = `[data-section="${sectionId}"]`;
-
-        showFavoriteLoadingState(sectionId);
+    function addFavorite(target, sectionName = null, sectionPath = null) {
+        showFavoriteLoadingState(target);
 
         const result = createFavorite(target, sectionName);
 
         if (result.success) {
-            hideFavoriteLoadingState(sectionId);
-            renderFavoritesList();
+            hideFavoriteLoadingState(target);
+
+            // Dispatch events for UI synchronization
+            dispatchFavoritesEvent(FAVORITES_EVENTS.CHANGED, {
+                favorites: getFavorites(),
+                action: 'added',
+                target: target,
+                favorite: result.favorite
+            });
+
+            dispatchFavoritesEvent(FAVORITES_EVENTS.SECTION_STATUS, {
+                target: target,
+                isFavorited: true,
+                favoriteType: getFavoriteType(target),
+                favorite: result.favorite
+            });
+
+            LOG.debug(MODULE, `✅ Favorite added with event emission: ${target}`);
             Toast.show(CONFIG.i18n.de.savedAsFavorite, 'success');
         } else {
-            hideFavoriteLoadingState(sectionId);
+            hideFavoriteLoadingState(target);
             Toast.show(CONFIG.i18n.de.favoriteAlreadySaved, 'info');
         }
 
@@ -463,23 +564,41 @@
         const favoriteToRemove = favorites.find(fav => fav.id === favoriteId);
         const sectionId = favoriteToRemove?.sectionId;
 
+        // Extract target from the favorite
+        const target = favoriteToRemove?.target;
+
         const favoriteItem = document.querySelector(`main [data-favorite-id="${favoriteId}"]`);
 
         if (favoriteItem) {
             // Add removing class for smooth animation
             favoriteItem.classList.add(CONFIG.classes.removing);
 
+            // Dispatch events for UI synchronization
+            dispatchFavoritesEvent(FAVORITES_EVENTS.CHANGED, {
+                favorites: getFavorites(),
+                action: 'removed',
+                target: target,
+                removedFavorite: favoriteToRemove
+            });
+
+            dispatchFavoritesEvent(FAVORITES_EVENTS.SECTION_STATUS, {
+                target: target,
+                isFavorited: false,
+                favoriteType: getFavoriteType(target)
+            });
+
+            LOG.debug(MODULE, `✅ Favorite removed with event emission: ${target}`);
+
             // Wait for animation to complete before actual removal
             setTimeout(() => {
                 const updatedFavorites = favorites.filter(fav => fav.id !== favoriteId);
                 window.StateManager.set('favorites.items', updatedFavorites);
 
-                // === CRITICAL FIX: Hide loading state ===
+                // Hide loading state
                 if (sectionId) {
                     hideFavoriteLoadingState(sectionId);
                 }
 
-                renderFavoritesList();
                 Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
             }, 300);
         } else {
@@ -487,12 +606,11 @@
             const updatedFavorites = favorites.filter(fav => fav.id !== favoriteId);
             window.StateManager.set('favorites.items', updatedFavorites);
 
-            // === CRITICAL FIX: Hide loading state ===
+            // Hide loading state
             if (sectionId) {
                 hideFavoriteLoadingState(sectionId);
             }
 
-            renderFavoritesList();
             Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
         }
     }
@@ -514,11 +632,11 @@
     //  Toggle Favorite Function
     // ============================================================
 
-    function toggleFavorite(sectionId) {
-        window.LOG.debug('Favorites', `Toggling favorite for section: ${sectionId}`);
+    function toggleFavorite(target) {
+        window.LOG.debug('Favorites', `Toggling favorite for section: ${target}`);
 
         // Show immediate visual feedback
-        showFavoriteLoadingState(sectionId);
+        showFavoriteLoadingState(target);
 
         // Get current favorites state with proper defaults
         const favoritesState = window.StateManager.get('favorites') || {
@@ -536,7 +654,7 @@
 
         // Check if section is already favorited in default folder
         const existingFavorite = favoritesState.items.find(item =>
-            item.sectionId === sectionId && item.folderId === 'default'
+            item.target === target && item.folderId === 'default'
         );
 
         if (existingFavorite) {
@@ -545,8 +663,8 @@
             removeFavorite(existingFavorite.id);
         } else {
             // Add new favorite
-            window.LOG.debug('Favorites', `Adding new favorite for section: ${sectionId}`);
-            addFavorite(sectionId);
+            window.LOG.debug('Favorites', `Adding new favorite for section: ${target}`);
+            addFavorite(target);
         }
 
         // Loading state will be cleared by addFavorite/removeFavorite functions
@@ -556,22 +674,22 @@
     //  visual feedback functions
     // ============================================================
 
-    function showFavoriteLoadingState(sectionId) {
-        const favoriteItem = document.querySelector(`main [data-section="${sectionId}"]`);
+    function showFavoriteLoadingState(target) {
+        const favoriteItem = document.querySelector(`main ${target}`);
         if (favoriteItem) {
             favoriteItem.classList.add(CONFIG.classes.loading, CONFIG.classes.disabled);
         }
     }
 
-    function hideFavoriteLoadingState(sectionId) {
-        const favoriteItem = document.querySelector(`main [data-section="${sectionId}"]`);
+    function hideFavoriteLoadingState(target) {
+        const favoriteItem = document.querySelector(`main ${target}`);
         if (favoriteItem) {
             favoriteItem.classList.remove(CONFIG.classes.loading, CONFIG.classes.disabled);
         }
     }
 
-    function showFavoriteSuccessState(favoriteId) {
-        const favoriteItem = document.querySelector(`main [data-favorite-id="${favoriteId}"]`);
+    function showFavoriteSuccessState(target) {
+        const favoriteItem = document.querySelector(`main ${target}`);
         if (favoriteItem) {
             favoriteItem.classList.add(CONFIG.classes.success);
             setTimeout(() => {
@@ -759,6 +877,38 @@
     //  Helper functions
     // ============================================================
 
+    /**
+     * Get current favorites array (safety wrapper)
+     * @returns {Array} Current favorites array
+     */
+    function getFavorites() {
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available');
+            return [];
+        }
+
+        const favorites = window.StateManager.get('favorites.items');
+
+        // Ensure we always return an array
+        return Array.isArray(favorites) ? favorites : [];
+    }
+
+    /**
+     * Get current favorite folders array (safety wrapper)
+     * @returns {Array} Current favorite folders array
+     */
+    function getFolders() {
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available');
+            return [];
+        }
+
+        const folders = window.StateManager.get('favorites.folders');
+
+        // Ensure we always return an array
+        return Array.isArray(folders) ? folders : [];
+    }
+
     function getSectionDisplayName(sectionId) {
         // This should map section IDs to display names
         // You might want to pull this from your navigation data
@@ -810,6 +960,24 @@
         favoritesContainer.addEventListener('click', handleFavoritesClick);
 
         LOG.debug(MODULE, 'Favorites event listeners attached (single container approach)');
+    }
+
+    /**
+     * Initialize favorites event listeners for the sidebar itself
+     */
+    function initFavoritesSidebarEventListeners() {
+        // Listen to our own native events for sidebar updates
+        addEventListener(FAVORITES_EVENTS.CHANGED, (event) => {
+            LOG.debug(MODULE, 'Favorites sidebar received change event, re-rendering');
+            renderFavoritesList();
+        });
+
+        addEventListener(FAVORITES_EVENTS.INITIALIZED, (event) => {
+            LOG.debug(MODULE, 'Favorites initialized event received');
+            renderFavoritesList();
+        });
+
+        LOG.info(MODULE, 'Favorites sidebar event listeners initialized');
     }
 
     /**
@@ -1018,7 +1186,7 @@
             }
         });
 
-        LOG.success(MODULE, 'Favorites history sync initialized');
+        LOG.info(MODULE, 'Favorites history sync initialized');
     }
 
     function isFavoritesSidebarActive() {
@@ -1038,18 +1206,21 @@
         // Store reference for other functions to use
         _favoritesContainer = favoritesContainer;
 
-        // ✅ CRITICAL: Attach the SINGLE event listener that handles everything
+        // Attach the SINGLE event listener that handles everything
         attachFavoritesEventListeners();
 
-        // ✅ NEW: Add subsection selection button listener
+        // Add subsection selection button listener
         const subsectionButton = favoritesContainer.querySelector(CONFIG.selectors.subsectionSelectionBtn);
         if (subsectionButton) {
             subsectionButton.addEventListener('click', handleSidebarSubsectionClick);
             LOG.debug(MODULE, 'Subsection selection button listener added');
         }
 
-        // ✅ CRITICAL FIX: Subscribe to favorites changes for UI updates
+        // Subscribe to favorites changes for UI updates
         initFavoritesStateObserver();
+
+        // Initialize sidebar event listeners
+        initFavoritesSidebarEventListeners();
 
         // Show skeleton loading immediately
         showSkeletonLoading();
@@ -1070,12 +1241,13 @@
             // Mark as initialized
             _isInitialized = true;
 
-            LOG.success(MODULE, 'Favorites initialized');
+            LOG.info(MODULE, 'Favorites initialized');
         }, 800);
     }
 
     /**
-     * Initialize StateManager subscription for favorites changes
+     * Initialize favorites state observation (UPDATED: Bridge StateManager to native events)
+     * This ensures when StateManager changes favorites, we emit native events for UI components
      */
     function initFavoritesStateObserver() {
         if (!window.StateManager || !window.StateManager.subscribe) {
@@ -1083,24 +1255,27 @@
             return;
         }
 
-        // Subscribe to favorites.items changes
+        // Subscribe to StateManager favorites changes and convert to native events
         const unsubscribe = window.StateManager.subscribe('favorites.items', (newFavorites, oldFavorites) => {
-            LOG.debug(MODULE, 'Favorites state changed:', {
+            LOG.debug(MODULE, 'StateManager favorites changed - converting to native event', {
                 oldCount: oldFavorites?.length || 0,
                 newCount: newFavorites?.length || 0
             });
 
-            // Only update UI if favorites actually changed
+            // Only emit if favorites actually changed (prevent loops)
             if (newFavorites !== oldFavorites) {
-                LOG.debug(MODULE, 'Rendering favorites list due to state change');
-                renderFavoritesList();
+                dispatchFavoritesEvent(FAVORITES_EVENTS.CHANGED, {
+                    favorites: newFavorites,
+                    action: 'state-updated',
+                    source: 'statemanager',
+                    timestamp: Date.now()
+                });
             }
         });
 
         // Store unsubscribe function for cleanup
         _unsubscribeFunctions.push(unsubscribe);
-
-        LOG.success(MODULE, 'Favorites state observer initialized');
+        LOG.info(MODULE, 'Favorites state observer initialized as StateManager→Event bridge');
     }
 
     function initializeFavoritesData() {
@@ -1121,6 +1296,14 @@
             };
             window.StateManager.set('favorites', initialFavorites);
         }
+
+        dispatchFavoritesEvent(FAVORITES_EVENTS.INITIALIZED, {
+            favorites: getFavorites(),
+            folders: getFolders(),
+            statistics: StatisticsManager?.getAllStatistics?.() || {}
+        });
+
+        LOG.info(MODULE, 'Favorites data initialized with event emission');
     }
 
     /**
@@ -1233,6 +1416,8 @@
         }
 
         try {
+            initFavoritesEventSystem();
+
             // Get container from the DOM, just like navigation and history do
             _favoritesContainer = document.querySelector(CONFIG.selectors.sidebar);
 
@@ -1246,7 +1431,7 @@
                 const registered = window.SidebarManager.registerShortcut('favorites', 'f');
 
                 if (registered) {
-                    LOG.success(MODULE, 'Shortcut Alt+f registered with SidebarManager');
+                    LOG.info(MODULE, 'Shortcut Alt+f registered with SidebarManager');
                 } else {
                     LOG.warn(MODULE, 'Shortcut Alt+f already taken');
                 }
@@ -1259,7 +1444,7 @@
             initVisitTracking();
             _isInitialized = true;
 
-            LOG.success(MODULE, 'Favorites Manager initialized successfully');
+            LOG.info(MODULE, 'Favorites Manager initialized successfully');
             return true;
 
         } catch (error) {
@@ -1274,19 +1459,33 @@
 
     // Export to global scope if needed for direct access
     window.FavoritesManager = {
+        // Core favorites functionality
         init: init,
         refresh: refresh,
         addFavorite: addFavorite,
-        createFavorite: createFavorite,        // ✅ NEW: Unified favorite creation
+        createFavorite: createFavorite,
         isSectionFavorited: isSectionFavorited,
         removeFavorite: removeFavorite,
         toggleFavorite: toggleFavorite,
+        getFavorites: getFavorites,
+        getFolders: getFolders,
+
+        // ✅ NEW: Native Event System
+        addEventListener: addEventListener,
+        removeEventListener: removeEventListener,
+        EVENTS: FAVORITES_EVENTS, // Export event constants
+
+        // Utility functions
         isInitialized: () => _isInitialized,
-        // Debug-Funktionen (nur wenn debugMode aktiv)
+        getFavoriteType: getFavoriteType,
+
+        // Debug functions (only when debugMode active)
         _debug: window.BUILD_INFO?.debugMode ? {
             StatisticsManager: StatisticsManager,
-            getFavoriteType: getFavoriteType,           // ✅ NEW: For testing
-            generateFavoriteTitle: generateFavoriteTitle // ✅ NEW: For testing
+            generateFavoriteTitle: generateFavoriteTitle,
+            // ✅ NEW: Event system debug access
+            _eventTarget: _eventTarget,
+            dispatchFavoritesEvent: dispatchFavoritesEvent
         } : undefined
     };
     LOG.debug(MODULE, 'FavoritesManager API exported with toggle support');
