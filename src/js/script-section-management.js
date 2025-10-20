@@ -24,6 +24,16 @@
     // Daher als Modul-Variable statt in STATE/StateManager
     let allSections = [];
 
+    const CONFIG = {
+        selectors: {
+            sections: 'main > [data-section]'
+        },
+        classes: {
+            highlightAreaColor: 'highlight-area--color',
+            highlightAreaTransition: 'highlight-area--transition'
+        }
+    };
+
     // ========================================================================
     // INITIALISIERUNG
     // ========================================================================
@@ -33,7 +43,7 @@
 
         // DOM-Elemente können NICHT im StateManager gespeichert werden
         // Sie bleiben in STATE (nicht serialisierbar)
-        allSections = Array.from(document.querySelectorAll('main > [data-section]'));
+        allSections = Array.from(document.querySelectorAll(CONFIG.selectors.sections));
 
         LOG(MODULE, `Found ${allSections.length} sections:`,
             allSections.map(s => s.dataset.section));
@@ -536,6 +546,30 @@
         }));
     }
 
+    /**
+     * Find the containing section for any element selector
+     * @param {string} selector - CSS selector for the target element
+     * @returns {string|null} Section ID or null if not found
+     */
+    function findContainingSection(selector) {
+        const element = document.querySelector(selector);
+        const section = element?.closest('[data-section]');
+        return section?.dataset.section || null;
+    }
+
+    // Temporary element highlighting
+    function highlightElementTemporarily(element) {
+        element.classList.add(CONFIG.classes.highlightAreaColor);
+        element.classList.add(CONFIG.classes.highlightAreaTransition);
+
+        setTimeout(() => {
+            element.classList.remove(CONFIG.classes.highlightAreaColor);
+            setTimeout(() => {
+                element.classList.remove(CONFIG.classes.highlightAreaTransition);
+            }, 500);
+        }, 2000);
+    }
+
     function scrollTo(target, highlight = false) {
         LOG(MODULE, `🎯 scrollTo() called with: ${target}, highlight: ${highlight}`);
 
@@ -747,12 +781,11 @@
 
     window.SectionManagement = {
         init: initSectionManagement,
+        scrollTo: scrollTo,
         scrollToSection: scrollToSection,
         activateSection: activateSection,
         getCurrentActive: getCurrentActiveSection,
-        getAllSections: function() {
-            return allSections;
-        }
+        getAllSections: () => allSections
     };
 
     LOG(MODULE, 'Section management module loaded');

@@ -1110,22 +1110,27 @@
         }
     }
 
-    // Extract navigation logic to reusable function
-    function navigateToSection(sectionId) {
+    /**
+     * Navigate to favorite target (section or subsection)
+     */
+    function navigateToFavorite(target) {
         try {
-            window.SectionManagement?.scrollToSection(sectionId);
-        } catch (error) {
-            LOG.error(MODULE, `Navigation to section ${sectionId} failed:`, error);
-
-            let message;
-            if (error.message.includes('not available')) {
-                message = CONFIG.i18n.de.navigationUnavailable;
-            } else if (error.message.includes('not found')) {
-                message = CONFIG.i18n.de.sectionNotFound(sectionId);
+            // Use the enhanced scrollTo function that now exists
+            if (window.SectionManagement && window.SectionManagement.scrollTo) {
+                const highlight = getFavoriteType(target) === 'subsection';
+                window.SectionManagement.scrollTo(target, highlight);
+                LOG.debug(MODULE, `✅ Using enhanced scrollTo for: ${target}, highlight: ${highlight}`);
             } else {
-                message = CONFIG.i18n.de.navigationFailed(sectionId);
+                // Fallback to old scrollToSection for compatibility
+                const sectionId = getSectionIdFromTarget(target);
+                if (sectionId && sectionId !== CONFIG.i18n.de.unknown) {
+                    window.SectionManagement.scrollToSection(sectionId);
+                    LOG.debug(MODULE, `🔄 Fallback to scrollToSection for: ${sectionId}`);
+                }
             }
-            Toast.show(message, 'error');
+        } catch (error) {
+            LOG.error(MODULE, `Navigation to favorite failed: ${target}`, error);
+            Toast.show(CONFIG.i18n.de.navigationFailed(target), 'error');
         }
     }
 
@@ -1485,7 +1490,8 @@
             generateFavoriteTitle: generateFavoriteTitle,
             // ✅ NEW: Event system debug access
             _eventTarget: _eventTarget,
-            dispatchFavoritesEvent: dispatchFavoritesEvent
+            dispatchFavoritesEvent: dispatchFavoritesEvent,
+            navigateToFavorite: navigateToFavorite
         } : undefined
     };
     LOG.debug(MODULE, 'FavoritesManager API exported with toggle support');

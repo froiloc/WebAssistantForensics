@@ -4191,3 +4191,15 @@ h6:has(.header-with-icons)
     background: var(--accent-color);
     border-radius: 50%;
 }
+
+/********************************/
+/* highlighting of subsections  */
+/********************************/
+
+.highlight-area--color {
+    background-color: var(--accent-color) !important;
+}
+
+.highlight-area--transition {
+    transition: background-color 0.5s ease !important;
+}
