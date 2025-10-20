@@ -4169,3 +4169,25 @@ h6:has(.header-with-icons)
     margin-left: 0 !important;
     margin-right: 0 !important;
 }
+
+/******************************/
+/* header star has subsection */
+/******************************/
+
+/* Section with subsection favorites gets a special glow */
+.header-star--has-subsections {
+    box-shadow: 0 0 8px var(--accent-color);
+    position: relative;
+}
+
+/* Optional: tiny dot indicator */
+.header-star--has-subsections::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background: var(--accent-color);
+    border-radius: 50%;
+}

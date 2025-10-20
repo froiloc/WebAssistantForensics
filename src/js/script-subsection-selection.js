@@ -293,20 +293,19 @@
             const selector = generateElementSelector(element);
             const name = generateElementName(element);
 
-            // Create favorite data
-            const favoriteData = {
-                element: element,
-                selector: selector,
-                name: name,
-                sectionId: _currentSectionId,
-                timestamp: Date.now()
-            };
-
-            // Create the subsection favorite
-            createSubsectionFavorite(favoriteData);
+            // Emit event for favorites system to handle
+            window.dispatchEvent(new CustomEvent('subsectionElementSelected', {
+                detail: {
+                    element: element,
+                    selector: selector,
+                    name: name,
+                    sectionId: _currentSectionId,
+                    timestamp: Date.now()
+                }
+            }));
 
             // Exit with success
-            exitSelectionMode(true, favoriteData);
+            exitSelectionMode(true, { selector, name, sectionId: _currentSectionId });
 
             Toast.show(CONFIG.i18n.de.selectionComplete, 'success');
 
@@ -371,18 +370,6 @@
         }
 
         return name;
-    }
-
-    /**
-     * Create the actual subsection favorite
-     */
-    function createSubsectionFavorite(favoriteData) {
-        // This will be implemented to integrate with the main favorites system
-        LOG.debug(MODULE, 'Creating subsection favorite:', favoriteData);
-
-        // TODO: Integrate with FavoritesManager
-        // For now, just log the data
-        console.log('Subsection favorite data:', favoriteData);
     }
 
     // ========================================================================

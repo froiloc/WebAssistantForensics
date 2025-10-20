@@ -13,7 +13,8 @@
         },
         selectors: {
             container: '.breadcrumb-star-container',
-            star: '#breadcrumb-star'
+            star: '#breadcrumb-star',
+            section: (sectionId) => `[data-section="${sectionId}"]`
         },
         i18n: {
             de: {
@@ -132,7 +133,7 @@
             return;
         }
 
-        const isFavorited = window.FavoritesManager.isSectionFavorited(_currentSectionId);
+        const isFavorited = window.FavoritesManager.isSectionFavorited(CONFIG.selectors.section(_currentSectionId));
 
         // Single class toggle - your clean approach!
         _starButton.classList.toggle(CONFIG.classes.active, isFavorited);
