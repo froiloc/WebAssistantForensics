@@ -317,30 +317,48 @@
     }
 
     /**
-     * Generate a CSS selector for the element
+     * Generate a robust CSS selector for the element relative to main content
+     * Uses DOMUtils for reliable selector generation with fallback
      */
     function generateElementSelector(element) {
-        // Simple implementation - can be enhanced later
-        if (element.id) {
-            return `#${element.id}`;
+        if (!element || !element.closest) {
+            LOG.warn(MODULE, 'Invalid element provided to generateElementSelector');
+            return null;
         }
 
-        // Fallback: generate path-based selector
-        const path = [];
-        let current = element;
+        // Ensure element is within main content area
+        const mainContent = element.closest(CONFIG.selectors.mainContent);
+        if (!mainContent) {
+            LOG.warn(MODULE, 'Element not within main content area');
+            return null;
+        }
 
-        while (current && current !== document.body && path.length < 10) {
-            let selector = current.tagName.toLowerCase();
+        try {
+            // Use the robust selector generator scoped to main content
+            const robustSelector = window.DOMUtils.getUniqueRelativeSelector(element, mainContent);
 
-            if (current.className) {
-                selector += '.' + current.className.split(' ')[0];
+            if (robustSelector) {
+                // Optional: Validate the selector actually works
+                const isValid = window.DOMUtils.validateSelectorUnique(
+                    robustSelector,
+                    element
+                );
+
+                if (isValid) {
+                    LOG.debug(MODULE, 'Generated robust selector:', robustSelector);
+                    return robustSelector;
+                } else {
+                    LOG.warn(MODULE, 'Generated selector is not unique, using fallback');
+                }
             }
-
-            path.unshift(selector);
-            current = current.parentElement;
+        } catch (error) {
+            LOG.error(MODULE, 'Error generating robust selector:', error);
         }
 
-        return path.join(' > ');
+        // Fallback to simple selector if robust method fails
+        const fallbackSelector = window.DOMUtils.generateSimpleSelector(element);
+        LOG.debug(MODULE, 'Using fallback selector:', fallbackSelector);
+        return fallbackSelector;
     }
 
     /**

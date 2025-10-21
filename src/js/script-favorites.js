@@ -66,7 +66,10 @@
             favoriteDetailsBtn: '.favorite-details-toggle',
             favoriteCreated: '.favorite-created .stat-value',
             favoriteAccessCount: '.favorite-access-count .stat-value',
-            favoriteLastAccessed: '.favorite-last-accessed .stat-value'
+            favoriteLastAccessed: '.favorite-last-accessed .stat-value',
+            statItem: '.stat-item',
+            statLabel: '.stat-label',
+            statValue: '.stat-value',
         },
         classes: {
             active: 'active',
@@ -210,10 +213,10 @@
         * Update existing statistics display
         */
         updateStatistics(statsContainer, favoriteData) {
-            const statItems = statsContainer.querySelectorAll(`.${CONFIG.classes.statItem}`);
+            const statItems = statsContainer.querySelectorAll(CONFIG.selectors.statItem);
             statItems.forEach(item => {
-                const label = item.querySelector(`.${CONFIG.classes.statLabel}`)?.textContent;
-                const valueElement = item.querySelector(`.${CONFIG.classes.statValue}`);
+                const label = item.querySelector(CONFIG.selectors.statLabel)?.textContent;
+                const valueElement = item.querySelector(CONFIG.selectors.statValue);
 
                 if (label && valueElement) {
                     if (label.includes(CONFIG.i18n.de.accessCount)) {
@@ -263,6 +266,61 @@
             }
         }
     };
+
+    /**
+     * Initialize statistics update bridge between section visits and favorites
+     */
+    function initStatisticsUpdateBridge() {
+        if (!window.StateManager) {
+            LOG.error(MODULE, 'StateManager not available for statistics bridge');
+            return;
+        }
+
+        // Listen for section visited events
+        window.addEventListener('sectionVisited', (event) => {
+            const { sectionId, timestamp } = event.detail;
+
+            LOG.debug(MODULE, `Section visited: ${sectionId}, updating favorite statistics if applicable`);
+
+            // Update statistics for any favorite matching this section
+            updateFavoriteStatisticsForSection(sectionId, timestamp);
+        });
+
+        LOG.info(MODULE, 'Statistics update bridge initialized');
+    }
+
+    /**
+     * Update statistics for favorites matching the visited section
+     */
+    function updateFavoriteStatisticsForSection(sectionId, timestamp) {
+        const favorites = getFavorites();
+        let updated = false;
+
+        favorites.forEach(favorite => {
+            // Check if this favorite targets the visited section
+            if (favorite.target.includes(`[data-section="${sectionId}"]`)) {
+                // Update access count and last accessed
+                if (!favorite.meta) favorite.meta = {};
+                favorite.meta.accessCount = (favorite.meta.accessCount || 0) + 1;
+                favorite.meta.lastAccessed = timestamp;
+                updated = true;
+
+                LOG.debug(MODULE, `Updated statistics for favorite: ${favorite.title}`, {
+                    newAccessCount: favorite.meta.accessCount,
+                    lastAccessed: new Date(timestamp).toISOString()
+                });
+            }
+        });
+
+        // Save updated favorites and trigger UI update
+        if (updated) {
+            window.StateManager.set('favorites.items', favorites);
+
+            // The StateManager change will trigger our event system
+            // which will update the favorites sidebar automatically
+            LOG.debug(MODULE, 'Favorites statistics updated and saved');
+        }
+    }
 
     // ============================================================
     //  Native Event System
@@ -486,16 +544,16 @@
     }
 
     /**
-     * Unified favorite creation
+     * Unified favorite creation for both sections and subsections
      */
-    function createFavorite(target, customTitle = null) {
-        LOG.debug(MODULE, `Creating favorite for target: ${target}`);
+    function createFavorite(target, customTitle = null, favoriteType = 'section') {
+        LOG.debug(MODULE, `Creating ${favoriteType} favorite for target: ${target}`);
 
         const favorites = window.StateManager.get('favorites.items') || [];
 
         // Check for duplicates (same target in same folder)
         const existingFavorite = favorites.find(fav =>
-            fav.target === target && fav.folderId === 'default'
+        fav.target === target && fav.folderId === 'default'
         );
 
         if (existingFavorite) {
@@ -508,6 +566,7 @@
             target: target,
             title: generateFavoriteTitle(target, customTitle),
             folderId: 'default',
+            type: favoriteType, // 'section' or 'subsection'
             meta: {
                 createdAt: new Date().toISOString(),
                 lastAccessed: null,
@@ -515,20 +574,29 @@
             }
         };
 
+        // Add subsection-specific data if needed
+        if (favoriteType === 'subsection') {
+            favorite.selector = target; // For subsections, target is the CSS selector
+            favorite.sectionId = getSectionIdFromTarget(target);
+        }
+
         favorites.push(favorite);
         window.StateManager.set('favorites.items', favorites);
 
-        LOG.info(MODULE, `Favorite created: ${favorite.title} (${getFavoriteType(target)})`);
+        LOG.info(MODULE, `Favorite created: ${favorite.title} (${favoriteType})`);
         return { success: true, favorite: favorite };
     }
 
     /**
-     * Add section favorite (existing API - now a wrapper)
+     * Add section favorite (existing API - now enhanced for subsections)
      */
-    function addFavorite(target, sectionName = null, sectionPath = null) {
+    function addFavorite(target, sectionName = null, sectionPath = null, favoriteType = 'section') {
         showFavoriteLoadingState(target);
 
-        const result = createFavorite(target, sectionName);
+        // For subsection favorites, use the provided name directly
+        const customTitle = favoriteType === 'subsection' ? sectionName : sectionName;
+
+        const result = createFavorite(target, customTitle, favoriteType);
 
         if (result.success) {
             hideFavoriteLoadingState(target);
@@ -536,15 +604,15 @@
             // Dispatch events for UI synchronization
             dispatchFavoritesEvent(FAVORITES_EVENTS.CHANGED, {
                 favorites: getFavorites(),
-                action: 'added',
-                target: target,
-                favorite: result.favorite
+                                   action: 'added',
+                                   target: target,
+                                   favorite: result.favorite
             });
 
             dispatchFavoritesEvent(FAVORITES_EVENTS.SECTION_STATUS, {
                 target: target,
                 isFavorited: true,
-                favoriteType: getFavoriteType(target),
+                favoriteType: favoriteType,
                 favorite: result.favorite
             });
 
@@ -1312,15 +1380,54 @@
     }
 
     /**
-     * Initialize subsection favorites event listener
+     * Creates a subsection favorite from element selection data
+     * (now a wrapper for addFavorite)
+     * @param {string} sectionId - Parent section ID
+     * @param {string} selector - CSS selector for the element
+     * @param {string} name - Display name for the favorite
      */
-    function initSubsectionFavorites() {
-        window.addEventListener('subsectionElementSelected', (e) => {
-            const { selector, name, sectionId } = e.detail;
-            createSubsectionFavorite(selector, name, sectionId);
+    function createSubsectionFavorite(sectionId, selector, name) {
+        LOG.debug('FAVORITES_MANAGER', `Creating subsection favorite: ${name}`, {
+            sectionId,
+            selector
         });
 
-        LOG.debug(MODULE, 'Subsection favorites event listener initialized');
+        try {
+            // Use the unified addFavorite function
+            const result = addFavorite(selector, name, null, 'subsection');
+
+            if (result.success) {
+                LOG.info('FAVORITES_MANAGER', `Subsection favorite created: ${name}`);
+                return result.favorite;
+            } else {
+                throw new Error('Failed to create subsection favorite: ' + result.reason);
+            }
+        } catch (error) {
+            LOG.error('FAVORITES_MANAGER', 'Error creating subsection favorite:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Initialize subsection favorites event listeners
+     */
+    function initSubsectionFavorites() {
+        LOG.debug('FAVORITES_MANAGER', 'Initializing subsection favorites');
+
+        // Listen for element selection events from subsection selection mode
+        window.addEventListener('subsectionElementSelected', function(event) {
+            LOG.debug('FAVORITES_MANAGER', 'Subsection element selected event received', event.detail);
+
+            const { selector, name, sectionId } = event.detail;
+
+            try {
+                createSubsectionFavorite(sectionId, selector, name);
+            } catch (error) {
+                LOG.error('FAVORITES_MANAGER', 'Failed to create favorite from selection:', error);
+            }
+        });
+
+        LOG.info('FAVORITES_MANAGER', 'Subsection favorites initialized');
     }
 
     function destroyFavorites() {
@@ -1422,6 +1529,8 @@
 
         try {
             initFavoritesEventSystem();
+            initStatisticsUpdateBridge();
+            initSubsectionFavorites();
 
             // Get container from the DOM, just like navigation and history do
             _favoritesContainer = document.querySelector(CONFIG.selectors.sidebar);

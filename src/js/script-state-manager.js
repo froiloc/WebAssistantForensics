@@ -501,6 +501,38 @@
         return favorite.id;
     }
 
+    // Add to script-state-manager.js in the Public API section
+    function addSubsectionFavorite(favoriteData) {
+        LOG.debug('STATE_MANAGER', 'Adding subsection favorite:', favoriteData);
+
+        try {
+            // Get current state
+            const state = getState();
+
+            // Initialize subsection favorites array if it doesn't exist
+            if (!state.favorites.subsections) {
+                state.favorites.subsections = [];
+            }
+
+            // Add the new favorite
+            state.favorites.subsections.push(favoriteData);
+
+            // Save updated state
+            setState(state);
+
+            // Dispatch event for UI updates
+            window.dispatchEvent(new CustomEvent('stateChanged', {
+                detail: { type: 'subsectionFavoriteAdded', data: favoriteData }
+            }));
+
+            LOG.info('STATE_MANAGER', 'Subsection favorite added to state');
+
+        } catch (error) {
+            LOG.error('STATE_MANAGER', 'Error adding subsection favorite:', error);
+            throw error;
+        }
+    }
+
     /**
      * Removes a favorite by ID
      * @param {string} favoriteId - ID of favorite to remove
@@ -878,6 +910,7 @@
 
             // Favorites methods
             addFavorite: addFavorite,
+            addSubsectionFavorite: addSubsectionFavorite,
             removeFavorite: removeFavorite,
             updateFavorite: updateFavorite,
             incrementFavoriteAccess: incrementFavoriteAccess,
