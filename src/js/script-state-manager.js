@@ -452,6 +452,7 @@
             return null;
         }
 
+        const favorites = get('favorites.items');
         // Validate folder exists
         if (favoriteData.folderId && favoriteData.folderId !== 'default') {
             const folderExists = _state.favorites.folders.some(f => f.id === favoriteData.folderId);
@@ -487,16 +488,9 @@
             ...favoriteData
         };
 
-        _state.favorites.items.unshift(favorite); // Add to beginning for "newest first"
-        _state.favorites.lastUpdated = new Date().toISOString();
-
-        if (_state.favorites.items.length >= CONFIG.maxFavorites) {
-            LOG.warn(MODULE, 'Favorites limit reached, removing oldest');
-            _state.favorites.items.pop(); // Remove oldest
-        }
-
-        LOG.debug(MODULE, `Favorite added: ${favorite.title} (ID: ${favorite.id})`);
-        saveToStorage();
+        // ✅ Use set() to trigger observers
+        const newFavorites = [favorite, ...favorites]; // Add to beginning
+        set('favorites.items', newFavorites);
 
         return favorite.id;
     }
@@ -566,23 +560,34 @@
     function updateFavorite(favoriteId, updates) {
         LOG.debug(MODULE, `Updating favorite: ${favoriteId}`, updates);
 
-        const favorite = _state.favorites.items.find(fav => fav.id === favoriteId);
-        if (!favorite) {
+        const favorites = get('favorites.items');
+        const favoriteIndex = favorites.findIndex(fav => fav.id === favoriteId);
+
+        if (favoriteIndex === -1) {
             LOG.warn(MODULE, `Favorite not found for update: ${favoriteId}`);
             return false;
         }
 
-        // Apply updates (excluding protected fields)
+        // Create updated favorite (excluding protected fields)
         const protectedFields = ['id', 'addedDate'];
-        Object.keys(updates).forEach(key => {
-            if (!protectedFields.includes(key)) {
-                favorite[key] = updates[key];
+        const updatedFavorite = {
+            ...favorites[favoriteIndex],
+            ...updates
+        };
+
+        // Remove protected fields from updates
+        protectedFields.forEach(field => {
+            if (updatedFavorite[field] !== favorites[favoriteIndex][field]) {
+                updatedFavorite[field] = favorites[favoriteIndex][field];
             }
         });
 
-        favorite.lastAccessed = new Date().toISOString();
-        _state.favorites.lastUpdated = new Date().toISOString();
-        saveToStorage();
+        updatedFavorite.lastAccessed = new Date().toISOString();
+
+        // ✅ Use set() to trigger observers
+        const updatedFavorites = [...favorites];
+        updatedFavorites[favoriteIndex] = updatedFavorite;
+        set('favorites.items', updatedFavorites);
 
         LOG.debug(MODULE, `Favorite updated: ${favoriteId}`);
         return true;
@@ -643,20 +648,43 @@
      * @returns {string} Folder ID
      */
     function createFolder(name) {
-        if (!name || name.length > 30) {
-            LOG.warn(MODULE, `Invalid folder name: ${name}`);
+        if (!name || name.trim().length === 0) {
+            LOG.warn(MODULE, 'Folder name cannot be empty');
+            return null;
+        }
+
+        const trimmedName = name.trim();
+
+        const folders = get('favorites.folders');
+
+        // Check folder limit (15 max including default)
+        if (_state.favorites.folders.length >= 16) { // 15 + default
+            LOG.warn(MODULE, 'Maximum folder limit (15) reached');
+            return null;
+        }
+
+        // Check for duplicate names
+        const duplicate = _state.favorites.folders.find(folder =>
+            folder.name.toLowerCase() === trimmedName.toLowerCase()
+        );
+
+        if (duplicate) {
+            LOG.warn(MODULE, `Folder name already exists: ${trimmedName}`);
             return null;
         }
 
         const folder = {
             id: generateId(),
-            name: name.trim(),
+            name: trimmedName,
             created: new Date().toISOString()
         };
 
-        _state.favorites.folders.push(folder);
-        _state.favorites.lastUpdated = new Date().toISOString();
-        saveToStorage();
+        // ✅ CORRECT: Use set() which automatically handles:
+        // - Change detection (compares old vs new)
+        // - Observer notifications (with proper old/new values)
+        // - Automatic persistence via saveToStorage()
+        const newFolders = [...folders, folder];
+        set('favorites.folders', newFolders);
 
         LOG.debug(MODULE, `Folder created: ${folder.name} (ID: ${folder.id})`);
         return folder.id;
@@ -708,6 +736,7 @@
             return false;
         }
 
+        const folders = get('favorites.folders');
         const folder = _state.favorites.folders.find(f => f.id === folderId);
         if (!folder) {
             LOG.warn(MODULE, `Folder not found for deletion: ${folderId}`);
@@ -715,19 +744,47 @@
         }
 
         // Move all favorites in this folder to default folder
-        _state.favorites.items.forEach(fav => {
-            if (fav.folderId === folderId) {
-                fav.folderId = 'default';
-            }
-        });
+        const favorites = get('favorites.items');
+        const updatedFavorites = favorites.map(fav =>
+        fav.folderId === folderId ? { ...fav, folderId: 'default' } : fav
+        );
+        set('favorites.items', updatedFavorites);
 
-        // Remove the folder
-        _state.favorites.folders = _state.favorites.folders.filter(f => f.id !== folderId);
-        _state.favorites.lastUpdated = new Date().toISOString();
-        saveToStorage();
+        // Remove the folder using set()
+        const newFolders = folders.filter(f => f.id !== folderId);
+        set('favorites.folders', newFolders);
 
         LOG.debug(MODULE, `Folder deleted: ${folder.name} (ID: ${folderId})`);
         return true;
+    }
+
+    /**
+     * Gets all favorites in a specific folder
+     * @param {string} folderId - Folder ID
+     * @returns {Array} Favorite items in the folder
+     */
+    function getFolderFavorites(folderId) {
+        // Add validation
+        if (typeof folderId !== 'string') {
+            LOG.error(MODULE, `Invalid folderId passed to getFolderFavorites:`, folderId);
+            debugger;
+            // Try to recover by using 'default' as fallback
+            folderId = 'default';
+        }
+
+        const favorites = _state.favorites.items.filter(fav => fav.folderId === folderId);
+        LOG.debug(MODULE, `Retrieved ${favorites.length} favorites from folder: ${folderId}`);
+        return [...favorites]; // Return copy
+    }
+
+    /**
+     * Gets the count of favorites in a folder
+     * @param {string} folderId - Folder ID
+     * @returns {number} Favorite count
+     */
+    function getFolderFavoriteCount(folderId) {
+        const count = _state.favorites.items.filter(fav => fav.folderId === folderId).length;
+        return count;
     }
 
     /**
@@ -922,6 +979,8 @@
             getFolders: getFolders,
             updateFolder: updateFolder,
             deleteFolder: deleteFolder,
+            getFolderFavorites: getFolderFavorites,
+            getFolderFavoriteCount: getFolderFavoriteCount,
 
             // Debug-Funktionen (nur wenn debugMode aktiv)
             _debug: window.BUILD_INFO?.debugMode ? {

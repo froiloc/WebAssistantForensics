@@ -22,3 +22,6 @@ Context:
 - in selection mode for subsection, after click highlight the element selected for a short period.
 - add button in selection mode to cancel selection mode. Maybe also a timeout.
 - 7. Mobile Touch Considerations: For the BFSG compliance on mobile: How should the two-click selection work on touch devices? What touch-friendly alternatives to hover previews? Any specific mobile gesture patterns we should support?
+- context menu. We haven't used the context menu yet in any case. Maybe we can add one later and implement more functionality there. We should have this as a separate module then, where menu items are displayed depending on the context of the element where the right click was made.
+- favorite folders should have a statistic.
+- Make folders a dropdown menu.

@@ -8,7 +8,7 @@
 // ============================================================================
 
 window.BUILD_INFO = {
-    version: '072',
+    version: '073',
     buildDate: '2025-10-14', // 7. Oktober 2025
     debugMode: true  // Auf false setzen für Production
 };

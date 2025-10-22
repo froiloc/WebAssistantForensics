@@ -393,14 +393,177 @@
         LOG.debug(MODULE, `🔇 Event listener removed for: ${eventType}`);
     }
 
+    // ========================================================================
+    // FOLDER MANAGEMENT - ADD TO script-favorites.js
+    // ========================================================================
+
+    /**
+     * Renders the folder navigation tabs dynamically
+     */
+    function renderFolderNavigation() {
+        const folderNav = document.getElementById('favorites-folder-nav');
+        if (!folderNav) return;
+
+        const folders = window.StateManager.getFolders();
+        const currentFavorites = window.StateManager.get('favorites.items') || [];
+
+        // Clear existing dynamic folders (keep default and add button)
+        const existingFolders = folderNav.querySelectorAll('.favorites-folder-tab:not([data-folder-id="default"])');
+        existingFolders.forEach(folder => folder.remove());
+
+        // Insert custom folders before the add button
+        const addButton = document.getElementById('favorites-add-folder');
+
+        folders.forEach(folder => {
+            if (folder.id === 'default') {
+                // Update default folder badge
+                const defaultBadge = document.getElementById('favorites-default-count');
+                if (defaultBadge) {
+                    const count = window.StateManager.getFolderFavoriteCount('default');
+                    defaultBadge.textContent = count;
+                    defaultBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+                return; // Skip default folder creation
+            }
+
+            const folderTab = document.createElement('button');
+            const favoriteCount = window.StateManager.getFolderFavoriteCount(folder.id);
+
+            folderTab.className = `favorites-folder-tab ${folder.id === _currentFolder ? 'favorites-folder-tab--active' : ''}`;
+            folderTab.setAttribute('data-folder-id', folder.id);
+            folderTab.setAttribute('role', 'tab');
+            folderTab.setAttribute('aria-selected', folder.id === _currentFolder ? 'true' : 'false');
+            folderTab.setAttribute('aria-controls', 'favorites-list');
+            folderTab.innerHTML = `
+            ${folder.name}
+            <span class="favorites-folder-tab__badge">${favoriteCount}</span>
+            `;
+
+            // Add click handler
+            folderTab.addEventListener('click', () => switchToFolder(folder.id));
+
+            // Insert before the add button
+            folderNav.insertBefore(folderTab, addButton);
+        });
+
+        LOG.debug(MODULE, `Rendered ${folders.length - 1} custom folders`);
+    }
+
+    /**
+     * Switches to a specific folder and updates the UI
+     */
+    function switchToFolder(folderId) {
+        LOG.debug(MODULE, `Switching to folder: ${folderId}`);
+
+        // Update active states
+        document.querySelectorAll('.favorites-folder-tab').forEach(tab => {
+            const isActive = tab.dataset.folderId === folderId;
+            tab.classList.toggle('favorites-folder-tab--active', isActive);
+            tab.setAttribute('aria-selected', isActive.toString());
+        });
+
+        _currentFolder = folderId;
+
+        // Render the favorites for this folder
+        renderFavoritesList(folderId);
+
+        LOG.info(MODULE, `Switched to folder: ${folderId}`);
+    }
+
+    /* FOR DEBUGGING ONLY */
+    // Add this to track folder switches
+    const originalSwitchToFolder = switchToFolder;
+    switchToFolder = function(folderId) {
+        LOG.debug(MODULE, '📁 [FOLDER SWITCH]', {
+            from: _currentFolder,
+            to: folderId,
+            timestamp: Date.now()
+        });
+        return originalSwitchToFolder.call(this, folderId);
+    };
+
+    /**
+     * Updates folder badge counts when favorites change
+     */
+    function updateFolderBadges() {
+        const folders = window.StateManager.getFolders();
+
+        folders.forEach(folder => {
+            const badge = document.querySelector(`.favorites-folder-tab[data-folder-id="${folder.id}"] .favorites-folder-tab__badge`);
+            if (badge) {
+                const count = window.StateManager.getFolderFavoriteCount(folder.id);
+                badge.textContent = count;
+            }
+        });
+
+        LOG.debug(MODULE, 'Updated all folder badges');
+    }
+
+    function initFolderStateObserver() {
+        if (!window.StateManager || !window.StateManager.subscribe) {
+            LOG.error(MODULE, 'StateManager subscription not available for folders');
+            return;
+        }
+
+        console.log('🔍 [DEBUG] Setting up folder state observers...');
+
+        // Subscribe to favorites changes to update badges
+        const unsubscribe = window.StateManager.subscribe('favorites.items', (newFavorites, oldFavorites) => {
+            console.log('🔍 [DEBUG] Favorites subscription fired!', {
+                oldCount: oldFavorites?.length || 0,
+                newCount: newFavorites?.length || 0
+            });
+
+            // If current folder is empty, show empty state
+            const currentFolderFavorites = window.StateManager.getFolderFavorites(_currentFolder);
+
+            LOG.debug(MODULE, '🔍 [SUBSCRIPTION DEBUG]', {
+                timestamp: Date.now(),
+                        totalFavorites: newFavorites?.length || 0,
+                        currentFolder: _currentFolder,
+                        currentFolderFavoritesCount: currentFolderFavorites.length,
+                        currentFolderFavorites: currentFolderFavorites, // Log the actual array
+                        conditionMet: currentFolderFavorites.length === 0,
+                        callingRender: currentFolderFavorites.length === 0 ? 'YES' : 'NO'
+            });
+
+            LOG.debug(MODULE, 'Favorites changed - updating folder badges');
+            updateFolderBadges();
+
+            if (currentFolderFavorites.length === 0) {
+                LOG.debug(MODULE, '🔄 [SUBSCRIPTION] Calling renderFavoritesList because folder is empty');
+                renderFavoritesList(_currentFolder);
+            } else {
+                LOG.debug(MODULE, '🔄 [SUBSCRIPTION DEBUG] NOT Calling renderFavoritesList because folder has elements');
+            }
+        });
+
+        // Subscribe to folder changes
+        const unsubscribeFolders = window.StateManager.subscribe('favorites.folders', (newFolders, oldFolders) => {
+            console.log('🔍 [DEBUG] FOLDERS SUBSCRIPTION FIRED!', {
+                oldCount: oldFolders?.length || 0,
+                newCount: newFolders?.length || 0,
+                newFolders: newFolders
+            });
+
+            LOG.debug(MODULE, 'Folders changed - updating folder navigation', {
+                oldCount: oldFolders?.length || 0,
+                newCount: newFolders?.length || 0
+            });
+            renderFolderNavigation();
+        });
+
+        // Store unsubscribe functions for cleanup
+        _unsubscribeFunctions.push(unsubscribe, unsubscribeFolders);
+        LOG.info(MODULE, 'Folder state observers initialized');
+    }
 
     // ============================================================
     //  Favorites List Rendering Function
     // ============================================================
 
-    function renderFavoritesList(folderId = 'default') {
-        const favorites = window.StateManager.get('favorites.items') || [];
-        const folderFavorites = favorites.filter(fav => fav.folderId === folderId);
+    function renderFavoritesList(folderId = _currentFolder) {
+        const favorites = window.StateManager.getFolderFavorites(folderId);
 
         const emptyState = document.querySelector(CONFIG.selectors.emptyState);
         const favoritesList = document.querySelector(CONFIG.selectors.favoritesList);
@@ -409,7 +572,7 @@
         // Always hide skeleton first
         hideSkeletonLoading();
 
-        if (folderFavorites.length === 0) {
+        if (favorites.length === 0) {
             // Update with dynamic suggestions before showing
             updateEmptyStateSuggestions();
             // Show empty state, hide list
@@ -423,16 +586,13 @@
         favoritesList.classList.remove(CONFIG.classes.hidden);
 
         // Render favorites into the pre-existing list
-        favoritesList.innerHTML = folderFavorites.map(favorite =>
+        favoritesList.innerHTML = favorites.map(favorite =>
             CONFIG.templates.favoriteItem(favorite)
         ).join('');
 
-        // Initialize statistics for the rendered items
-        const favoriteItems = Array.from(favoritesList.querySelectorAll(CONFIG.selectors.favoriteItem));
-
         updateFolderBadgeCounts();
 
-        LOG.debug(MODULE, `Rendered ${folderFavorites.length} favorites with statistics`);
+        LOG.debug(MODULE, `Rendered ${favorites.length} favorites for folder: ${folderId}`);
     }
 
     // Subsection favorites in sidebar show context:
@@ -467,14 +627,11 @@
             if (favoriteElement) {
                 updateSingleFavoriteElement(favoriteElement, updatedFavorite);
                 LOG.debug(MODULE, `Updated display for section: ${updatedFavorite.sectionId}`);
-                return; // Early return - we updated just one element
+            } else {
+                // Element not found - log warning but don't force full re-render
+                LOG.warn(MODULE, `Favorite element not found for ID: ${updatedFavorite.id}. Stats update skipped.`);
             }
         }
-
-        // Fallback: Update the entire favorites list
-        const favorites = window.StateManager.get('favorites.items') || [];
-        renderFavoritesList(favorites);
-        LOG.debug(MODULE, 'Updated entire favorites display');
     }
 
     function updateSingleFavoriteElement(element, favorite) {
@@ -546,14 +703,14 @@
     /**
      * Unified favorite creation for both sections and subsections
      */
-    function createFavorite(target, customTitle = null, favoriteType = 'section') {
-        LOG.debug(MODULE, `Creating ${favoriteType} favorite for target: ${target}`);
+    function createFavorite(target, customTitle = null, favoriteType = 'section', folderId = 'default') {
+        LOG.debug(MODULE, `Creating ${favoriteType} favorite for target: ${target} in folder: ${folderId}`);
 
         const favorites = window.StateManager.get('favorites.items') || [];
 
         // Check for duplicates (same target in same folder)
         const existingFavorite = favorites.find(fav =>
-        fav.target === target && fav.folderId === 'default'
+        fav.target === target && fav.folderId === folderId
         );
 
         if (existingFavorite) {
@@ -565,8 +722,8 @@
             id: generateId(),
             target: target,
             title: generateFavoriteTitle(target, customTitle),
-            folderId: 'default',
-            type: favoriteType, // 'section' or 'subsection'
+            folderId: folderId, // ← Use the folder ID, not name!
+            type: favoriteType,
             meta: {
                 createdAt: new Date().toISOString(),
                 lastAccessed: null,
@@ -576,14 +733,14 @@
 
         // Add subsection-specific data if needed
         if (favoriteType === 'subsection') {
-            favorite.selector = target; // For subsections, target is the CSS selector
+            favorite.selector = target;
             favorite.sectionId = getSectionIdFromTarget(target);
         }
 
         favorites.push(favorite);
         window.StateManager.set('favorites.items', favorites);
 
-        LOG.info(MODULE, `Favorite created: ${favorite.title} (${favoriteType})`);
+        LOG.info(MODULE, `Favorite created: ${favorite.title} (${favoriteType}) in folder: ${folderId}`);
         return { success: true, favorite: favorite };
     }
 
@@ -627,13 +784,15 @@
     }
 
     function removeFavorite(favoriteId) {
-        // FIRST: Get the sectionId before we remove the favorite
+        // FIRST: Get the target before we remove the favorite
         const favorites = window.StateManager.get('favorites.items') || [];
         const favoriteToRemove = favorites.find(fav => fav.id === favoriteId);
-        const sectionId = favoriteToRemove?.sectionId;
-
-        // Extract target from the favorite
         const target = favoriteToRemove?.target;
+
+        // ✅ ADD THIS: Show loading state for consistent UX
+        if (target) {
+            showFavoriteLoadingState(target);
+        }
 
         const favoriteItem = document.querySelector(`main [data-favorite-id="${favoriteId}"]`);
 
@@ -644,9 +803,9 @@
             // Dispatch events for UI synchronization
             dispatchFavoritesEvent(FAVORITES_EVENTS.CHANGED, {
                 favorites: getFavorites(),
-                action: 'removed',
-                target: target,
-                removedFavorite: favoriteToRemove
+                                   action: 'removed',
+                                   target: target,
+                                   removedFavorite: favoriteToRemove
             });
 
             dispatchFavoritesEvent(FAVORITES_EVENTS.SECTION_STATUS, {
@@ -663,8 +822,8 @@
                 window.StateManager.set('favorites.items', updatedFavorites);
 
                 // Hide loading state
-                if (sectionId) {
-                    hideFavoriteLoadingState(sectionId);
+                if (target) {
+                    hideFavoriteLoadingState(target);
                 }
 
                 Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
@@ -675,8 +834,8 @@
             window.StateManager.set('favorites.items', updatedFavorites);
 
             // Hide loading state
-            if (sectionId) {
-                hideFavoriteLoadingState(sectionId);
+            if (target) {
+                hideFavoriteLoadingState(target);
             }
 
             Toast.show(CONFIG.i18n.de.favoriteRemoved, 'info');
@@ -1228,9 +1387,31 @@
 
             // Update UI if favorites sidebar is visible
             if (isFavoritesSidebarActive()) {
-                renderFavoritesList();
+                updateFavoritesDisplay(updatedFavorites);
+                // renderFavoritesList(); ← this was here before
             }
         }
+    }
+
+    /**
+     * Initialize folder tab click handlers for ALL folders (including default)
+     */
+    function initFolderTabClickHandlers() {
+        const folderNav = document.getElementById('favorites-folder-nav');
+        if (!folderNav) return;
+
+        // Use event delegation to handle clicks on ANY folder tab
+        folderNav.addEventListener('click', (event) => {
+            const folderTab = event.target.closest('.favorites-folder-tab');
+            if (folderTab) {
+                const folderId = folderTab.dataset.folderId;
+                if (folderId) {
+                    switchToFolder(folderId);
+                }
+            }
+        });
+
+        LOG.debug(MODULE, 'Folder tab click handlers initialized (event delegation)');
     }
 
     function initializeFavoritesHistorySync() {
@@ -1556,6 +1737,11 @@
             // Initial render
             initializeFavorites();
             initVisitTracking();
+
+            initFolderStateObserver();
+            initFolderTabClickHandlers();
+            renderFolderNavigation();
+
             _isInitialized = true;
 
             LOG.info(MODULE, 'Favorites Manager initialized successfully');
@@ -1600,7 +1786,10 @@
             // ✅ NEW: Event system debug access
             _eventTarget: _eventTarget,
             dispatchFavoritesEvent: dispatchFavoritesEvent,
-            navigateToFavorite: navigateToFavorite
+            navigateToFavorite: navigateToFavorite,
+            _currentFolder: () => _currentFolder,
+            renderFolderNavigation: renderFolderNavigation,
+            createSubsectionFavorite: createSubsectionFavorite
         } : undefined
     };
     LOG.debug(MODULE, 'FavoritesManager API exported with toggle support');
