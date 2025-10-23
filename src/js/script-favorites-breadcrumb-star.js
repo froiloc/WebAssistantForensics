@@ -133,7 +133,7 @@
             return;
         }
 
-        const isFavorited = window.FavoritesManager.isSectionFavorited(CONFIG.selectors.section(_currentSectionId));
+        const isFavorited = window.FavoritesManager?.isSectionFavorited(CONFIG.selectors.section(_currentSectionId)) || false;
 
         // Single class toggle - your clean approach!
         _starButton.classList.toggle(CONFIG.classes.active, isFavorited);

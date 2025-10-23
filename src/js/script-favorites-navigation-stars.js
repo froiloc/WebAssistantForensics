@@ -124,7 +124,7 @@
 
         // Convert to proper target selector because links in navigation sidebar are only for sections
         const target = `[data-section="${sectionId}"]`;
-        const isFavorited = window.FavoritesManager.isSectionFavorited(target);
+        const isFavorited = window.FavoritesManager?.isSectionFavorited(target) || false;
 
         // Single class toggle - CSS handles the visual change
         starButton.classList.toggle(CONFIG.classes.active, isFavorited);

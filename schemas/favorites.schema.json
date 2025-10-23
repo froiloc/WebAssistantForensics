@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/froiloc/WebAssistantForensics/schemas/favorites.schema.json",
+  "title": "Favorites",
+  "description": "Schema for the hybrid favorites structure with flat items array and folder definitions.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Version of the favorites schema for data migration purposes."
+    },
+    "items": {
+      "type": "array",
+      "description": "Flat array of all favorite items across all folders.",
+      "items": {
+        "type": "object",
+        "required": ["id", "sectionId", "folderId", "createdAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the favorite item."
+          },
+          "sectionId": {
+            "type": "string",
+            "description": "Identifier of the referenced section."
+          },
+          "sectionName": {
+            "type": "string",
+            "description": "Display name of the section."
+          },
+          "sectionPath": {
+            "type": "string",
+            "description": "Navigation path or hierarchy of the section."
+          },
+          "folderId": {
+            "type": "string",
+            "description": "ID of the folder containing this favorite."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this favorite was created."
+          },
+          "lastAccessed": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this section was last visited."
+          },
+          "accessCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of times this section has been accessed."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags associated with this favorite."
+          }
+        }
+      }
+    },
+    "folders": {
+      "type": "array",
+      "description": "Array of folder definitions.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the folder."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the folder."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this folder was created."
+          }
+        }
+      }
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the favorites data was last modified."
+    }
+  },
+  "required": ["items", "folders", "lastUpdated", "version"]
+}

@@ -39,7 +39,7 @@
     const PatternCompiler = {
         compilePatterns(patterns) {
             if (!patterns || !Array.isArray(patterns)) {
-                window.LOG.warn(MODULE, 'Invalid patterns for compilation');
+                LOG.warn(MODULE, 'Invalid patterns for compilation');
                 return [];
             }
 
@@ -50,12 +50,12 @@
                         compiled: new RegExp(pattern.pattern, 'gi')
                     };
                 } catch (error) {
-                    window.LOG.error(MODULE, `Pattern compilation failed: "${pattern.original}"`, error);
+                    LOG.error(MODULE, `Pattern compilation failed: "${pattern.original}"`, error);
                     return null;
                 }
             }).filter(Boolean);
 
-            window.LOG.debug(MODULE, `Compiled ${compiledPatterns.length} patterns`);
+            LOG.debug(MODULE, `Compiled ${compiledPatterns.length} patterns`);
             return compiledPatterns;
         },
 
@@ -148,7 +148,7 @@
             const mainContent = document.querySelector(CONFIG.selectors.mainContent);
 
             if (!mainContent) {
-                window.LOG.warn(MODULE, 'Main content element not found');
+                LOG.warn(MODULE, 'Main content element not found');
                 return textNodes;
             }
 
@@ -431,7 +431,7 @@
             }
         });
 
-        window.LOG.debug(MODULE, `Processed ${processedCount} text nodes with ${totalTermsFound} terms`);
+        LOG.debug(MODULE, `Processed ${processedCount} text nodes with ${totalTermsFound} terms`);
     }
 
     function _showDetailedView(termId) {
@@ -517,7 +517,7 @@
      */
     async function init() {
         if (_isInitialized) {
-            window.LOG.warn(MODULE, 'Already initialized');
+            LOG.warn(MODULE, 'Already initialized');
             return true;
         }
 
@@ -541,7 +541,7 @@
             setTimeout(() => _processViewportContent(), 100);
 
             _isInitialized = true;
-            window.LOG.info(MODULE, 'Glossary manager initialized');
+            LOG.info(MODULE, 'Glossary manager initialized');
 
             window.dispatchEvent(new CustomEvent('glossaryReady', {
                 detail: { termCount: _searchIndex.metadata.term_count }
@@ -550,7 +550,7 @@
             return true;
 
         } catch (error) {
-            window.LOG.error(MODULE, 'Initialization failed:', error);
+            LOG.error(MODULE, 'Initialization failed:', error);
             return false;
         }
     }
@@ -572,7 +572,7 @@
         _patternCompiler = null;
         _activeHighlights.clear();
 
-        window.LOG.info(MODULE, 'Glossary manager destroyed');
+        LOG.info(MODULE, 'Glossary manager destroyed');
     }
 
     // Export public API
@@ -591,6 +591,6 @@
         }
     };
 
-    window.LOG.debug(MODULE, 'Glossary module loaded');
+    LOG.debug(MODULE, 'Glossary module loaded');
 
 })();

@@ -4306,3 +4306,353 @@ h6:has(.header-with-icons)
     border-color: var(--accent-color, #007acc);
     color: var(--accent-color, #007acc);
 }
+
+/* ============================================================================
+ *  FAVORITES FOLDER DROPDOWN - COMPACT NAVIGATION
+ *  ============================================================================ */
+
+.favorites-folder-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    position: relative;
+    flex-wrap: nowrap;
+}
+
+/* Dropdown container */
+.favorites-folder-dropdown {
+    position: relative;
+    min-width: 200px;
+    flex-shrink: 1;
+}
+
+/* Main dropdown button */
+.favorites-folder-dropdown__button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--color-text);
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    gap: 8px;
+}
+
+.favorites-folder-dropdown__button:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent-color);
+}
+
+.favorites-folder-dropdown__button:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* Dropdown arrow icon via pseudo-element */
+.favorites-folder-dropdown__button::after {
+    content: "▼";
+    font-size: 0.7em;
+    transition: transform 0.2s ease;
+    opacity: 0.7;
+}
+
+.favorites-folder-dropdown--open .favorites-folder-dropdown__button::after {
+    transform: rotate(180deg);
+}
+
+/* Disabled state when no custom folders */
+.favorites-folder-dropdown--disabled .favorites-folder-dropdown__button {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.favorites-folder-dropdown--disabled .favorites-folder-dropdown__button::after {
+    opacity: 0.3;
+}
+
+.favorites-folder-dropdown--disabled .favorites-folder-dropdown__button:hover {
+    background: var(--surface-color);
+    border-color: var(--border-color);
+}
+
+/* Badges in button */
+.favorites-folder-dropdown__badges {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.favorites-folder-dropdown__folder-count::before {
+    content: "📁";
+    margin-right: 2px;
+}
+
+.favorites-folder-dropdown__item-count::before {
+    content: "⭐";
+    margin-right: 2px;
+}
+
+.favorites-folder-dropdown__folder-count,
+.favorites-folder-dropdown__item-count {
+    background: var(--accent-color);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* Dropdown menu */
+.favorites-folder-dropdown__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 4px;
+}
+
+/* Folder items */
+.favorites-folder-dropdown__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 0.9em;
+    transition: all 0.1s ease;
+    position: relative;
+}
+
+.favorites-folder-dropdown__item:hover {
+    background: var(--surface-hover);
+}
+
+.favorites-folder-dropdown__item:hover .favorites-folder-management__buttons {
+    display: flex;
+}
+
+.favorites-folder-dropdown__item--active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.favorites-folder-dropdown__item-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    margin-left: 8px;
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* Management buttons */
+.favorites-folder-management__buttons {
+    display: none;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    gap: 4px;
+    background: inherit;
+}
+
+/* Rename icon via pseudo-element */
+.favorites-folder-rename::before {
+    content: "✏️";
+    font-size: 0.8em;
+}
+
+/* Delete icon via pseudo-element */
+.favorites-folder-delete::before {
+    content: "🗑️";
+    font-size: 0.8em;
+}
+
+.favorites-folder-rename,
+.favorites-folder-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+}
+
+.favorites-folder-rename:hover,
+.favorites-folder-delete:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Create folder button */
+.favorites-folder-dropdown__create {
+    border-top: 1px solid var(--border-color);
+    padding: 8px 12px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--accent-color);
+    font-weight: 500;
+    text-align: left;
+    transition: background-color 0.1s ease;
+}
+
+.favorites-folder-dropdown__create::before {
+    content: "+";
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.favorites-folder-dropdown__create:hover {
+    background: var(--surface-hover);
+}
+
+/* Empty state */
+.favorites-folder-dropdown__empty {
+    padding: 12px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+/* Ensure subsection button has proper spacing */
+.subsection-selection-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Filtered state for future tag filtering */
+.filtered-out {
+    display: none;
+}
+
+/*******************************/
+/* fix dropdown folder menu    */
+/*******************************/
+
+.sidebar-subheader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 44px;
+}
+
+.favorites-folder-nav {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 4px;
+}
+
+.subsection-selection-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Remove text on smaller screens */
+@media (max-width: 320px) {
+    .subsection-selection-btn__text {
+        display: none;
+    }
+
+    .subsection-selection-btn {
+        padding: 6px;
+    }
+}
+
+/***********************************/
+/* fix position of subsection-btn  */
+/***********************************/
+/* Fix subheader layout */
+.sidebar-subheader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    min-height: 44px;
+    position: relative; /* Remove if already set */
+}
+
+/* Fix folder nav to be flexible */
+.favorites-folder-nav {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    margin: 0 !important; /* Override any existing margins */
+    padding: 0 !important; /* Override any existing padding */
+}
+
+/* Fix dropdown to take available space */
+.favorites-folder-dropdown {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+/* Fix subsection button to be part of flex flow */
+.subsection-selection-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    /* REMOVE absolute positioning */
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+
+    /* Ensure proper sizing */
+    height: auto;
+    width: auto;
+}
+
+/* Hide text on very small screens */
+@media (max-width: 320px) {
+    .subsection-selection-btn__text {
+        display: none;
+    }
+    .subsection-selection-btn {
+        padding: 6px;
+    }
+}

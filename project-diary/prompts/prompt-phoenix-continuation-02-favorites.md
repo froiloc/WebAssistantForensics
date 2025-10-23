@@ -467,6 +467,8 @@ Technical Context:
 * StateManager drives all UI updates via subscriptions
 * All selectors use CONFIG system
 
+Also, in JavaScript all classes should be placed in CONFIG.classes and all selectors should be placed in CONFIG.selectors. All messages directed to the user should be in German and must be stored in CONFIG.i18n.de. Other messages and texts should be in English, i.e., code comments and debug messages. In JavaScript, you may never set a style attribute. You may only add or remove classes. All visuals must be done in CSS using the css/styles.css document. Furthermore, if you have to introduce dynamic HTML in JavaScript, it should reside in CONFIG.templates.
+
 Ready for: Step 2.2 - Fix star indicator synchronization across all UI components
 
 We should never use hardcoded selectors or classes. Always use the CONFIG.selectors or CONFIG.classes approach.

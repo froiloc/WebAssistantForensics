@@ -178,20 +178,26 @@
                         <div class="sidebar-subheader">
                             <!-- Folder Navigation -->
                             <nav id="favorites-folder-nav" class="favorites-folder-nav" role="tablist">
-                                <button class="favorites-folder-tab favorites-folder-tab--active"
-                                        data-folder-id="default"
-                                        role="tab"
-                                        aria-selected="true"
-                                        aria-controls="favorites-list">
-                                    Lesezeichen
-                                    <span class="favorites-folder-tab__badge" id="favorites-default-count">4</span>
-                                </button>
-                                <!-- Dynamic folder tabs will be inserted here by JavaScript -->
-                                <button class="favorites-folder-add"
-                                        id="favorites-add-folder"
-                                        aria-label="Neuen Ordner erstellen"
-                                        title="Neuen Ordner erstellen">
-                                </button>
+                                <div class="favorites-folder-dropdown">
+                                    <button class="favorites-folder-dropdown__button" aria-expanded="false" aria-haspopup="true" data-tooltip="Ordner auswählen">
+                                        <span class="favorites-folder-dropdown__current">Lesezeichen</span>
+                                        <span class="favorites-folder-dropdown__badges">
+                                            <span class="favorites-count">0</span>
+                                            <span class="folders-count">0</span>
+                                        </span>
+                                    </button>
+                                    <div class="favorites-folder-dropdown__menu hidden" role="menu">
+                                        <div class="favorites-folder-dropdown__items" role="none">
+                                            <!-- Dynamic folder items will be inserted here -->
+                                        </div>
+                                        <button class="favorites-folder-dropdown__create" type="button">
+                                            Neuen Ordner erstellen
+                                        </button>
+                                        <div class="favorites-folder-dropdown__empty hidden">
+                                            Erstellen Sie zuerst einen benutzerdefinierten Ordner
+                                        </div>
+                                    </div>
+                                </div>
                             </nav>
 
                             <button class="subsection-selection-btn" aria-label="Präzises Lesezeichen setzen">
