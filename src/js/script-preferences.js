@@ -34,7 +34,8 @@
                 showTips: true,
                 autoSaveNotes: true,
                 sidebarsOpen: ['navigation'],
-                activeSidebarTab: 'navigation'
+                activeSidebarTab: 'navigation',
+                theme: window.ThemeManger?.defaultTheme() || 'system'
             };
         }
 
@@ -100,7 +101,8 @@
                 detailLevel: 'bestpractice',
                 timeFormat: 'relative',
                 showTips: true,
-                autoSaveNotes: true
+                autoSaveNotes: true,
+                theme: window.ThemeManger?.defaultTheme() || 'system'
             });
 
             saveUserPreferences();

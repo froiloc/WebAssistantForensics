@@ -48,9 +48,10 @@
 
         deactivateAllSidebars();
         sidebar.classList.add('active');
-        sidebar.style.display = 'flex'; // ✅ Zeige Sidebar
+        // sidebar.style.display = 'flex'; // ✅ Zeige Sidebar // TODO ← remove this line
 
         container.classList.add('open');
+        sidebar.classList.add('open');
 
         // StateManager verwenden
         if (window.StateManager) {
@@ -99,7 +100,8 @@
 
             setTimeout(() => {
                 container.classList.remove('open', 'closing');
-                sidebar.style.display = 'none';
+                sidebar.classList.remove('open');
+                // sidebar.style.display = 'none'; // TODO ← remove this line
 
                 if (window.StateManager) {
                     window.StateManager.set('ui.activeSidebarTab', null);
@@ -116,14 +118,15 @@
             // Nur direkt verstecken und nächste aktivieren
 
             sidebar.classList.remove('active');
-            sidebar.style.display = 'none';
+            sidebar.classList.remove('open');
+            // sidebar.style.display = 'none'; // TODO ← remove this line
 
             // Nächste Sidebar aktivieren
             const firstRemaining = sidebarsOpen[0];
             const firstSidebar = document.getElementById(`sidebar-${firstRemaining}`);
             if (firstSidebar) {
                 firstSidebar.classList.add('active');
-                firstSidebar.style.display = 'flex';
+                // firstSidebar.style.display = 'flex'; // TODO ← remove this line
 
                 if (window.StateManager) {
                     window.StateManager.set('ui.activeSidebarTab', firstRemaining);

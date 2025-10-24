@@ -85,7 +85,9 @@
             folderRenameBtn: 'favorites-folder-rename',
             folderDeleteBtn: 'favorites-folder-delete',
             hidden: 'hidden',
-            filteredOut: 'filtered-out'
+            filteredOut: 'filtered-out',
+            favoriteEditBtn: 'favorite-action--edit',
+            favoritesSuggestionsContainer: 'favorites-suggestions-container'
         }
     };
 

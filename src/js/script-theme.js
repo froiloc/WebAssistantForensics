@@ -32,8 +32,14 @@
         THEMES.CONTRAST_INVERSE
     ];
 
+    const CONFIG = {
+        settings: {
+            defaultTheme: THEMES.SYSTEM
+        }
+    };
+
     let _isInitialized = false;
-    let currentTheme = THEMES.SYSTEM;
+    let _currentTheme = THEMES.SYSTEM;
 
     // ===== INITIALISIERUNG =====
     function initTheme() {
@@ -57,43 +63,48 @@
 
         _isInitialized = true;
 
-        LOG.info(MODULE, `Theme system initialized with theme: ${currentTheme}`);
+        LOG.info(MODULE, `Theme system initialized with theme: ${_currentTheme}`);
     }
 
     // ===== THEME LADEN =====
     function loadThemePreference() {
         try {
-            const saved = localStorage.getItem('axiom-guide-theme');
-
-            if (saved && Object.values(THEMES).includes(saved)) {
-                currentTheme = saved;
-                LOG(MODULE, `Loaded saved theme: ${currentTheme}`);
+            let saved;
+            if (window.Preferences) {
+                saved = window.Preferences.get('theme') || CONFIG.settings.defaultTheme;
             } else {
-                currentTheme = THEMES.SYSTEM;
-                LOG(MODULE, 'No saved theme, using system default');
+                saved = localStorage.getItem('axiom-guide-theme') || CONFIG.settings.defaultTheme;
             }
 
-            applyTheme(currentTheme);
+            if (saved && Object.values(THEMES).includes(saved)) {
+                _currentTheme = saved;
+                LOG(MODULE, `Loaded saved theme: ${_currentTheme}`);
+            } else {
+                _currentTheme = CONFIG.settings.defaultTheme;;
+                LOG(MODULE, 'No saved theme, using default');
+            }
+
+            applyTheme(_currentTheme);
             updateThemeDisplay();
 
         } catch (e) {
             LOG.error(MODULE, 'Error loading theme preference:', e);
-            currentTheme = THEMES.SYSTEM;
-            applyTheme(currentTheme);
+            _currentTheme = THEMES.SYSTEM;
+            applyTheme(_currentTheme);
         }
     }
 
     // ===== THEME WECHSELN (ZYKLISCH) =====
     function cycleTheme() {
-        const currentIndex = THEME_ORDER.indexOf(currentTheme);
+        const currentIndex = THEME_ORDER.indexOf(_currentTheme);
         const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
         const nextTheme = THEME_ORDER[nextIndex];
 
-        LOG(MODULE, `Cycling theme: ${currentTheme} → ${nextTheme}`);
+        LOG(MODULE, `Cycling theme: ${_currentTheme} → ${nextTheme}`);
 
-        currentTheme = nextTheme;
-        applyTheme(currentTheme);
-        saveThemePreference();
+        _currentTheme = nextTheme;
+        applyTheme(_currentTheme);
+        saveThemePreference(_currentTheme);
         updateThemeDisplay();
     }
 
@@ -159,7 +170,7 @@
         const displayElement = document.getElementById('current-theme');
 
         if (displayElement) {
-            const displayName = THEME_NAMES[currentTheme] || currentTheme;
+            const displayName = THEME_NAMES[_currentTheme] || _currentTheme;
             displayElement.textContent = displayName;
             LOG.debug(MODULE, `Theme display updated: ${displayName}`);
         }
@@ -167,8 +178,8 @@
 
     // ===== THEME SPEICHERN =====
     function saveThemePreference(theme) {
-        if (window.StateManager) {
-            window.StateManager.set('preferences.theme', theme);
+        if (window.Preferences) {
+            window.Preferences.set('theme', theme);
         } else {
             localStorage.setItem('theme-preference', theme);
         }
@@ -177,7 +188,7 @@
     // ===== SYSTEM-THEME-ÄNDERUNG (AUTO-SWITCH) =====
     function handleSystemThemeChange(e) {
         // Nur reagieren, wenn aktuell auf System-Theme
-        if (currentTheme === THEMES.SYSTEM) {
+        if (_currentTheme === THEMES.SYSTEM) {
             const newSystemTheme = e.matches ? 'dark' : 'light';
             LOG(MODULE, `System theme changed to: ${newSystemTheme}`);
             applyTheme(THEMES.SYSTEM);
@@ -189,7 +200,7 @@
         init: initTheme,
         setTheme: function(theme) {
             if (Object.values(THEMES).includes(theme)) {
-                currentTheme = theme;
+                _currentTheme = theme;
                 applyTheme(theme);
                 saveThemePreference(theme);
                 updateThemeDisplay();
@@ -197,8 +208,9 @@
             }
             return false;
         },
-        getTheme: () => currentTheme,
+        getTheme: () => _currentTheme,
         getAvailableThemes: () => THEMES,
+        defaultTheme: () => CONFIG.settings.defaultTheme,
         cycleTheme: cycleTheme,
         isInitialized: () => _isInitialized
     };
