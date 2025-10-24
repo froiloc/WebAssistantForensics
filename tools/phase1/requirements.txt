@@ -1,19 +1,43 @@
-# Phase 1 Orchestrator - Dependencies
+# Requirements für Phase 1 Validator
+# Option A (Basis-Validierung) + Option B (Umfassende Validierung)
 
-# Basis
-pyyaml>=6.0.1
+# ============================================
+# Core Dependencies (Option A + B)
+# ============================================
 
-# Template-Engine für Handlebars
-pybars3>=0.9.7
+# HTML/XML Parsing
+beautifulsoup4>=4.12.0      # HTML-Parsing für alle Validierungen
+lxml>=5.0.0                 # Schneller XML/HTML-Parser, Backend für BeautifulSoup
+
+# Configuration
+pyyaml>=6.0.0               # YAML-Config laden
 
 # Testing
-pytest>=7.4.0
-pytest-cov>=4.1.0
+pytest>=8.0.0               # Testing-Framework
 
-# Validierung (später benötigt)
-jsonschema>=4.19.0
-beautifulsoup4>=4.12.0
-lxml>=4.9.0
+# ============================================
+# Option B: Erweiterte Validierung
+# ============================================
 
-# Optional: Embeddings (für Synonym-Erkennung, falls gewünscht)
-# sentence-transformers>=2.2.0
+# HTML5 Validierung
+html5lib>=1.1               # HTML5-Standards-konforme Validierung
+
+# JSON-LD Schema Validierung
+jsonschema>=4.20.0          # JSON-Schema Validierung gegen Schema
+
+# Terminologie Fuzzy-Matching
+python-Levenshtein>=0.25.0  # Levenshtein-Distanz für Fuzzy-Matching
+rapidfuzz>=3.6.0            # Schnelles Fuzzy-Matching (performanter)
+
+# Media-Validierung
+Pillow>=10.0.0              # Bild-Validierung (Format, Größe, Dimensionen)
+
+# ============================================
+# Optional: Erweiterte Features
+# ============================================
+
+# Accessibility Testing (optional, für erweiterte BFSG-Checks)
+# axe-selenium-python>=2.1.6  # Automatisierte A11y-Tests (benötigt Selenium)
+
+# Performance & Monitoring (optional)
+# colorlog>=6.8.0             # Farbiges Logging für bessere Übersicht
