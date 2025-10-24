@@ -59,144 +59,138 @@ class GliederungLoader:
     
     def _build_section_order(self) -> List[str]:
         """
-        Erstellt geordnete Liste von Section-IDs basierend auf predecessor/successor
-        
-        Returns:
-            Liste von Section-IDs in korrekter Reihenfolge
+        Erstellt geordnete Liste aller Section-IDs
+        basierend auf predecessor/successor-Ketten
         """
-        # Finde erste Section (predecessorSection == null)
-        first_section = None
-        for section in self.data.get('sections', []):
-            if section.get('predecessorSection') is None:
-                first_section = section['sectionId']
-                break
+        ordered = []
+        visited = set()
         
-        if not first_section:
-            logger.warning("⚠️  Keine Start-Section gefunden (predecessorSection == null)")
-            # Fallback: Reihenfolge aus JSON
-            return [s['sectionId'] for s in self.data.get('sections', [])]
-        
-        # Baue Kette auf
-        order = [first_section]
-        current = first_section
-        
-        # Folge successor chain
-        max_iterations = 1000  # Schutz vor Endlosschleife
-        iteration = 0
-        
-        while iteration < max_iterations:
-            section = self.sections_by_id.get(current)
-            if not section:
-                break
-            
-            successor = section.get('successorSection')
-            if not successor:
-                break
-            
-            if successor in order:
-                logger.warning(f"⚠️  Zyklus erkannt bei Section {successor}")
-                break
-            
-            order.append(successor)
-            current = successor
-            iteration += 1
-        
-        logger.debug(f"Section-Reihenfolge erstellt: {len(order)} Sections")
-        return order
-    
-    def get_all_sections_ordered(self) -> List[Dict]:
-        """
-        Gibt alle Sections in Predecessor/Successor-Reihenfolge zurück
-        
-        Returns:
-            Liste von Section-Dictionaries (vollständige Metadaten)
-        """
-        return [
-            self.sections_by_id[section_id]
-            for section_id in self.section_order
-            if section_id in self.sections_by_id
+        # Finde alle Start-Sections (predecessorSection == None)
+        start_sections = [
+            s for s in self.data.get('sections', [])
+            if s.get('predecessorSection') is None
         ]
+        
+        # Für jede Start-Section: Folge der Kette
+        for start_section in start_sections:
+            current = start_section
+            
+            while current and current['sectionId'] not in visited:
+                ordered.append(current['sectionId'])
+                visited.add(current['sectionId'])
+                
+                # Nächste Section
+                successor_id = current.get('successorSection')
+                if successor_id:
+                    current = self.sections_by_id.get(successor_id)
+                else:
+                    current = None
+        
+        return ordered
     
     def get_section_by_id(self, section_id: str) -> Optional[Dict]:
         """
         Gibt Section-Metadaten zurück
         
         Args:
-            section_id: ID der Section
+            section_id: Section ID (z.B. "axiom-installation")
+            
+        Returns:
+            Section-Dictionary oder None
+        """
+        return self.sections_by_id.get(section_id)
+    
+    def get_all_sections_ordered(self) -> List[Dict]:
+        """
+        Gibt alle Sections in korrekter Reihenfolge zurück
+        (basierend auf predecessor/successor-Ketten)
         
         Returns:
-            Section-Dictionary oder None wenn nicht gefunden
+            Liste von Section-Dictionaries
         """
-        section = self.sections_by_id.get(section_id)
-        if not section:
-            logger.warning(f"⚠️  Section nicht gefunden: {section_id}")
-        return section
+        return [self.sections_by_id[sid] for sid in self.section_order]
     
     def get_predecessor_sections(self, section_id: str, count: int = 2) -> List[Dict]:
         """
         Gibt N Vorgänger-Sections zurück
         
         Args:
-            section_id: ID der aktuellen Section
-            count: Anzahl Vorgänger (default: 2)
-        
+            section_id: Section ID
+            count: Anzahl der Vorgänger
+            
         Returns:
-            Liste von Section-Dictionaries (vom ältesten zum neuesten)
+            Liste von Section-Dictionaries (neueste zuerst)
         """
-        try:
-            current_index = self.section_order.index(section_id)
-        except ValueError:
-            logger.warning(f"⚠️  Section nicht in Reihenfolge gefunden: {section_id}")
+        predecessors = []
+        current_section = self.get_section_by_id(section_id)
+        
+        if not current_section:
             return []
         
-        # Berechne Start-Index (mindestens 0)
-        start_index = max(0, current_index - count)
+        # Folge predecessorSection-Kette
+        visited = set()  # Zyklus-Schutz
+        current_id = current_section.get('predecessorSection')
         
-        # Extrahiere Vorgänger
-        predecessor_ids = self.section_order[start_index:current_index]
+        while current_id and len(predecessors) < count:
+            if current_id in visited:
+                logger.warning(f"Zyklus in predecessor-Kette erkannt bei {current_id}")
+                break
+            
+            visited.add(current_id)
+            predecessor = self.get_section_by_id(current_id)
+            
+            if predecessor:
+                predecessors.append(predecessor)
+                current_id = predecessor.get('predecessorSection')
+            else:
+                break
         
-        return [
-            self.sections_by_id[pred_id]
-            for pred_id in predecessor_ids
-            if pred_id in self.sections_by_id
-        ]
+        return predecessors
     
     def get_successor_sections(self, section_id: str, count: int = 2) -> List[Dict]:
         """
         Gibt N Nachfolger-Sections zurück
         
         Args:
-            section_id: ID der aktuellen Section
-            count: Anzahl Nachfolger (default: 2)
-        
+            section_id: Section ID
+            count: Anzahl der Nachfolger
+            
         Returns:
             Liste von Section-Dictionaries
         """
-        try:
-            current_index = self.section_order.index(section_id)
-        except ValueError:
-            logger.warning(f"⚠️  Section nicht in Reihenfolge gefunden: {section_id}")
+        successors = []
+        current_section = self.get_section_by_id(section_id)
+        
+        if not current_section:
             return []
         
-        # Berechne End-Index
-        end_index = min(len(self.section_order), current_index + count + 1)
+        # Folge successorSection-Kette
+        visited = set()  # Zyklus-Schutz
+        current_id = current_section.get('successorSection')
         
-        # Extrahiere Nachfolger
-        successor_ids = self.section_order[current_index + 1:end_index]
+        while current_id and len(successors) < count:
+            if current_id in visited:
+                logger.warning(f"Zyklus in successor-Kette erkannt bei {current_id}")
+                break
+            
+            visited.add(current_id)
+            successor = self.get_section_by_id(current_id)
+            
+            if successor:
+                successors.append(successor)
+                current_id = successor.get('successorSection')
+            else:
+                break
         
-        return [
-            self.sections_by_id[succ_id]
-            for succ_id in successor_ids
-            if succ_id in self.sections_by_id
-        ]
+        return successors
     
     def get_prerequisite_sections(self, section_id: str) -> List[Dict]:
         """
-        Gibt Prerequisites (contentual) für Section zurück
+        Gibt Prerequisites zurück (nur contentual)
         
         Args:
-            section_id: ID der aktuellen Section
-        
+            section_id: Section ID
+            
         Returns:
             Liste von Section-Dictionaries
         """
@@ -204,23 +198,28 @@ class GliederungLoader:
         if not section:
             return []
         
-        prerequisite_ids = section.get('prerequisites', {}).get('contentual', [])
+        prereqs = section.get('prerequisites', {}).get('contentual', [])
         
-        return [
-            self.sections_by_id[prereq_id]
-            for prereq_id in prerequisite_ids
-            if prereq_id in self.sections_by_id
-        ]
+        # Lade vollständige Section-Daten
+        prerequisite_sections = []
+        for prereq_id in prereqs:
+            prereq_section = self.get_section_by_id(prereq_id)
+            if prereq_section:
+                prerequisite_sections.append(prereq_section)
+            else:
+                logger.warning(f"Prerequisite '{prereq_id}' nicht gefunden für Section '{section_id}'")
+        
+        return prerequisite_sections
     
     def get_cross_reference_sections(self, section_id: str) -> List[Dict]:
         """
-        Gibt Cross-Reference Sections zurück
+        Gibt Cross-References zurück (mit Details)
         
         Args:
-            section_id: ID der aktuellen Section
-        
+            section_id: Section ID
+            
         Returns:
-            Liste von Tuples: (Section-Dictionary, reason, relevanceScore)
+            Liste von Dictionaries mit sectionId, reason, relevanceScore
         """
         section = self.get_section_by_id(section_id)
         if not section:
@@ -228,14 +227,16 @@ class GliederungLoader:
         
         cross_refs = section.get('crossReferences', [])
         
-        result = []
-        for ref in cross_refs:
-            ref_section = self.sections_by_id.get(ref['sectionId'])
+        # Erweitere mit vollständigen Section-Daten
+        enriched_cross_refs = []
+        for cross_ref in cross_refs:
+            ref_section = self.get_section_by_id(cross_ref['sectionId'])
             if ref_section:
-                result.append({
-                    'section': ref_section,
-                    'reason': ref.get('reason', ''),
-                    'relevanceScore': ref.get('relevanceScore', 0)
+                enriched_cross_refs.append({
+                    **cross_ref,
+                    'section': ref_section
                 })
+            else:
+                logger.warning(f"Cross-Reference '{cross_ref['sectionId']}' nicht gefunden für Section '{section_id}'")
         
-        return result
+        return enriched_cross_refs
