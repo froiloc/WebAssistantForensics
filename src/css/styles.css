@@ -4499,6 +4499,12 @@ h6:has(.header-with-icons)
     font-size: 0.8em;
 }
 
+/* default folder can neither be renamed nor deleted */
+.favorites-folder-rename[data-folder-id="default"],
+.favorites-folder-delete[data-folder-id="default"] {
+    display: none;
+}
+
 .favorites-folder-rename,
 .favorites-folder-delete {
     background: none;

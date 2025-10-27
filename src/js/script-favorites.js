@@ -1225,7 +1225,7 @@
     /**
      * Unified favorite creation for both sections and subsections
      */
-    function createFavorite(target, customTitle = null, favoriteType = 'section', folderId = 'default') {
+    function createFavorite(target, customTitle = null, favoriteType = 'section', folderId = _currentFolder) {
         LOG.debug(MODULE, `Creating ${favoriteType} favorite for target: ${target} in folder: ${folderId}`);
 
         const favorites = window.StateManager.get('favorites.items') || [];
@@ -1381,7 +1381,7 @@
     //  Toggle Favorite Function
     // ============================================================
 
-    function toggleFavorite(target) {
+    function toggleFavorite(target, folderId = _currentFolder) {
         LOG.debug(MODULE, `Toggling favorite for section: ${target}`);
 
         // Show immediate visual feedback
@@ -1394,8 +1394,8 @@
             folders: [
                 {
                     id: 'default',
-            name: 'Favoriten',
-            created: new Date().toISOString()
+                    name: 'Favoriten',
+                    created: new Date().toISOString()
                 }
             ],
             lastUpdated: new Date().toISOString()
@@ -1403,7 +1403,7 @@
 
         // Check if section is already favorited in default folder
         const existingFavorite = favoritesState.items.find(item =>
-            item.target === target && item.folderId === 'default'
+            item.target === target && item.folderId === folderId
         );
 
         if (existingFavorite) {
