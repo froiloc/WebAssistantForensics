@@ -1,5 +1,11 @@
 # Phase 1 Orchestrator - Konfiguration
 
+# Allgemeine Einstellungen
+general:
+  fail_on_errors: true
+  fail_on_warnings: false
+  max_errors_before_abort: 50
+
 # Pfade
 paths:
   # Input
@@ -17,6 +23,10 @@ paths:
   terminologie: "../../manuals/Terminologie-Entscheidungsliste.md"
   html_template_spec: "../../manuals/Phase_1__HTML-Template_Spezifikation__Matroschka-Prinzip_.md"
   json_schema: "../../schemas/main-content_schema.json"
+  gliederung: "input/output-phase0_5-final.json"
+  output_dir: "output"
+  log_dir: "logs"
+
 
 # Validierung
 validation:
@@ -42,7 +52,32 @@ workflow:
   auto_continue: false  # true = kein manueller Input zwischen Sections
   save_contexts: true   # Kontexte als JSON speichern (Debug)
 
+# Validierungs-Module (alle aktiviert für Option B)
+modules:
+  json_ld: true
+  html5: true
+  bfsg: true
+  links: true
+  terminology: true
+  structure: true
+  media: true
+
+# Terminologie Fuzzy-Matching
+terminology:
+  fuzzy_threshold: 80  # 0-100, höher = strenger
+  max_unrecognized_warnings: 3
+
+# Media (Phase 1: Spezifikationen)
+media:
+  allowed_image_formats: ["PNG", "JPG", "JPEG", "WebP", "SVG"]
+  allowed_video_formats: ["MP4", "WebM"]
+  min_resolution: "400x300"
+  max_image_size_mb: 5
+  max_video_size_mb: 50
+
 # Logging
 logging:
   level: "INFO"  # DEBUG, INFO, WARNING, ERROR
-  file: "logs/orchestrator.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/validator.log"
+  console: true

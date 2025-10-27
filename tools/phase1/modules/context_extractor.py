@@ -130,7 +130,7 @@ class ContextExtractor:
                 # Fallback: Beispiel-Section verwenden
                 logger.debug(f"         ⚠️  Kein HTML vorhanden, verwende Beispiel-Section")
                 try:
-                    html_content = self.html_loader.load_example_section(pred_id)
+                    html_content = self.html_loader.load_section_html(pred_id)
                     html_source = "example"
                     logger.debug(f"         ✅ Beispiel-Section geladen ({len(html_content)} Zeichen)")
                 except Exception as e:
