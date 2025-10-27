@@ -2494,7 +2494,7 @@ body.tips-hidden .sidebar-container {
     transition: transform var(--transition-fast) var(--ease-out);
 }
 
-.favorite-action--edit:hover {
+.favorite-edit-btn:hover {
     background-color: var(--color-warning);
     color: var(--color-warning-text);
 }
@@ -3018,7 +3018,7 @@ body.tips-hidden .sidebar-container {
 }
 
 /* Edit button */
-.favorite-action--edit::before {
+.favorite-edit-btn::before {
     content: "🖉";
     font-size: 13px;
 }
@@ -3041,11 +3041,11 @@ body.tips-hidden .sidebar-container {
     background-color: var(--color-info);
 }
 
-.favorite-action--edit {
+.favorite-edit-btn {
     color: var(--color-warning);
 }
 
-.favorite-action--edit:hover {
+.favorite-edit-btn:hover {
     background-color: var(--color-warning);
 }
 

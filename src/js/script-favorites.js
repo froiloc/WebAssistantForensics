@@ -44,10 +44,16 @@
 
     // Configuration
     const CONFIG = {
+        settings: {
+            maxFolders: 15
+        },
         classes: {
             active: 'active',
             hidden: 'hidden',
             favoriteItem: 'favorite-item',
+            favoriteItemTitle: 'favorite-item-title',
+            favoriteItemMeta: 'favorite-item-meta',
+            favoriteItemPath: 'favorite-item-path',
             favoriteLink: 'favorite-link',
             favoriteActive: 'favorite--active',
             folderActive: 'favorites-folder-tab--active',
@@ -55,11 +61,14 @@
             removing: 'favorite--removing',
             success: 'favorite--success',
             disabled: 'favorite--disabled',
+            favoriteItemSubsection: 'favorite-item--subsection',
+            favoriteActions: 'favorite-actions',
+            favoriteAction: 'favorite-action',
             favoriteMain: 'favorite-main',
             favoriteRemoveBtn: 'favorite-remove-btn',
             favoriteDetails: 'favorite-details',
-            detailsToggle: 'favorite-details-toggle',
-            detailsToggleActive: 'favorite-details-toggle--active',
+            favoriteDetailsBtn: 'favorite-details-toggle',
+            favoriteDetailsBtnActive: 'favorite-details-toggle--active',
             accessStats: 'access-stats',
             statItem: 'stat-item',
             statLabel: 'stat-label',
@@ -77,17 +86,24 @@
             folderDropdownItemActive: 'favorites-folder-dropdown__item--active',
             folderDropdownCreate: 'favorites-folder-dropdown__create',
             folderDropdownEmpty: 'favorites-folder-dropdown__empty',
-            folderDropdownDisabled: 'favorites-folder-dropdown--disabled',
             folderManagementButtons: 'favorites-folder-management__buttons',
             folderDropdownCurrent: 'favorites-folder-dropdown__current',
             folderDropdownFolderCount: 'favorites-folder-dropdown__folder-count',
             folderDropdownItemCount: 'favorites-folder-dropdown__item-count',
             folderRenameBtn: 'favorites-folder-rename',
             folderDeleteBtn: 'favorites-folder-delete',
-            hidden: 'hidden',
             filteredOut: 'filtered-out',
-            favoriteEditBtn: 'favorite-action--edit',
-            favoritesSuggestionsContainer: 'favorites-suggestions-container'
+            folderDropdownBadges: 'favorites-folder-dropdown__badges',
+            favoritesCount: 'favorites-count',
+            foldersCount: 'folders-count',
+            subsectionSelectionBtn: 'subsection-selection-btn',
+            favoritesSuggestionsContainer: 'favorites-suggestions-container',
+            emptyStateHint: 'favorites-empty-hint',
+            favoriteEditBtn: 'favorite-edit-btn',
+            folderDropdownCreateBadge: 'favorites-folder-dropdown__create-badge',
+            folderDropdownCreateDisabled: 'favorites-folder-dropdown__create--disabled',
+            folderDropdownLimitMessage: 'favorites-folder-dropdown__limit-message',
+            folderDropdownCreateSection: 'favorites-folder-dropdown__create-section'
         }
     };
 
@@ -141,15 +157,34 @@
             deleteFolder: 'Ordner löschen',
             folderManagement: 'Ordner verwalten',
             confirmDelete: (folderName) => `Möchten Sie den Ordner "${folderName}" wirklich löschen? Alle Lesezeichen werden in den Standardordner verschoben.`,
-            enterFolderName: 'Ordnernamen eingeben',
-            folderCreated: 'Ordner erstellt',
-            folderRenamed: 'Ordner umbenannt',
-            folderDeleted: 'Ordner gelöscht',
+            enterFolderName: 'Geben Sie einen Namen für den neuen Ordner ein:',
+            folderCreated: 'Ordner erfolgreich erstellt',
+            folderRenamed: 'Ordner erfolgreich umbenannt',
+            folderDeleted: 'Ordner erfolgreich gelöscht',
             folders: 'Ordner',
             favorites: 'Lesezeichen',
             renameFolderToast: 'Ordnernamen-Funktion wird in Phase 2 implementiert',
             deleteFolderToast: 'Ordner löschen-Funktion wird in Phase 2 implementiert',
-            createFolderToast: 'Neuen Ordner erstellen-Funktion wird in Phase 2 implementiert'
+            createFolderToast: 'Neuen Ordner erstellen-Funktion wird in Phase 2 implementiert',
+            folderDeleted: 'Ordner erfolgreich gelöscht',
+            folderRenamed: 'Ordner erfolgreich umbenannt',
+            confirmDelete: (folderName) => `Möchten Sie den Ordner "${folderName}" wirklich löschen?`,
+            foldersRemaining: (count) => `Noch ${count} Ordner möglich`,
+            folderLimitReached: 'Maximale Anzahl an Ordnern erreicht',
+            folderNameEmpty: 'Ordnername darf nicht leer sein',
+            folderNameTooLong: 'Ordnername darf maximal 30 Zeichen lang sein',
+            folderNameInvalidChars: 'Ordnername enthält ungültige Zeichen: < > : " / \\ | ? *',
+            folderAlreadyExists: 'Ein Ordner mit diesem Namen existiert bereits',
+            folderCreationError: 'Fehler beim Erstellen des Ordners',
+            folderCreationCancelled: 'Ordnererstellung abgebrochen',
+            cannotDeleteDefault: 'Der Standardordner kann nicht gelöscht werden',
+            cannotRenameDefault: 'Der Standardordner kann nicht umbenannt werden',
+            folderDeleteError: 'Fehler beim Löschen des Ordners',
+            folderRenameError: 'Fehler beim Umbenennen des Ordners',
+            favoritesMovedToDefault: (count) => `${count} Lesezeichen werden in den Standardordner verschoben.`,
+            enterNewFolderName: 'Geben Sie einen neuen Namen für den Ordner ein:',
+            folderDeleteCancelled: 'Ordnerlöschung abgebrochen',
+            folderRenameCancelled: 'Ordnermumbenennung abgebrochen'
         }
     };
 
@@ -165,14 +200,14 @@
             return `
             <li class="${CONFIG.classes.favoriteItem}" data-section="${sectionId}" data-favorite-id="${favorite.id}">
                 <button class="${CONFIG.classes.favoriteLink}" data-target="${encodedTarget}">
-                    <span class="favorite-item-title">${displayName}</span>
-                    <span class="favorite-item-meta" hidden>
-                    <span class="favorite-item-path">${favorite.target}</span>
+                    <span class="${CONFIG.classes.favoriteItemTitle}">${displayName}</span>
+                    <span class="${CONFIG.classes.favoriteItemMeta}" hidden>
+                    <span class="${CONFIG.classes.favoriteItemPath}">${favorite.target}</span>
                 </button>
-                <div class="favorite-actions">
-                    <button class="favorite-action ${CONFIG.classes.detailsToggle}" aria-expanded="false" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.showStatistics}"></button>
-                    <button class="favorite-action ${CONFIG.classes.favoriteEditBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.editFavorite}"></button>
-                    <button class="favorite-action ${CONFIG.classes.favoriteRemoveBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.removeFavorite}"></button>
+                <div class="${CONFIG.classes.favoriteActions}">
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteDetailsBtn}" aria-expanded="false" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.showStatistics}"></button>
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteEditBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.editFavorite}"></button>
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteRemoveBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.removeFavorite}"></button>
                     <!-- Statistics as last child of favorite-actions -->
                     <div class="${CONFIG.classes.favoriteDetails}">
                         ${StatisticsManager?.createStatisticsHTML(favorite)}
@@ -180,17 +215,18 @@
                 </div>
             </li>
             `},
+
         subsectionFavorite: (favorite) => `
-            <li class="${CONFIG.classes.favoriteItem} favorite-item--subsection" data-selector="${favorite.selector}" data-favorite-id="${favorite.id}">
+            <li class="${CONFIG.classes.favoriteItem} ${CONFIG.classes.favoriteItemSubsection}" data-selector="${favorite.selector}" data-favorite-id="${favorite.id}">
                 <button class="${CONFIG.classes.favoriteLink}" data-selector="${favorite.selector}">
-                    <span class="favorite-item-title">${favorite.name}</span>
-                    <span class="favorite-item-meta" hidden>
-                    <span class="favorite-item-context">in ${favorite.sectionTitle}</span>
+                    <span class="${CONFIG.classes.favoriteItemTitle}">${favorite.name}</span>
+                    <span class="${CONFIG.classes.favoriteItemMeta}" hidden>
+                    <span class="${CONFIG.classes.favoriteItemPath}">in ${favorite.sectionTitle}</span>
                 </button>
-                <div class="favorite-actions">
-                    <button class="favorite-action ${CONFIG.classes.detailsToggle}" aria-expanded="false" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.showStatistics}"></button>
-                    <button class="favorite-action ${CONFIG.classes.favoriteEditBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.editFavorite}"></button>
-                    <button class="favorite-action ${CONFIG.classes.favoriteRemoveBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.removeFavorite}"></button>
+                <div class="${CONFIG.classes.favoriteActions}">
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteDetailsBtn}" aria-expanded="false" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.showStatistics}"></button>
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteEditBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.editFavorite}"></button>
+                    <button class="${CONFIG.classes.favoriteAction} ${CONFIG.classes.favoriteRemoveBtn}" data-favorite-id="${favorite.id}" aria-label="${CONFIG.i18n.de.removeFavorite}"></button>
                     <!-- Statistics as last child of favorite-actions -->
                     <div class="${CONFIG.classes.favoriteDetails}">
                         ${StatisticsManager?.createStatisticsHTML(favorite)}
@@ -198,16 +234,43 @@
                 </div>
             </li>
             `,
+
         folderDropdownItem: (folder, isActive, favoriteCount) => `
-            <button class="${CONFIG.classes.folderDropdownItem} ${isActive ? CONFIG.classes.folderDropdownItemActive : ''}" data-folder-id="${folder.id}" role="menuitem" aria-checked="${isActive}">
-                <span class="favorites-folder-dropdown__item-name">${folder.name}</span>
-                <span class="favorites-folder-dropdown__item-badge">${favoriteCount}</span>
-                <div class="${CONFIG.classes.folderManagementButtons} ${CONFIG.classes.hidden}">
-                    <button class="${CONFIG.classes.folderRenameBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.renameFolder}"></button>
-                    <button class="${CONFIG.classes.folderDeleteBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.deleteFolder}"></button>
+            <button class="${CONFIG.classes.folderDropdownItem} ${isActive ? CONFIG.classes.folderDropdownItemActive : ''}" data-folder-id="${folder.id}"
+            role="menuitem"  aria-checked="${isActive}" aria-label="${folder.name} (${favoriteCount} ${favoriteCount === 1 ? 'Lesezeichen' : 'Lesezeichen'})">
+                <span class="${CONFIG.classes.folderDropdownCurrent}">${folder.name}</span>
+                <span class="${CONFIG.classes.folderDropdownItemCount}">${favoriteCount}</span>
+                <div class="${CONFIG.classes.folderManagementButtons} ${isActive ? '' : CONFIG.classes.hidden}">
+                    <button class="${CONFIG.classes.folderRenameBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.renameFolder}: ${folder.name}"></button>
+                    <button class="${CONFIG.classes.folderDeleteBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.deleteFolder}: ${folder.name}" ${folder.id === 'default' ? 'disabled' : ''}></button>
                 </div>
             </button>
-            `
+            `,
+
+        folderCreationSection: (foldersRemaining) => {
+                const canCreateMore = foldersRemaining > 0;
+
+                if (canCreateMore) {
+                    return `
+                    <div class="${CONFIG.classes.folderDropdownCreateSection}">
+                        <button class="${CONFIG.classes.folderDropdownCreate}" type="button">
+                            ${CONFIG.i18n.de.createNewFolder}
+                            <span class="${CONFIG.classes.folderDropdownCreateBadge}">
+                                ${foldersRemaining}
+                            </span>
+                        </button>
+                    </div>
+                    `;
+                } else {
+                    return `
+                    <div class="${CONFIG.classes.folderDropdownCreateSection}">
+                        <div class="${CONFIG.classes.folderDropdownLimitMessage}">
+                            ${CONFIG.i18n.de.folderLimitReached}
+                        </div>
+                    </div>
+                    `;
+                }
+            }
     };
 
     // ========================================================================
@@ -436,11 +499,20 @@
     function initFolderDropdown() {
         LOG.debug(MODULE, 'Initializing folder dropdown system');
 
-        // Initialize functionality
-        setupDropdownInteractions();
-        updateFolderDropdown();
+        setTimeout(() => {
+            try {
+                if (!_currentFolder) {
+                    _currentFolder = 'default';
+                }
 
-        LOG.info(MODULE, 'Folder dropdown initialized successfully');
+                updateFolderDropdown();
+                setupDropdownInteractions();
+
+                LOG.info(MODULE, 'Folder dropdown initialized successfully');
+            } catch (error) {
+                LOG.error(MODULE, 'Folder dropdown initialization failed:', error);
+            }
+        }, 100);
     }
 
     /**
@@ -450,22 +522,15 @@
         const dropdownButton = document.querySelector(CONFIG.selectors.folderDropdownButton);
         const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
         const dropdown = document.querySelector(CONFIG.selectors.folderDropdown);
+        const createSection = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownCreateSection);
 
-        if (!dropdownButton || !dropdownMenu) {
+        if (!dropdownButton || !dropdownMenu || !createSection) {
             LOG.error(MODULE, 'Dropdown elements not found for interaction setup');
             return;
         }
 
         // Toggle dropdown on button click
         dropdownButton.addEventListener('click', (e) => {
-            const isDisabled = dropdown.classList.contains(CONFIG.classes.folderDropdownDisabled);
-
-            if (isDisabled) {
-                LOG.debug(MODULE, 'Dropdown disabled - showing tooltip message');
-                Toast.show(CONFIG.i18n.de.noCustomFolders, 'info');
-                return;
-            }
-
             e.stopPropagation();
             const isExpanded = dropdownButton.getAttribute('aria-expanded') === 'true';
             const newState = !isExpanded;
@@ -474,15 +539,13 @@
             dropdownMenu.classList.toggle(CONFIG.classes.hidden, !newState);
             dropdown.classList.toggle(CONFIG.classes.folderDropdownOpen, newState);
 
-            LOG.debug(MODULE, `Dropdown ${newState ? 'opened' : 'closed'}`);
+            LOG.debug(MODULE, `Dropdown ${newState ? 'opened' : 'closed'}, current folder: ${_currentFolder}`);
         });
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!dropdown.contains(e.target)) {
-                dropdownButton.setAttribute('aria-expanded', 'false');
-                dropdownMenu.classList.add(CONFIG.classes.hidden);
-                dropdown.classList.remove(CONFIG.classes.folderDropdownOpen);
+                closeDropdown();
             }
         });
 
@@ -496,16 +559,15 @@
             if (folderItem && !renameBtn && !deleteBtn) {
                 // Folder selection
                 const folderId = folderItem.dataset.folderId;
-                LOG.debug(MODULE, `Folder selected: ${folderId}`);
+                LOG.debug(MODULE, `Folder selected: ${folderId}, current: ${_currentFolder}`);
                 switchToFolder(folderId);
-                closeDropdown();
-            } else if (renameBtn) {
+            } else if (renameBtn && !renameBtn.disabled) {
                 // Rename folder
                 e.stopPropagation();
                 const folderId = renameBtn.dataset.folderId;
                 LOG.debug(MODULE, `Rename folder requested: ${folderId}`);
                 renameFolder(folderId);
-            } else if (deleteBtn) {
+            } else if (deleteBtn && !deleteBtn.disabled) {
                 // Delete folder
                 e.stopPropagation();
                 const folderId = deleteBtn.dataset.folderId;
@@ -516,7 +578,6 @@
                 e.stopPropagation();
                 LOG.debug(MODULE, 'Create folder requested');
                 createNewFolder();
-                closeDropdown();
             }
         });
 
@@ -539,56 +600,50 @@
     }
 
     /**
-     * Update the dropdown display based on current state
+     * Update the entire dropdown display based on current state
      */
     function updateFolderDropdown() {
         const folders = window.StateManager.getFolders();
         const currentFolder = _currentFolder || 'default';
+        const totalFolders = folders.length;
         const customFolders = folders.filter(f => f.id !== 'default');
 
         const dropdown = document.querySelector(CONFIG.selectors.folderDropdown);
         const dropdownButton = document.querySelector(CONFIG.selectors.folderDropdownButton);
         const dropdownItems = document.querySelector(CONFIG.selectors.folderDropdownItems);
-        const emptyState = document.querySelector(CONFIG.selectors.folderDropdownEmpty);
+        const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
+        const emptyState = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownEmpty);
 
-        // TEMPORARY DEBUG
-        console.log('Dropdown selectors debug:', {
-            dropdownSelector: CONFIG.selectors.folderDropdown,
-            dropdownButtonSelector: CONFIG.selectors.folderDropdownButton,
-            dropdownItemsSelector: CONFIG.selectors.folderDropdownItems,
-            emptyStateSelector: CONFIG.selectors.folderDropdownEmpty,
-            dropdownElement: dropdown,
-            dropdownButtonElement: dropdownButton,
-            dropdownItemsElement: dropdownItems,
-            emptyStateElement: emptyState
-        });
-
-        if (!dropdown || !dropdownButton || !dropdownItems || !emptyState) {
+        if (!dropdown || !dropdownButton || !dropdownItems || !dropdownMenu || !emptyState) {
             LOG.error(MODULE, 'Dropdown elements not found for update');
             return;
         }
 
-        // Handle disabled state (no custom folders)
-        if (customFolders.length === 0) {
-            dropdown.classList.add(CONFIG.classes.folderDropdownDisabled);
+        const hasCustomFolders = customFolders.length > 0;
+
+        if (!hasCustomFolders) {
+            // No custom folders - show empty state, hide items and create section
             dropdownButton.setAttribute('title', CONFIG.i18n.de.noCustomFolders);
             emptyState.classList.remove(CONFIG.classes.hidden);
+            dropdownItems.classList.add(CONFIG.classes.hidden);
         } else {
-            dropdown.classList.remove(CONFIG.classes.folderDropdownDisabled);
+            // Has custom folders - show items and create section, hide empty state
             dropdownButton.removeAttribute('title');
             emptyState.classList.add(CONFIG.classes.hidden);
+            dropdownItems.classList.remove(CONFIG.classes.hidden);
         }
 
         // Update dropdown button content
         updateDropdownButton(currentFolder, folders);
 
-        // Render folder items
+        // Render folder items (this will update the create section badge)
         renderFolderDropdownItems(folders, currentFolder, dropdownItems);
 
-        LOG.debug(MODULE, 'Folder dropdown updated', {
+        LOG.debug(MODULE, 'Folder dropdown fully updated', {
             currentFolder: currentFolder,
-            customFoldersCount: customFolders.length,
-            totalFolders: folders.length
+            totalFolders: totalFolders,
+            customFolders: customFolders.length //,
+            //enabled: !dropdown.classList.contains(CONFIG.classes.folderDropdownDisabled)
         });
     }
 
@@ -599,26 +654,40 @@
         const currentFolder = folders.find(f => f.id === currentFolderId);
         const button = document.querySelector(CONFIG.selectors.folderDropdownButton);
         const currentSpan = button.querySelector(CONFIG.selectors.folderDropdownCurrent);
-        const folderCountBadge = button.querySelector(CONFIG.selectors.folderDropdownFolderCount);
-        const itemCountBadge = button.querySelector(CONFIG.selectors.folderDropdownItemCount);
+        const badgesContainer = button.querySelector(CONFIG.selectors.folderDropdownBadges);
 
-        if (!currentFolder || !currentSpan || !folderCountBadge || !itemCountBadge) {
+        if (!currentFolder || !currentSpan || !badgesContainer) {
             LOG.warn(MODULE, 'Dropdown button elements not found for update');
             return;
         }
 
+        // Update the displayed folder name
         currentSpan.textContent = currentFolder.name;
 
         // Update badges
-        const customFolderCount = folders.filter(f => f.id !== 'default').length;
-        const totalFavorites = window.StateManager.get('favorites.items')?.length || 0;
+        const favoritesCountBadge = badgesContainer.querySelector(CONFIG.selectors.favoritesCount);
+        const foldersCountBadge = badgesContainer.querySelector(CONFIG.selectors.foldersCount);
 
-        folderCountBadge.textContent = customFolderCount;
-        itemCountBadge.textContent = totalFavorites;
+        if (favoritesCountBadge && foldersCountBadge) {
+            const totalFavorites = window.StateManager.get('favorites.items')?.length || 0;
+            const customFolderCount = folders.filter(f => f.id !== 'default').length;
+            const totalFolders = folders.length;
 
-        // Hide badges if zero
-        folderCountBadge.style.display = customFolderCount > 0 ? 'inline-block' : 'none';
-        itemCountBadge.style.display = totalFavorites > 0 ? 'inline-block' : 'none';
+            favoritesCountBadge.textContent = totalFavorites;
+            foldersCountBadge.textContent = totalFolders;
+
+            // Hide badges if zero
+            favoritesCountBadge.style.display = totalFavorites > 0 ? 'inline-block' : 'none';
+            foldersCountBadge.style.display = totalFolders > 0 ? 'inline-block' : 'none';
+
+            LOG.debug(MODULE, 'Updated dropdown badges', {
+                favorites: totalFavorites,
+                folders: totalFolders,
+                currentFolder: currentFolder.name
+            });
+        }
+
+        _currentFolder = currentFolderId;
     }
 
     /**
@@ -630,11 +699,22 @@
             return;
         }
 
+        // Get the parent dropdown menu to access the static sections
+        const dropdownMenu = container.closest(CONFIG.selectors.folderDropdownMenu);
+        if (!dropdownMenu) {
+            LOG.error(MODULE, 'Dropdown menu not found');
+            return;
+        }
+
+        // Clear only the folder items container
         container.innerHTML = '';
 
+        const allFolders = folders;
         const customFolders = folders.filter(f => f.id !== 'default');
+        const foldersRemaining = CONFIG.settings.maxFolders - customFolders.length;
 
-        customFolders.forEach(folder => {
+        // Render all folder items
+        allFolders.forEach(folder => {
             const favoriteCount = window.StateManager.getFolderFavoriteCount(folder.id);
             const isActive = folder.id === currentFolderId;
 
@@ -642,54 +722,99 @@
             container.insertAdjacentHTML('beforeend', itemHTML);
         });
 
-        LOG.debug(MODULE, `Rendered ${customFolders.length} folder items in dropdown`);
+        // Update the static create section with current state
+        updateCreateSection(dropdownMenu, foldersRemaining);
+
+        LOG.debug(MODULE, `Rendered ${allFolders.length} folder items, active: ${currentFolderId}, folders remaining: ${foldersRemaining}`);
     }
 
     /**
-     * Initialize folder management functions (rename/delete)
+     * Update the existing create section with current state
      */
-    function initFolderManagement() {
-        // These will be called from the dropdown interaction handlers
-        LOG.debug(MODULE, 'Folder management system ready');
-    }
+    function updateCreateSection(dropdownMenu, foldersRemaining) {
+        const createSection = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownCreateSection);
+        const createButton = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownCreate);
+        const createBadge = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownCreateBadge);
+        const limitMessage = dropdownMenu.querySelector(CONFIG.selectors.folderDropdownLimitMessage);
 
-    // Stub functions for folder management (to be implemented)
-    function renameFolder(folderId) {
-        LOG.debug(MODULE, `Rename folder: ${folderId}`);
-        Toast.show(CONFIG.i18n.de.renameFolderToast, 'info');
-    }
+        if (!createSection || !createButton || !createBadge || !limitMessage) {
+            LOG.error(MODULE, 'Create section elements not found');
+            return;
+        }
 
-    function deleteFolder(folderId) {
-        LOG.debug(MODULE, `Delete folder: ${folderId}`);
-        Toast.show(CONFIG.i18n.de.deleteFolderToast, 'info');
-    }
+        const canCreateMore = foldersRemaining > 0;
 
-    function createNewFolder() {
-        LOG.debug(MODULE, 'Create new folder');
-        Toast.show(CONFIG.i18n.de.createFolderToast, 'info');
-    }
+        if (canCreateMore) {
+            // Show create button, hide limit message
+            createButton.classList.remove(CONFIG.classes.hidden);
+            limitMessage.classList.add(CONFIG.classes.hidden);
 
-    // ========================================================================
-    // FOLDER MANAGEMENT - ADD TO script-favorites.js
-    // ========================================================================
+            // Update the badge with remaining count
+            createBadge.textContent = foldersRemaining;
+        } else {
+            // Show limit message, hide create button
+            createButton.classList.add(CONFIG.classes.hidden);
+            limitMessage.classList.remove(CONFIG.classes.hidden);
+        }
+
+        LOG.debug(MODULE, `Updated create section, folders remaining: ${foldersRemaining}`);
+    }
 
     /**
-     * Switches to a specific folder and updates the UI
+     * Update active states in dropdown items
      */
-    function switchToFolder(folderId) {
-        LOG.debug(MODULE, `Switching to folder: ${folderId}`);
+    function updateDropdownActiveState(activeFolderId) {
+        const dropdownItems = document.querySelectorAll(CONFIG.selectors.folderDropdownItem);
 
-        // Update active states
-        document.querySelectorAll('.favorites-folder-tab').forEach(tab => {
-            const isActive = tab.dataset.folderId === folderId;
-            tab.classList.toggle('favorites-folder-tab--active', isActive);
-            tab.setAttribute('aria-selected', isActive.toString());
+        dropdownItems.forEach(item => {
+            const folderId = item.dataset.folderId;
+            const isActive = folderId === activeFolderId;
+
+            item.classList.toggle(CONFIG.classes.folderDropdownItemActive, isActive);
+            item.setAttribute('aria-checked', isActive.toString());
+
+            // Update the folder management buttons visibility (only show for active folder)
+            const managementButtons = item.querySelector(CONFIG.selectors.folderManagementButtons);
+            if (managementButtons) {
+                managementButtons.classList.toggle(CONFIG.classes.hidden, !isActive);
+            }
         });
 
+        LOG.debug(MODULE, `Updated dropdown active state for folder: ${activeFolderId}`);
+    }
+
+    // ========================================================================
+    // FOLDER MANAGEMENT FUNCTIONS
+    // ========================================================================
+
+    /**
+     * Switches to a specific folder and updates the UI - FIXED VERSION
+     */
+    function switchToFolder(folderId) {
+        // Prevent unnecessary switches to the same folder
+        if (_currentFolder === folderId) {
+            LOG.debug(MODULE, `Already in folder: ${folderId}, skipping switch`);
+            closeDropdown();
+            return;
+        }
+
+        LOG.debug(MODULE, `Switching to folder: ${folderId} from: ${_currentFolder}`);
+
+        // Update the current folder
         _currentFolder = folderId;
+
+        // Update the dropdown button display
+        const folders = window.StateManager.getFolders();
+        updateDropdownButton(folderId, folders);
+
+        // Update active states in dropdown items
+        updateDropdownActiveState(folderId);
 
         // Render the favorites for this folder
         renderFavoritesList(folderId);
+
+        // Close the dropdown after selection
+        closeDropdown();
 
         LOG.info(MODULE, `Switched to folder: ${folderId}`);
     }
@@ -705,6 +830,230 @@
         });
         return originalSwitchToFolder.call(this, folderId);
     };
+
+    function createNewFolder(presetName = null) {
+        const folders = window.StateManager.getFolders();
+        const customFolders = folders.filter(f => f.id !== 'default');
+        const foldersRemaining = CONFIG.settings.maxFolders - customFolders.length;
+
+        // Check folder limit
+        if (foldersRemaining <= 0) {
+            Toast.show(CONFIG.i18n.de.folderLimitReached, 'warning');
+            return;
+        }
+
+        // Determine if this is a retry (has preset name) or first attempt
+        const isRetry = presetName !== null;
+
+        // Build appropriate prompt message
+        let promptMessage = `${CONFIG.i18n.de.enterFolderName}\n\n${CONFIG.i18n.de.foldersRemaining(foldersRemaining)}`;
+        if (isRetry) {
+            promptMessage += `\n\n⚠️ ${CONFIG.i18n.de.folderAlreadyExists}`;
+        }
+
+        // Use preset name as default if provided, otherwise generate default name
+        const defaultName = presetName || `${CONFIG.i18n.de.folders} ${customFolders.length + 1}`;
+
+        let folderName;
+        let isValid = false;
+        let validationError = '';
+
+        // Validation loop - keep asking until valid input or cancellation
+        while (!isValid) {
+            folderName = prompt(
+                validationError ? `${promptMessage}\n\n❌ ${validationError}` : promptMessage,
+                folderName || defaultName // Keep their previous input for correction
+            );
+
+            // Handle user cancellation
+            if (folderName === null) {
+                LOG.debug(MODULE, CONFIG.i18n.de.folderCreationCancelled);
+                return;
+            }
+
+            const trimmedName = folderName.trim();
+
+            // Validate empty input
+            if (!trimmedName) {
+                validationError = CONFIG.i18n.de.folderNameEmpty;
+                continue;
+            }
+
+            // Validate name length
+            if (trimmedName.length > 30) {
+                validationError = CONFIG.i18n.de.folderNameTooLong;
+                continue;
+            }
+
+            // Validate name doesn't contain problematic characters
+            if (/[<>:"/\\|?*]/.test(trimmedName)) {
+                validationError = CONFIG.i18n.de.folderNameInvalidChars;
+                continue;
+            }
+
+            // All validations passed
+            isValid = true;
+            folderName = trimmedName;
+        }
+
+        try {
+            const folderId = window.StateManager.createFolder(folderName);
+
+            if (folderId) {
+                Toast.show(CONFIG.i18n.de.folderCreated, 'success');
+                LOG.info(MODULE, `New folder created: ${folderName} (ID: ${folderId})`);
+
+                // Switch to the newly created folder
+                switchToFolder(folderId);
+
+                // Update the dropdown to reflect changes
+                updateFolderDropdown();
+            } else {
+                // This happens when folder name already exists - allow retry with current input
+                Toast.show(CONFIG.i18n.de.folderAlreadyExists, 'warning');
+
+                // Recursive call to allow retry with the same folder name pre-filled
+                setTimeout(() => {
+                    createNewFolder(folderName); // Recursive call with current name as preset
+                }, 100);
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error creating folder:', error);
+            Toast.show(CONFIG.i18n.de.folderCreationError, 'error');
+        }
+    }
+
+    /**
+     * Delete folder with confirmation and move favorites to default folder
+     */
+    function deleteFolder(folderId) {
+        // Prevent deleting the default folder
+        if (folderId === 'default') {
+            Toast.show(CONFIG.i18n.de.cannotDeleteDefault, 'warning');
+            return;
+        }
+
+        const folders = window.StateManager.getFolders();
+        const folderToDelete = folders.find(f => f.id === folderId);
+
+        if (!folderToDelete) {
+            LOG.error(MODULE, `Folder not found for deletion: ${folderId}`);
+            return;
+        }
+
+        // Get favorites in this folder to show count in confirmation
+        const favoritesInFolder = window.StateManager.getFolderFavorites(folderId);
+        const favoriteCount = favoritesInFolder.length;
+
+        // Create confirmation message
+        let confirmationMessage = CONFIG.i18n.de.confirmDelete(folderToDelete.name);
+        if (favoriteCount > 0) {
+            confirmationMessage += `\n\n${CONFIG.i18n.de.favoritesMovedToDefault(favoriteCount)}`;
+        }
+
+        // Show confirmation dialog
+        const userConfirmed = confirm(confirmationMessage);
+
+        if (!userConfirmed) {
+            LOG.debug(MODULE, CONFIG.i18n.de.folderDeleteCancelled);
+            return;
+        }
+
+        try {
+            // Use StateManager to delete the folder (this automatically moves favorites to default)
+            const success = window.StateManager.deleteFolder(folderId);
+
+            if (success) {
+                Toast.show(CONFIG.i18n.de.folderDeleted, 'success');
+                LOG.info(MODULE, `Folder deleted: ${folderToDelete.name} (ID: ${folderId})`);
+
+                // If we were in the deleted folder, switch back to default
+                if (_currentFolder === folderId) {
+                    switchToFolder('default');
+                } else {
+                    // Just update the dropdown to reflect the changes
+                    updateFolderDropdown();
+                }
+            } else {
+                Toast.show(CONFIG.i18n.de.folderDeleteError, 'error');
+                LOG.error(MODULE, `Failed to delete folder: ${folderId}`);
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error deleting folder:', error);
+            Toast.show(CONFIG.i18n.de.folderDeleteError, 'error');
+        }
+    }
+
+    /**
+     * Rename folder functionality
+     */
+    function renameFolder(folderId) {
+        // Prevent renaming the default folder
+        if (folderId === 'default') {
+            Toast.show(CONFIG.i18n.de.cannotRenameDefault, 'warning');
+            return;
+        }
+
+        const folders = window.StateManager.getFolders();
+        const folderToRename = folders.find(f => f.id === folderId);
+
+        if (!folderToRename) {
+            LOG.error(MODULE, `Folder not found for rename: ${folderId}`);
+            return;
+        }
+
+        const newName = prompt(
+            CONFIG.i18n.de.enterNewFolderName,
+            folderToRename.name
+        );
+
+        // Handle user cancellation
+        if (newName === null) {
+            LOG.debug(MODULE, CONFIG.i18n.de.folderRenameCancelled);
+            return;
+        }
+
+        const trimmedName = newName.trim();
+
+        // Validate input using existing i18n entries
+        if (!trimmedName) {
+            Toast.show(CONFIG.i18n.de.folderNameEmpty, 'warning');
+            return;
+        }
+
+        if (trimmedName.length > 30) {
+            Toast.show(CONFIG.i18n.de.folderNameTooLong, 'warning');
+            return;
+        }
+
+        if (/[<>:"/\\|?*]/.test(trimmedName)) {
+            Toast.show(CONFIG.i18n.de.folderNameInvalidChars, 'warning');
+            return;
+        }
+
+        try {
+            const success = window.StateManager.updateFolder(folderId, trimmedName);
+
+            if (success) {
+                Toast.show(CONFIG.i18n.de.folderRenamed, 'success');
+                LOG.info(MODULE, `Folder renamed: ${folderToRename.name} → ${trimmedName} (ID: ${folderId})`);
+
+                // Update the dropdown to reflect the new name
+                updateFolderDropdown();
+
+                // If this is the current folder, update the button text
+                if (_currentFolder === folderId) {
+                    const folders = window.StateManager.getFolders();
+                    updateDropdownButton(folderId, folders);
+                }
+            } else {
+                Toast.show(CONFIG.i18n.de.folderAlreadyExists, 'warning');
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error renaming folder:', error);
+            Toast.show(CONFIG.i18n.de.folderRenameError, 'error');
+        }
+    }
 
     /**
      * Updates folder badge counts when favorites change
