@@ -5,6 +5,9 @@ root_path="${1:-"/opt/WebAssistantForensics/src"}"
 port=${2:-9999}
 log_file="${3:-"webserver.log"}"
 
+# kill the running webserver if found
+kill -15 $(lsof -ti:${port}) >/dev/null 2>&1 && echo "current webserver killed." || echo "no current webserver found to kill" | tee -a "${log_file}"
+
 # Function to start server with Python 3
 start_python_server() {
     echo "Starting Python 3 HTTP server on port $2"

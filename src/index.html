@@ -202,7 +202,7 @@
 
                             <button class="subsection-selection-btn" aria-label="Präzises Lesezeichen setzen">
                                 <span class="subsection-selection-btn__icon"></span>
-                                <!-- <span class="subsection-selection-btn__text">Präzise</span> -->
+                                <span class="subsection-selection-btn__text">Präzise</span>
                             </button>
                         </div>
 
@@ -340,6 +340,15 @@
 
             <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+            <!-- Main Container -->
+            <div class="container" id="main-content" tabindex="-1">
+                <!-- Header with descriptive class -->
+                <header class="content-header">
+                    <h1 data-ref="main-title">HTML-Report-Erstellung mit Magnet AXIOM Examiner</h1>
+                    <p class="subtitle" data-ref="main-subtitle">Interaktiver Leitfaden für polizeiliche Ermittlungsarbeit</p>
+                </header>
+            </div>
+
             <!-- Agent Toggle Button -->
             <button id="agent-toggle" class="agent-toggle" aria-label="Spürhund-Assistent öffnen/schließen" aria-expanded="false">
                 <span class="agent-icon">🐕‍🦺</span>
@@ -432,15 +441,6 @@
                 <button id="close-tips-footer" class="tips-close-btn" aria-label="Tipps ausblenden">✕</button>
             </div>
         </div>
-    </div>
-    <!-- Main Container -->
-    <div class="container" id="main-content" tabindex="-1">
-        <!-- Header with descriptive class -->
-        <header class="content-header">
-            <h1 data-ref="main-title">HTML-Report-Erstellung mit Magnet AXIOM Examiner</h1>
-            <p class="subtitle" data-ref="main-subtitle">Interaktiver Leitfaden für polizeiliche Ermittlungsarbeit</p>
-        </header>
-
         <!-- Hauptinhalt -->
         <main>
             <!-- Hier den Inhalt von main einfügen -->
@@ -1503,17 +1503,17 @@
             </article> (topic-preparation)
             -->
         </main>
-        <!-- Footer with descriptive class -->
-        <footer class="content-footer">
-            <p data-ref="disclaimer"><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
-            <p data-ref="contact">Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
-            <div class="footer-actions">
-                <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
-                    💡 Tipps einblenden
-                </button>
-            </div>
-        </footer>
     </div>
+    <!-- Footer with descriptive class -->
+    <footer class="content-footer">
+        <p data-ref="disclaimer"><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
+        <p data-ref="contact">Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
+        <div class="footer-actions">
+            <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
+                💡 Tipps einblenden
+            </button>
+        </div>
+    </footer>
     <!-- Scripts -->
     <!-- WICHTIG: Reihenfolge ist kritisch für die Initialisierung! -->
 

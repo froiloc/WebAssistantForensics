@@ -82,12 +82,21 @@
             folderDropdownCurrent: 'favorites-folder-dropdown__current',
             folderDropdownFolderCount: 'favorites-folder-dropdown__folder-count',
             folderDropdownItemCount: 'favorites-folder-dropdown__item-count',
+            folderDropdownBadges: 'favorites-folder-dropdown__badges',
+            favoritesCount: 'favorites-count',
+            foldersCount: 'folders-count',
+            subsectionSelectionBtn: 'subsection-selection-btn',
+            favoritesSuggestionsContainer: 'favorites-suggestions-container',
+            favoritesEmptySuggestion: 'favorites-empty-suggestion',
+            emptyStateHint: 'favorites-empty-hint',
+            favoriteDetailsBtn: 'favorite-details-toggle',
+            favoriteEditBtn: 'favorite-edit-btn',
+            folderDropdownCreate: 'favorites-folder-dropdown__create',
+            folderDropdownEmpty: 'favorites-folder-dropdown__empty',
             folderRenameBtn: 'favorites-folder-rename',
             folderDeleteBtn: 'favorites-folder-delete',
             hidden: 'hidden',
-            filteredOut: 'filtered-out',
-            favoriteEditBtn: 'favorite-action--edit',
-            favoritesSuggestionsContainer: 'favorites-suggestions-container'
+            filteredOut: 'filtered-out'
         }
     };
 
@@ -436,11 +445,16 @@
     function initFolderDropdown() {
         LOG.debug(MODULE, 'Initializing folder dropdown system');
 
-        // Initialize functionality
-        setupDropdownInteractions();
-        updateFolderDropdown();
-
-        LOG.info(MODULE, 'Folder dropdown initialized successfully');
+        // Wait a bit for DOM and StateManager to be ready
+        setTimeout(() => {
+            try {
+                setupDropdownInteractions();
+                updateFolderDropdown();
+                LOG.info(MODULE, 'Folder dropdown initialized successfully');
+            } catch (error) {
+                LOG.error(MODULE, 'Folder dropdown initialization failed:', error);
+            }
+        }, 100);
     }
 
     /**
@@ -551,18 +565,6 @@
         const dropdownItems = document.querySelector(CONFIG.selectors.folderDropdownItems);
         const emptyState = document.querySelector(CONFIG.selectors.folderDropdownEmpty);
 
-        // TEMPORARY DEBUG
-        console.log('Dropdown selectors debug:', {
-            dropdownSelector: CONFIG.selectors.folderDropdown,
-            dropdownButtonSelector: CONFIG.selectors.folderDropdownButton,
-            dropdownItemsSelector: CONFIG.selectors.folderDropdownItems,
-            emptyStateSelector: CONFIG.selectors.folderDropdownEmpty,
-            dropdownElement: dropdown,
-            dropdownButtonElement: dropdownButton,
-            dropdownItemsElement: dropdownItems,
-            emptyStateElement: emptyState
-        });
-
         if (!dropdown || !dropdownButton || !dropdownItems || !emptyState) {
             LOG.error(MODULE, 'Dropdown elements not found for update');
             return;
@@ -573,10 +575,12 @@
             dropdown.classList.add(CONFIG.classes.folderDropdownDisabled);
             dropdownButton.setAttribute('title', CONFIG.i18n.de.noCustomFolders);
             emptyState.classList.remove(CONFIG.classes.hidden);
+            dropdownItems.classList.add(CONFIG.classes.hidden);
         } else {
             dropdown.classList.remove(CONFIG.classes.folderDropdownDisabled);
             dropdownButton.removeAttribute('title');
             emptyState.classList.add(CONFIG.classes.hidden);
+            dropdownItems.classList.remove(CONFIG.classes.hidden);
         }
 
         // Update dropdown button content
@@ -599,26 +603,35 @@
         const currentFolder = folders.find(f => f.id === currentFolderId);
         const button = document.querySelector(CONFIG.selectors.folderDropdownButton);
         const currentSpan = button.querySelector(CONFIG.selectors.folderDropdownCurrent);
-        const folderCountBadge = button.querySelector(CONFIG.selectors.folderDropdownFolderCount);
-        const itemCountBadge = button.querySelector(CONFIG.selectors.folderDropdownItemCount);
+        const badgesContainer = button.querySelector(CONFIG.selectors.folderDropdownBadges);
 
-        if (!currentFolder || !currentSpan || !folderCountBadge || !itemCountBadge) {
+        if (!currentFolder || !currentSpan || !badgesContainer) {
             LOG.warn(MODULE, 'Dropdown button elements not found for update');
             return;
         }
 
         currentSpan.textContent = currentFolder.name;
 
-        // Update badges
-        const customFolderCount = folders.filter(f => f.id !== 'default').length;
-        const totalFavorites = window.StateManager.get('favorites.items')?.length || 0;
+        // Update badges - use the correct selectors from your HTML
+        const favoritesCountBadge = badgesContainer.querySelector(CONFIG.selectors.favoritesCount);
+        const foldersCountBadge = badgesContainer.querySelector(CONFIG.selectors.foldersCount);
 
-        folderCountBadge.textContent = customFolderCount;
-        itemCountBadge.textContent = totalFavorites;
+        if (favoritesCountBadge && foldersCountBadge) {
+            const customFolderCount = folders.filter(f => f.id !== 'default').length;
+            const totalFavorites = window.StateManager.get('favorites.items')?.length || 0;
 
-        // Hide badges if zero
-        folderCountBadge.style.display = customFolderCount > 0 ? 'inline-block' : 'none';
-        itemCountBadge.style.display = totalFavorites > 0 ? 'inline-block' : 'none';
+            favoritesCountBadge.textContent = totalFavorites;
+            foldersCountBadge.textContent = customFolderCount;
+
+            // Hide badges if zero
+            favoritesCountBadge.style.display = totalFavorites > 0 ? 'inline-block' : 'none';
+            foldersCountBadge.style.display = customFolderCount > 0 ? 'inline-block' : 'none';
+
+            LOG.debug(MODULE, 'Updated dropdown badges', {
+                favorites: totalFavorites,
+                folders: customFolderCount
+            });
+        }
     }
 
     /**
@@ -1210,7 +1223,7 @@
 
     function updateEmptyStateSuggestions() {
         const suggestionsContainer = document.querySelector(CONFIG.selectors.favoritesSuggestionsContainer);
-        const suggestionButtons = suggestionsContainer.querySelectorAll(CONFIG.selectors.suggestionButtons);
+        const suggestionButtons = suggestionsContainer?.querySelectorAll(CONFIG.selectors.suggestionButtons);
         const emptyStateHint = document.querySelector(CONFIG.selectors.emptyStateHint);
 
         if (!suggestionsContainer || !emptyStateHint) {
@@ -1657,10 +1670,13 @@
             // 1. Ensure favorites data structure exists
             initializeFavoritesData();
 
-            // 2. Render initial list
+            // 2. Initialize folder dropdown FIRST
+            initFolderDropdown();
+
+            // 3. Then render initial list
             renderFavoritesList();
 
-            // 3. THEN start watching history
+            // 4. THEN start watching history
             if (window.StateManager && window.StateManager.subscribe) {
                 initializeFavoritesHistorySync();
             }
