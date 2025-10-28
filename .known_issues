@@ -17,4 +17,4 @@ In styles.css hinzufügen etwa Zeile 1501
     display: none !important;
 }
 
-
+If favorite is not in default folder the star does not show as having a favorite.

@@ -4672,3 +4672,243 @@ h6:has(.header-with-icons)
         padding: 6px;
     }
 }
+
+/***********************************/
+/* Drag and Drop Styles            */
+/***********************************/
+/* Drag and Drop Styles - Using Theme Variables */
+.favorite-item {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.favorite-drag-handle {
+    cursor: grab;
+    padding: 8px 4px;
+    color: var(--color-text-secondary);
+    font-weight: bold;
+    user-select: none;
+    margin-right: 8px;
+    transition: color 0.2s ease;
+}
+
+.favorite-drag-handle:active {
+    cursor: grabbing;
+    color: var(--color-accent-primary);
+}
+
+.favorite-dragging {
+    opacity: 0.6;
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-accent-primary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drag-over-top::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    background-color: var(--color-accent-primary);
+    border-radius: 2px;
+}
+
+.drag-over-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    background-color: var(--color-accent-primary);
+    border-radius: 2px;
+}
+
+/* Folder drop target highlighting - make it very visible */
+.favorites-folder-dropdown__item.drop-target {
+    background-color: var(--color-background-secondary) !important;
+    border: 2px dashed var(--color-accent-primary) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Make sure the dropdown items are visible for dragging */
+.favorites-folder-dropdown__item {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Additional visual feedback for drag operations */
+.favorite-item:not(.favorite-dragging) {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.favorite-item.favorite-dragging ~ .favorite-item {
+    transform: translateY(0); /* Reset any transforms on siblings */
+}
+
+/* Ensure proper contrast in both light and dark themes */
+@media (prefers-color-scheme: dark) {
+    .favorite-drag-handle {
+        color: var(--color-text-secondary);
+    }
+
+    .favorite-dragging {
+        background-color: var(--color-background-secondary);
+        border-color: var(--color-accent-primary);
+    }
+
+    .favorites-folder-dropdown__item.drop-target {
+        background-color: var(--color-background-secondary) !important;
+        border-color: var(--color-accent-primary) !important;
+    }
+}
+
+/* Focus states for accessibility */
+.favorite-drag-handle:focus {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive states */
+.favorite-drag-handle,
+.favorite-item,
+.favorites-folder-dropdown__item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}/* Drag and Drop Styles - Using Theme Variables */
+.favorite-item {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.favorite-drag-handle {
+    cursor: grab;
+    padding: 8px 4px;
+    color: var(--color-text-secondary);
+    font-weight: bold;
+    user-select: none;
+    margin-right: 8px;
+    transition: color 0.2s ease;
+}
+
+.favorite-drag-handle:active {
+    cursor: grabbing;
+    color: var(--color-accent-primary);
+}
+
+.favorite-dragging {
+    opacity: 0.6;
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-accent-primary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drag-over-top::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    background-color: var(--color-accent-primary);
+    border-radius: 2px;
+}
+
+.drag-over-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    background-color: var(--color-accent-primary);
+    border-radius: 2px;
+}
+
+/* Folder drop target highlighting - make it very visible */
+.favorites-folder-dropdown__item.drop-target {
+    background-color: var(--color-background-secondary) !important;
+    border: 2px dashed var(--color-accent-primary) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Make sure the dropdown items are visible for dragging */
+.favorites-folder-dropdown__item {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Additional visual feedback for drag operations */
+.favorite-item:not(.favorite-dragging) {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.favorite-item.favorite-dragging ~ .favorite-item {
+    transform: translateY(0); /* Reset any transforms on siblings */
+}
+
+/* Ensure proper contrast in both light and dark themes */
+@media (prefers-color-scheme: dark) {
+    .favorite-drag-handle {
+        color: var(--color-text-secondary);
+    }
+
+    .favorite-dragging {
+        background-color: var(--color-background-secondary);
+        border-color: var(--color-accent-primary);
+    }
+
+    .favorites-folder-dropdown__item.drop-target {
+        background-color: var(--color-background-secondary) !important;
+        border-color: var(--color-accent-primary) !important;
+    }
+}
+
+/* Focus states for accessibility */
+.favorite-drag-handle:focus {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive states */
+.favorite-drag-handle,
+.favorite-item,
+.favorites-folder-dropdown__item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced drop target styling with theme variables */
+.favorites-folder-dropdown__item.drop-target {
+    background-color: var(--color-background-secondary) !important;
+    border: 2px dashed var(--color-accent-primary) !important;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+/* Add a visual indicator for drop targets */
+.favorites-folder-dropdown__item.drop-target::after {
+    content: "Drop to move favorite here";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-accent-primary);
+    color: var(--color-background-primary);
+    font-size: 0.75rem;
+    padding: 4px;
+    text-align: center;
+    border-radius: 0 0 4px 4px;
+    z-index: 1000;
+}
+
+/* Ensure folder items have proper spacing for drop targets */
+.favorites-folder-dropdown__item {
+    position: relative;
+    transition: all 0.2s ease;
+    margin: 2px 0;
+    border: 1px solid transparent;
+}
