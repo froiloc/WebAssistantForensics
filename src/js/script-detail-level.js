@@ -41,7 +41,7 @@
      * @private
      * @returns {boolean} dependenciesAvailable - Returns true if all dependencies are present
      */
-    function checkDependencies() {
+    function _checkDependencies() {
         // Check for LOG system (required for logging)
         if (typeof window.LOG === 'undefined') {
             console.error(`${MODULE}: LOG object not available. Detail level system disabled.`);
@@ -97,7 +97,7 @@
             detailLevelBtn: 'detail-level-btn',
             detailBtnMini: 'detail-btn-mini',
             active: 'active',
-            // NEW: Single state class for hidden elements
+            // Single state class for hidden elements
             hidden: 'detail-level--hidden',
             contentSection: 'content-section',
             outOfFocus: 'content-section--out-of-focus'
@@ -156,7 +156,7 @@
      * @returns {void}
      */
     function setDetailLevel(level) {
-        // Konvertiere numerischen Wert zu Level-Namen
+        // Convert numeric value to level name
         const normalizedLevel = LEVEL_MAP[level];
 
         if (!normalizedLevel) {
@@ -164,9 +164,9 @@
             return;
         }
 
-        updateDetailVisibility(normalizedLevel);
-        updateInfoText(normalizedLevel);
-        updateActiveButton(normalizedLevel);
+        _updateDetailVisibility(normalizedLevel);
+        _updateInfoText(normalizedLevel);
+        _updateActiveButton(normalizedLevel);
 
         // Only save to StateManager if available
         if (window.StateManager) {
@@ -182,7 +182,7 @@
      * @param {string} level - The normalized detail level (1/2/3)
      * @returns {void}
      */
-    function updateDetailVisibility(level) {
+    function _updateDetailVisibility(level) {
         const currentLevel = LEVEL_MAP[level];
 
         // Update Level 1 elements - always visible (remove hidden class)
@@ -236,7 +236,7 @@
      * @param {string} level - The detail level name
      * @returns {void}
      */
-    function updateInfoText(level) {
+    function _updateInfoText(level) {
         const infoElement = document.getElementById(CONFIG.selectors.detailLevelInfo);
         if (!infoElement) {
             LOG.debug(MODULE, `Info element (${CONFIG.selectors.detailLevelInfo}) not found`);
@@ -259,18 +259,18 @@
      * @param {string} level - The detail level name
      * @returns {void}
      */
-    function updateActiveButton(level) {
-        // Entferne .active von allen Buttons
+    function _updateActiveButton(level) {
+        // Remove .active from all buttons
         document.querySelectorAll(`${CONFIG.i18n.de.detailLevelBtn}, ${CONFIG.i18n.de.detailBtnMini}`).forEach(btn => {
             btn.classList.remove(CONFIG.classes.active);
         });
 
-        // Konvertiere Level zu Nummer für Button-Selektor
+        // Convert level to number for button selector
         const levelNumber = LEVEL_TO_NUMBER[level];
 
         LOG.debug(MODULE, `Looking for buttons with data-level="${levelNumber}" or "${level}"`);
 
-        // Aktiviere Buttons mit passendem data-level (numerisch oder Wort)
+        // Activate buttons with matching data-level (numeric or word)
         const selectors = [
             `${CONFIG.selectors.detailLevelBtn}[data-level="${levelNumber}"]`,
             `${CONFIG.selectors.detailLevelBtn}[data-level="${level}"]`,
@@ -290,11 +290,11 @@
         } else {
             LOG.warn(MODULE, `No buttons found for level: ${level}/${levelNumber}`);
 
-            // Debug: Liste alle verfügbaren Buttons
+            // Debug: List all available buttons
             const allButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
             LOG.debug(MODULE, 'Available buttons:', Array.from(allButtons).map(btn => ({
                 text: btn.textContent.trim(),
-                                                                                       level: btn.dataset.level
+                level: btn.dataset.level
             })));
         }
     }
@@ -308,7 +308,7 @@
      * @private
      * @returns {void}
      */
-    function initDetailLevelControls() {
+    function _initDetailLevelControls() {
         LOG(MODULE, 'Initializing detail level controls...');
 
         const buttons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
@@ -335,7 +335,7 @@
             });
         });
 
-        // Wende initialen Level aus Preferences an (only if StateManager available)
+        // Apply initial level from preferences (only if StateManager available)
         let initialLevel = 'basic'; // Default fallback
         if (window.StateManager) {
             initialLevel = window.StateManager.get('preferences.detailLevel');
@@ -344,9 +344,9 @@
             LOG(MODULE, `Applying default detail level: ${initialLevel} (StateManager not available)`);
         }
 
-        updateDetailVisibility(initialLevel);
-        updateInfoText(initialLevel);
-        updateActiveButton(initialLevel);
+        _updateDetailVisibility(initialLevel);
+        _updateInfoText(initialLevel);
+        _updateActiveButton(initialLevel);
 
         LOG.info(MODULE, 'Detail level controls initialized');
     }
@@ -360,29 +360,29 @@
      * @private
      * @returns {void}
      */
-    function initDetailLevelListeners() {
+    function _initDetailLevelListeners() {
         LOG(MODULE, 'Initializing event listeners...');
 
         // Only set up StateManager events if StateManager is available
         if (window.StateManager) {
-            // Reagiere auf Preferences-Loaded Event
+            // React to Preferences-Loaded Event
             window.addEventListener('preferencesLoaded', () => {
                 LOG(MODULE, 'Preferences loaded event received');
                 const level = window.StateManager.get('preferences.detailLevel');
                 LOG(MODULE, `Applying loaded detail level: ${level}`);
 
-                updateDetailVisibility(level);
-                updateInfoText(level);
-                updateActiveButton(level);
+                _updateDetailVisibility(level);
+                _updateInfoText(level);
+                _updateActiveButton(level);
             });
 
             window.addEventListener('preferencesReset', () => {
                 LOG(MODULE, 'Preferences reset event received');
                 const level = window.StateManager.get('preferences.detailLevel');
 
-                updateDetailVisibility(level);
-                updateInfoText(level);
-                updateActiveButton(level);
+                _updateDetailVisibility(level);
+                _updateInfoText(level);
+                _updateActiveButton(level);
             });
         } else {
             LOG.debug(MODULE, 'StateManager not available - skipping preference event listeners');
@@ -392,7 +392,7 @@
     }
 
     // ========================================================================
-    // INITIALISIERUNG
+    // INITIALIZATION
     // ========================================================================
 
     /**
@@ -400,7 +400,7 @@
      * @public
      * @returns {boolean} success - Returns true if initialization was successful
      */
-    function initDetailLevel() {
+    function init() {
         if (_isInitialized) {
             LOG.warn(MODULE, 'Already initialized');
             return false;
@@ -409,13 +409,13 @@
         LOG(MODULE, 'Initializing detail level module...');
 
         // Check dependencies before proceeding
-        if (!checkDependencies()) {
+        if (!_checkDependencies()) {
             LOG.error(MODULE, 'Dependency check failed - initialization aborted');
             return false;
         }
 
-        initDetailLevelControls();
-        initDetailLevelListeners();
+        _initDetailLevelControls();
+        _initDetailLevelListeners();
 
         _isInitialized = true;
         LOG.info(MODULE, 'Detail level module initialized successfully');
@@ -436,7 +436,7 @@
          * @function init
          * @returns {boolean} success - Returns true if initialization was successful
          */
-        init: initDetailLevel,
+        init: init,
         
         /**
          * Sets the active detail level
