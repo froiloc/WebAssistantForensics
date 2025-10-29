@@ -6,19 +6,19 @@
 /**
  * Detail Level Management System
  * Controls progressive disclosure of content across three nested detail levels
- *
+ * 
  * Features:
  * - Three detail levels: Basic (1), Best Practice (2), Expert (3)
  * - Persistent user preferences via StateManager
  * - Responsive UI controls with active state management
  * - Event-driven architecture for preferences synchronization
- *
+ * 
  * Structure Rules:
  * - Level 1 ⊆ Level 2 ⊆ Level 3 (Matryoshka pattern)
  * - Level 1: Basic information only
- * - Level 2: Best practices and recommended approaches
+ * - Level 2: Best practices and recommended approaches  
  * - Level 3: All technical details and background
- *
+ * 
  * @version 1.2.0
  * @license MIT
  */
@@ -64,7 +64,7 @@
      */
     const LEVEL_MAP = {
         '1': '1',
-        '2': '2',
+        '2': '2', 
         '3': '3',
         'basic': '1',
         'bestpractice': '2',
@@ -73,11 +73,11 @@
 
     /**
      * Reverse mapping for button activation
-     * @constant {Object}
+     * @constant {Object} 
      */
     const LEVEL_TO_NUMBER = {
         'basic': '1',
-        'bestpractice': '2',
+        'bestpractice': '2', 
         'expert': '3'
     };
 
@@ -92,11 +92,15 @@
          */
         classes : {
             detailLevel1: 'detail-level-1',
-            detailLevel2: 'detail-level-2',
+            detailLevel2: 'detail-level-2', 
             detailLevel3: 'detail-level-3',
             detailLevelBtn: 'detail-level-btn',
             detailBtnMini: 'detail-btn-mini',
-            active: 'active'
+            active: 'active',
+            // NEW: Single state class for hidden elements
+            hidden: 'detail-level--hidden',
+            contentSection: 'content-section',
+            outOfFocus: 'content-section--out-of-focus'
         }
     }
 
@@ -119,8 +123,8 @@
     // Extend with additional non-class selectors
     CONFIG.selectors = {
         ...CONFIG.selectors,
-    // Add new, non-class selectors
-    detailLevelInfo: '#detail-level-info'
+        // Add new, non-class selectors
+        detailLevelInfo: '#detail-level-info'
     }
 
     /**
@@ -130,8 +134,8 @@
     CONFIG.i18n = {
         de: {
             level1: 'Zeigt nur grundlegende Informationen',
-    level2: 'Zeigt Best Practices und empfohlene Ansätze',
-    level3: 'Zeigt alle technischen Details und Hintergründe'
+            level2: 'Zeigt Best Practices und empfohlene Ansätze', 
+            level3: 'Zeigt alle technischen Details und Hintergründe'
         }
     };
 
@@ -139,7 +143,7 @@
      * Track initialization state to prevent multiple initializations
      * @private
      * @type {boolean}
-    */
+     */
     let _isInitialized = false;
 
     // ========================================================================
@@ -179,21 +183,51 @@
      * @returns {void}
      */
     function updateDetailVisibility(level) {
-        const currentLevel = LEVEL_MAP[level]
+        const currentLevel = LEVEL_MAP[level];
 
+        // Update Level 1 elements - always visible (remove hidden class)
         const level1Elements = document.querySelectorAll(CONFIG.selectors.detailLevel1);
-        level1Elements.forEach(el => el.style.display = 'block');
+        level1Elements.forEach(el => {
+            el.classList.remove(CONFIG.classes.hidden);
+        });
 
+        // Update Level 2 elements - visible if currentLevel >= 2
         const level2Elements = document.querySelectorAll(CONFIG.selectors.detailLevel2);
         level2Elements.forEach(el => {
-            el.style.display = currentLevel >= 2 ? 'block' : 'none';
+            if (currentLevel >= 2) {
+                el.classList.remove(CONFIG.classes.hidden);
+            } else {
+                el.classList.add(CONFIG.classes.hidden);
+            }
         });
 
+        // Update Level 3 elements - visible if currentLevel >= 3
         const level3Elements = document.querySelectorAll(CONFIG.selectors.detailLevel3);
         level3Elements.forEach(el => {
-            el.style.display = currentLevel >= 3 ? 'block' : 'none';
+            if (currentLevel >= 3) {
+                el.classList.remove(CONFIG.classes.hidden);
+            } else {
+                el.classList.add(CONFIG.classes.hidden);
+            }
         });
-        LOG(MODULE, `Visibility updated: body.detail-level-${currentLevel}`);
+
+        // Update content section focus states
+        const contentSections = document.querySelectorAll(CONFIG.selectors.contentSection);
+        contentSections.forEach(section => {
+            // Check if section has any visible content for current level
+            const hasVisibleContent = 
+                section.querySelector(CONFIG.selectors.detailLevel1) ||
+                (currentLevel >= 2 && section.querySelector(`${CONFIG.selectors.detailLevel2}:not(.${CONFIG.classes.hidden})`)) ||
+                (currentLevel >= 3 && section.querySelector(`${CONFIG.selectors.detailLevel3}:not(.${CONFIG.classes.hidden})`));
+
+            if (hasVisibleContent) {
+                section.classList.remove(CONFIG.classes.outOfFocus);
+            } else {
+                section.classList.add(CONFIG.classes.outOfFocus);
+            }
+        });
+
+        LOG.debug(MODULE, `Visibility updated for level ${currentLevel} using CSS classes`);
     }
 
     /**
@@ -211,8 +245,8 @@
 
         const infoTexts = {
             basic: CONFIG.i18n.de.level1,
-    best_practice: CONFIG.i18n.de.level2,
-    expert: CONFIG.i18n.de.level3
+            best_practice: CONFIG.i18n.de.level2,
+            expert: CONFIG.i18n.de.level3
         };
 
         infoElement.textContent = infoTexts[level] || '';
@@ -239,9 +273,9 @@
         // Aktiviere Buttons mit passendem data-level (numerisch oder Wort)
         const selectors = [
             `${CONFIG.selectors.detailLevelBtn}[data-level="${levelNumber}"]`,
-    `${CONFIG.selectors.detailLevelBtn}[data-level="${level}"]`,
-    `${CONFIG.selectors.detailBtnMini}[data-level="${levelNumber}"]`,
-    `${CONFIG.selectors.detailBtnMini}[data-level="${level}"]`
+            `${CONFIG.selectors.detailLevelBtn}[data-level="${level}"]`,
+            `${CONFIG.selectors.detailBtnMini}[data-level="${levelNumber}"]`,
+            `${CONFIG.selectors.detailBtnMini}[data-level="${level}"]`
         ];
 
         const activeButtons = document.querySelectorAll(selectors.join(', '));
@@ -260,7 +294,7 @@
             const allButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
             LOG.debug(MODULE, 'Available buttons:', Array.from(allButtons).map(btn => ({
                 text: btn.textContent.trim(),
-                                                                                    level: btn.dataset.level
+                                                                                       level: btn.dataset.level
             })));
         }
     }
@@ -398,17 +432,17 @@
      */
     window.DetailLevel = {
         /**
-        * Initializes the detail level system
-        * @function init
-        * @returns {boolean} success - Returns true if initialization was successful
-        */
+         * Initializes the detail level system
+         * @function init
+         * @returns {boolean} success - Returns true if initialization was successful
+         */
         init: initDetailLevel,
-
+        
         /**
-        * Sets the active detail level
-        * @function setLevel
-        * @param {string|number} level - The detail level to set
-        */
+         * Sets the active detail level
+         * @function setLevel
+         * @param {string|number} level - The detail level to set
+         */
         setLevel: setDetailLevel
     };
 
