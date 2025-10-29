@@ -1,82 +1,46 @@
 // ============================================================================
-// SCRIPT-DETAIL-LEVEL.JS - Version 041
+// SCRIPT-DETAIL-LEVEL.JS - Version 1.2.0
 // Detail-Level-System: Basic, Best Practice, Expert
+// 
+// Features:
+// - Three detail levels with Matryoshka pattern (Level 1 ⊆ Level 2 ⊆ Level 3)
+// - Persistent preferences via StateManager with graceful fallbacks
+// - Event delegation for optimal performance
+// - Keyboard shortcuts (Alt+1/2/3) and full accessibility support
+// - Comprehensive error handling and cleanup
+// - Enhanced public API with utility methods
+// - Custom events for system integration
+//
+// Structure Rules:
+// - Level 1: Basic information only
+// - Level 2: Best practices and recommended approaches  
+// - Level 3: All technical details and background
+// - Same levels can only be siblings, lower levels cannot be children of higher levels
+//
+// @version 1.2.0
+// @license MIT
 // ============================================================================
-
-/**
- * Detail Level Management System
- * Controls progressive disclosure of content across three nested detail levels
- * 
- * Features:
- * - Three detail levels: Basic (1), Best Practice (2), Expert (3)
- * - Persistent user preferences via StateManager
- * - Responsive UI controls with active state management
- * - Event-driven architecture for preferences synchronization
- * - Keyboard shortcuts: Alt+1, Alt+2, Alt+3
- * - Comprehensive cleanup and destruction
- * - Enhanced public API with utility methods
- * 
- * Structure Rules:
- * - Level 1 ⊆ Level 2 ⊆ Level 3 (Matryoshka pattern)
- * - Level 1: Basic information only
- * - Level 2: Best practices and recommended approaches  
- * - Level 3: All technical details and background
- * 
- * @version 1.2.0
- * @license MIT
- */
 
 (function() {
     'use strict';
 
     /**
-     * Module identifier for logging purposes
+     * Module identifier for logging and error reporting
      * @constant {string}
      */
     const MODULE = 'DETAIL';
 
     // ========================================================================
-    // DEPENDENCY CHECKING
+    // CONFIGURATION CONSTANTS
     // ========================================================================
 
     /**
-     * Checks if all required dependencies are available
-     * @private
-     * @returns {boolean} dependenciesAvailable - Returns true if all dependencies are present
-     */
-    function _checkDependencies() {
-        try {
-            // Check for LOG system (required for logging)
-            if (typeof window.LOG === 'undefined') {
-                console.error(`${MODULE}: LOG object not available. Detail level system disabled.`);
-                return false;
-            }
-
-            // Check for StateManager (required for preferences)
-            if (typeof window.StateManager === 'undefined') {
-                LOG.warn(MODULE, 'StateManager not available. Preferences will not be persisted.');
-                // Continue without StateManager - system can still function
-            }
-
-            LOG.debug(MODULE, 'All dependencies checked successfully');
-            return true;
-        } catch (error) {
-            console.error(`${MODULE}: Error during dependency check:`, error);
-            return false;
-        }
-    }
-
-    /**
-     * Mapping between numeric values and level names
+     * Level mapping for consistent level normalization
      * @constant {Object}
      */
     const LEVEL_MAP = {
-        '1': '1',
-        '2': '2', 
-        '3': '3',
-        'basic': '1',
-        'bestpractice': '2',
-        'expert': '3',
+        '1': '1', '2': '2', '3': '3',
+        'basic': '1', 'bestpractice': '2', 'expert': '3'
     };
 
     /**
@@ -84,9 +48,7 @@
      * @constant {Object} 
      */
     const LEVEL_TO_NUMBER = {
-        'basic': '1',
-        'bestpractice': '2', 
-        'expert': '3'
+        'basic': '1', 'bestpractice': '2', 'expert': '3'
     };
 
     /**
@@ -100,298 +62,266 @@
     };
 
     /**
-     * Global configuration object for detail level system
+     * Global configuration object following toast system pattern
      * @namespace CONFIG
      */
     const CONFIG = {
-        /**
-         * Default detail level when no preference is set
-         * @constant {string}
-         */
+        // System defaults
         defaultLevel: 'basic',
-        
-        /**
-         * Storage key for user preference
-         * @constant {string}
-         */
         storageKey: 'userDetailLevelPreference',
         
-        /**
-         * CSS classes used by the detail level system
-         * @namespace classes
-         */
-        classes : {
+        // CSS classes for consistent theming
+        classes: {
             detailLevel1: 'detail-level-1',
             detailLevel2: 'detail-level-2', 
             detailLevel3: 'detail-level-3',
             detailLevelBtn: 'detail-level-btn',
             detailBtnMini: 'detail-btn-mini',
             active: 'active',
-            // Single state class for hidden elements
             hidden: 'detail-level--hidden',
             contentSection: 'content-section',
             outOfFocus: 'content-section--out-of-focus'
-        }
-    }
+        },
 
-    /**
-     * Generate CSS selectors from class configuration
-     * Converts class names to CSS selectors for DOM queries
-     */
-    CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
-        try {
-            // Prepend '.' to the class value to create a class selector
-            if (typeof CONFIG.classes[key] === 'string')
-            {
-                acc[key] = `.${CONFIG.classes[key]}`;
-            } else if (typeof CONFIG.classes[key] === 'function')
-            {
-                acc[key] = (a) => `.${CONFIG.classes[key](a)}`;
+        // Internationalization
+        i18n: {
+            de: {
+                level1: 'Zeigt nur grundlegende Informationen',
+                level2: 'Zeigt Best Practices und empfohlene Ansätze', 
+                level3: 'Zeigt alle technischen Details und Hintergründe'
             }
-            return acc;
-        } catch (error) {
-            LOG.error(MODULE, `Error generating selector for key "${key}":`, error);
-            return acc;
-        }
-    }, {});
-
-    // Extend with additional non-class selectors
-    CONFIG.selectors = {
-        ...CONFIG.selectors,
-        // Add new, non-class selectors
-        detailLevelInfo: '#detail-level-info',
-        // Event delegation containers
-        detailControlContainer: '.detail-control-mini',
-        body: 'body'
-    }
-
-    /**
-     * Internationalization strings for UI labels
-     * @namespace i18n
-     */
-    CONFIG.i18n = {
-        de: {
-            level1: 'Zeigt nur grundlegende Informationen',
-            level2: 'Zeigt Best Practices und empfohlene Ansätze', 
-            level3: 'Zeigt alle technischen Details und Hintergründe'
         }
     };
 
     /**
-     * Track initialization state to prevent multiple initializations
-     * @private
-     * @type {boolean}
+     * Generate CSS selectors from class configuration
+     * Consistent with toast system pattern
      */
+    CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
+        try {
+            if (typeof CONFIG.classes[key] === 'string') {
+                acc[key] = `.${CONFIG.classes[key]}`;
+            } else if (typeof CONFIG.classes[key] === 'function') {
+                acc[key] = (a) => `.${CONFIG.classes[key](a)}`;
+            }
+            return acc;
+        } catch (error) {
+            LOG.error(MODULE, `Selector generation failed for "${key}":`, error);
+            return acc;
+        }
+    }, {});
+
+    // Extend with additional selectors
+    Object.assign(CONFIG.selectors, {
+        detailLevelInfo: '#detail-level-info',
+        detailControlContainer: '.detail-control-mini'
+    });
+
+    // ========================================================================
+    // PRIVATE STATE VARIABLES
+    // ========================================================================
+
+    /** @private @type {boolean} */
     let _isInitialized = false;
 
-    /**
-     * Reference to the event delegation container for cleanup
-     * @private
-     * @type {HTMLElement|null}
-     */
+    /** @private @type {HTMLElement|null} */
     let _delegationContainer = null;
 
-    /**
-     * Current active detail level
-     * @private
-     * @type {string}
-     */
+    /** @private @type {string} */
     let _currentLevel = CONFIG.defaultLevel;
 
     // ========================================================================
-    // DETAIL LEVEL MANAGEMENT
+    // DEPENDENCY CHECKING
     // ========================================================================
 
     /**
-     * Gets the current active detail level
+     * Validates system dependencies
      * @private
-     * @returns {string} currentLevel - The currently active detail level
+     * @returns {boolean}
+     */
+    function _checkDependencies() {
+        try {
+            if (typeof window.LOG === 'undefined') {
+                console.error(`${MODULE}: LOG system required but not available`);
+                return false;
+            }
+
+            if (typeof window.StateManager === 'undefined') {
+                LOG.warn(MODULE, 'StateManager unavailable - preferences disabled');
+            }
+
+            LOG.debug(MODULE, 'Dependency check passed');
+            return true;
+        } catch (error) {
+            console.error(`${MODULE}: Dependency check failed:`, error);
+            return false;
+        }
+    }
+
+    // ========================================================================
+    // CORE LEVEL MANAGEMENT
+    // ========================================================================
+
+    /**
+     * Gets current active level
+     * @private
+     * @returns {string}
      */
     function _getCurrentLevel() {
         return _currentLevel;
     }
 
     /**
-     * Validates if a level is supported by the system
+     * Validates level support
      * @private
-     * @param {string|number} level - The level to validate
-     * @returns {boolean} isValid - Returns true if level is valid
+     * @param {string|number} level
+     * @returns {boolean}
      */
     function _isValidLevel(level) {
-        if (level == null || level === '') {
-            LOG.warn(MODULE, 'Level validation failed: level is null or empty');
-            return false;
-        }
-        
-        const normalizedLevel = LEVEL_MAP[level];
-        const isValid = !!normalizedLevel;
+        const isValid = level != null && level !== '' && LEVEL_MAP[level] !== undefined;
         
         if (!isValid) {
-            LOG.warn(MODULE, `Level validation failed: "${level}" is not a supported level`);
+            LOG.warn(MODULE, `Invalid level: "${level}"`);
         }
         
         return isValid;
     }
 
     /**
-     * Gets the default detail level
+     * Gets system default level
      * @private
-     * @returns {string} defaultLevel - The system default detail level
+     * @returns {string}
      */
     function _getDefaultLevel() {
         return CONFIG.defaultLevel;
     }
 
     /**
-     * Sets the active detail level and updates all UI components
-     * @param {string|number} level - The detail level to set (1/2/3 or basic/bestpractice/expert)
-     * @returns {boolean} success - Returns true if level was set successfully
+     * Core level setting with full UI synchronization
+     * @param {string|number} level
+     * @returns {boolean}
      */
     function setDetailLevel(level) {
         try {
-            // Validate input
             if (!_isValidLevel(level)) {
-                LOG.error(MODULE, `Invalid level: ${level} (expected: 1/2/3 or basic/bestpractice/expert)`);
+                LOG.error(MODULE, `Unsupported level: ${level}`);
                 return false;
             }
 
-            // Convert numeric value to level name
             const normalizedLevel = LEVEL_MAP[level];
 
-            // Check if level is already active
+            // Skip if no change needed
             if (_currentLevel === level) {
-                LOG.debug(MODULE, `Level ${level} already active - no change needed`);
+                LOG.debug(MODULE, `Level ${level} already active`);
                 return true;
             }
 
             const previousLevel = _currentLevel;
             _currentLevel = level;
 
-            LOG.debug(MODULE, `Setting detail level from ${previousLevel} to: ${level} (normalized: ${normalizedLevel})`);
+            LOG.debug(MODULE, `Level change: ${previousLevel} → ${level}`);
 
-            // Update all UI components
+            // Batch UI updates
             _updateDetailVisibility(normalizedLevel);
             _updateInfoText(normalizedLevel);
             _updateActiveButton(normalizedLevel);
 
-            // Only save to StateManager if available
+            // Persist preference if available
             if (window.StateManager) {
                 try {
                     window.StateManager.set('preferences.detailLevel', level);
-                    LOG.debug(MODULE, `Preference saved to StateManager: ${level}`);
-                } catch (stateError) {
-                    LOG.warn(MODULE, 'Failed to save preference to StateManager:', stateError);
+                } catch (error) {
+                    LOG.warn(MODULE, 'Preference save failed:', error);
                 }
-            } else {
-                LOG.debug(MODULE, 'StateManager not available - skipping preference save');
             }
 
-            // Dispatch custom event for other modules
+            // Notify other components
             window.dispatchEvent(new CustomEvent('detailLevelChanged', {
-                detail: { 
-                    previousLevel: previousLevel,
-                    newLevel: level,
-                    normalizedLevel: normalizedLevel
-                }
+                detail: { previousLevel, newLevel: level, normalizedLevel }
             }));
 
-            LOG.info(MODULE, `Detail level successfully changed from ${previousLevel} to: ${level}`);
+            LOG.info(MODULE, `Level set to: ${level}`);
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, `Error setting detail level to "${level}":`, error);
+            LOG.error(MODULE, `Level setting failed for "${level}":`, error);
             return false;
         }
     }
 
+    // ========================================================================
+    // UI UPDATE METHODS
+    // ========================================================================
+
     /**
-     * Updates the visibility of detail level elements based on current level
+     * Updates element visibility based on current level
      * @private
-     * @param {string} level - The normalized detail level (1/2/3)
-     * @returns {boolean} success - Returns true if update was successful
+     * @param {string} level
+     * @returns {boolean}
      */
     function _updateDetailVisibility(level) {
         try {
             const currentLevel = LEVEL_MAP[level];
 
-            // Update Level 1 elements - always visible (remove hidden class)
-            const level1Elements = document.querySelectorAll(CONFIG.selectors.detailLevel1);
-            level1Elements.forEach(el => {
-                try {
-                    el.classList.remove(CONFIG.classes.hidden);
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error updating level 1 element:', elError);
-                }
-            });
+            // Batch DOM operations for performance
+            const operations = [
+                { elements: CONFIG.selectors.detailLevel1, condition: () => true },
+                { elements: CONFIG.selectors.detailLevel2, condition: (lvl) => lvl >= 2 },
+                { elements: CONFIG.selectors.detailLevel3, condition: (lvl) => lvl >= 3 }
+            ];
 
-            // Update Level 2 elements - visible if currentLevel >= 2
-            const level2Elements = document.querySelectorAll(CONFIG.selectors.detailLevel2);
-            level2Elements.forEach(el => {
-                try {
-                    if (currentLevel >= 2) {
-                        el.classList.remove(CONFIG.classes.hidden);
-                    } else {
-                        el.classList.add(CONFIG.classes.hidden);
+            operations.forEach(({ elements, condition }) => {
+                const elementList = document.querySelectorAll(elements);
+                const shouldShow = condition(currentLevel);
+                
+                elementList.forEach(el => {
+                    try {
+                        if (shouldShow) {
+                            el.classList.remove(CONFIG.classes.hidden);
+                        } else {
+                            el.classList.add(CONFIG.classes.hidden);
+                        }
+                    } catch (error) {
+                        LOG.warn(MODULE, 'Element visibility update failed:', error);
                     }
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error updating level 2 element:', elError);
-                }
+                });
             });
 
-            // Update Level 3 elements - visible if currentLevel >= 3
-            const level3Elements = document.querySelectorAll(CONFIG.selectors.detailLevel3);
-            level3Elements.forEach(el => {
-                try {
-                    if (currentLevel >= 3) {
-                        el.classList.remove(CONFIG.classes.hidden);
-                    } else {
-                        el.classList.add(CONFIG.classes.hidden);
-                    }
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error updating level 3 element:', elError);
-                }
-            });
-
-            // Update content section focus states
+            // Update content sections
             const contentSections = document.querySelectorAll(CONFIG.selectors.contentSection);
             contentSections.forEach(section => {
                 try {
-                    // Check if section has any visible content for current level
-                    const hasVisibleContent = 
+                    const hasContent = 
                         section.querySelector(CONFIG.selectors.detailLevel1) ||
                         (currentLevel >= 2 && section.querySelector(`${CONFIG.selectors.detailLevel2}:not(.${CONFIG.classes.hidden})`)) ||
                         (currentLevel >= 3 && section.querySelector(`${CONFIG.selectors.detailLevel3}:not(.${CONFIG.classes.hidden})`));
 
-                    if (hasVisibleContent) {
-                        section.classList.remove(CONFIG.classes.outOfFocus);
-                    } else {
-                        section.classList.add(CONFIG.classes.outOfFocus);
-                    }
-                } catch (sectionError) {
-                    LOG.warn(MODULE, 'Error updating content section:', sectionError);
+                    section.classList.toggle(CONFIG.classes.outOfFocus, !hasContent);
+                } catch (error) {
+                    LOG.warn(MODULE, 'Content section update failed:', error);
                 }
             });
 
-            LOG.debug(MODULE, `Visibility updated for level ${currentLevel} using CSS classes`);
+            LOG.debug(MODULE, `Visibility updated for level ${currentLevel}`);
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, `Error updating detail visibility for level "${level}":`, error);
+            LOG.error(MODULE, 'Visibility update failed:', error);
             return false;
         }
     }
 
     /**
-     * Updates the information text display based on current detail level
+     * Updates information text display
      * @private
-     * @param {string} level - The detail level name
-     * @returns {boolean} success - Returns true if update was successful
+     * @param {string} level
+     * @returns {boolean}
      */
     function _updateInfoText(level) {
         try {
             const infoElement = document.getElementById(CONFIG.selectors.detailLevelInfo);
             if (!infoElement) {
-                LOG.debug(MODULE, `Info element (${CONFIG.selectors.detailLevelInfo}) not found`);
+                LOG.debug(MODULE, 'Info element not found');
                 return false;
             }
 
@@ -401,77 +331,69 @@
                 expert: CONFIG.i18n.de.level3
             };
 
-            const newText = infoTexts[level] || '';
-            infoElement.textContent = newText;
-            
-            LOG.debug(MODULE, `Info text updated: ${newText}`);
+            infoElement.textContent = infoTexts[level] || '';
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, `Error updating info text for level "${level}":`, error);
+            LOG.error(MODULE, 'Info text update failed:', error);
             return false;
         }
     }
 
     /**
-     * Updates the active state of detail level control buttons
+     * Updates button active states
      * @private
-     * @param {string} level - The detail level name
-     * @returns {boolean} success - Returns true if update was successful
+     * @param {string} level
+     * @returns {boolean}
      */
     function _updateActiveButton(level) {
         try {
-            // Remove .active from all buttons
-            const allButtons = document.querySelectorAll(`${CONFIG.i18n.de.detailLevelBtn}, ${CONFIG.i18n.de.detailBtnMini}`);
+            const levelNumber = LEVEL_TO_NUMBER[level];
+            const allButtons = document.querySelectorAll(
+                `${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`
+            );
+
+            // Clear all active states
             allButtons.forEach(btn => {
                 try {
                     btn.classList.remove(CONFIG.classes.active);
-                } catch (btnError) {
-                    LOG.warn(MODULE, 'Error removing active class from button:', btnError);
+                    btn.setAttribute('aria-pressed', 'false');
+                } catch (error) {
+                    LOG.warn(MODULE, 'Button state clear failed:', error);
                 }
             });
 
-            // Convert level to number for button selector
-            const levelNumber = LEVEL_TO_NUMBER[level];
-
-            LOG.debug(MODULE, `Looking for buttons with data-level="${levelNumber}" or "${level}"`);
-
-            // Activate buttons with matching data-level (numeric or word)
+            // Activate matching buttons
             const selectors = [
-                `${CONFIG.selectors.detailLevelBtn}[data-level="${levelNumber}"]`,
-                `${CONFIG.selectors.detailLevelBtn}[data-level="${level}"]`,
-                `${CONFIG.selectors.detailBtnMini}[data-level="${levelNumber}"]`,
-                `${CONFIG.selectors.detailBtnMini}[data-level="${level}"]`
-            ];
+                `[data-level="${levelNumber}"]`,
+                `[data-level="${level}"]`
+            ].map(sel => 
+                `${CONFIG.selectors.detailLevelBtn}${sel}, ${CONFIG.selectors.detailBtnMini}${sel}`
+            ).join(', ');
 
-            const activeButtons = document.querySelectorAll(selectors.join(', '));
+            const activeButtons = document.querySelectorAll(selectors);
+            let activatedCount = 0;
 
             activeButtons.forEach(btn => {
                 try {
                     btn.classList.add(CONFIG.classes.active);
-                    LOG.debug(MODULE, `Activated button: data-level="${btn.dataset.level}"`);
-                } catch (btnError) {
-                    LOG.warn(MODULE, 'Error adding active class to button:', btnError);
+                    btn.setAttribute('aria-pressed', 'true');
+                    activatedCount++;
+                } catch (error) {
+                    LOG.warn(MODULE, 'Button activation failed:', error);
                 }
             });
 
-            if (activeButtons.length > 0) {
-                LOG.info(MODULE, `Active button(s) updated: ${level} (${activeButtons.length} buttons)`);
+            if (activatedCount > 0) {
+                LOG.debug(MODULE, `Activated ${activatedCount} buttons for level ${level}`);
                 return true;
             } else {
-                LOG.warn(MODULE, `No buttons found for level: ${level}/${levelNumber}`);
-
-                // Debug: List all available buttons
-                const availableButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
-                LOG.debug(MODULE, 'Available buttons:', Array.from(availableButtons).map(btn => ({
-                    text: btn.textContent.trim(),
-                    level: btn.dataset.level
-                })));
+                LOG.warn(MODULE, `No buttons found for level: ${level}`);
                 return false;
             }
 
         } catch (error) {
-            LOG.error(MODULE, `Error updating active buttons for level "${level}":`, error);
+            LOG.error(MODULE, 'Button update failed:', error);
             return false;
         }
     }
@@ -481,198 +403,151 @@
     // ========================================================================
 
     /**
-     * Resets the detail level system to default state without destroying it
+     * Resets system to default state
      * @private
-     * @returns {boolean} success - Returns true if reset was successful
+     * @returns {boolean}
      */
     function _resetToDefault() {
         try {
-            LOG.debug(MODULE, 'Resetting detail level system to default...');
-
             const previousLevel = _currentLevel;
             _currentLevel = CONFIG.defaultLevel;
 
-            // Update UI to default state
+            LOG.debug(MODULE, `Resetting from ${previousLevel} to default`);
+
             _updateDetailVisibility(CONFIG.defaultLevel);
             _updateInfoText(CONFIG.defaultLevel);
             _updateActiveButton(CONFIG.defaultLevel);
 
-            // Clear stored preference if StateManager is available
+            // Clear stored preference
             if (window.StateManager) {
                 try {
                     window.StateManager.remove('preferences.detailLevel');
-                    LOG.debug(MODULE, 'Stored preference cleared from StateManager');
-                } catch (stateError) {
-                    LOG.warn(MODULE, 'Failed to clear preference from StateManager:', stateError);
+                } catch (error) {
+                    LOG.warn(MODULE, 'Preference clear failed:', error);
                 }
             }
 
-            // Dispatch reset event
             window.dispatchEvent(new CustomEvent('detailLevelReset', {
-                detail: { 
-                    previousLevel: previousLevel,
-                    newLevel: CONFIG.defaultLevel
-                }
+                detail: { previousLevel, newLevel: CONFIG.defaultLevel }
             }));
 
-            LOG.info(MODULE, `Detail level system reset from ${previousLevel} to default: ${CONFIG.defaultLevel}`);
+            LOG.info(MODULE, 'System reset completed');
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, 'Error resetting detail level system:', error);
+            LOG.error(MODULE, 'System reset failed:', error);
             return false;
         }
     }
 
     // ========================================================================
-    // EVENT DELEGATION
+    // EVENT HANDLERS
     // ========================================================================
 
     /**
-     * Handles click events for detail level buttons using event delegation
+     * Handles button clicks via event delegation
      * @private
-     * @param {Event} event - The click event
-     * @returns {void}
+     * @param {Event} event
      */
     function _handleDetailLevelClick(event) {
         try {
-            // Find the closest detail level button
-            const button = event.target.closest(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
+            const button = event.target.closest(
+                `${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`
+            );
             
-            if (!button) {
-                return; // Not a detail level button
-            }
+            if (!button) return;
 
             event.preventDefault();
-
             const level = button.dataset.level;
             
             if (level) {
-                LOG.debug(MODULE, `Button clicked: data-level="${level}"`);
                 setDetailLevel(level);
             } else {
-                LOG.error(MODULE, 'Button has no data-level attribute', button);
+                LOG.error(MODULE, 'Button missing data-level', button);
             }
         } catch (error) {
-            LOG.error(MODULE, 'Error handling detail level click:', error);
+            LOG.error(MODULE, 'Click handler failed:', error);
         }
     }
 
     /**
-     * Handles keyboard events for detail level buttons (accessibility)
+     * Handles button keyboard activation
      * @private
-     * @param {Event} event - The keydown event
-     * @returns {void}
+     * @param {Event} event
      */
     function _handleDetailLevelKeydown(event) {
         try {
-            // Only handle Enter and Space keys
-            if (event.key !== 'Enter' && event.key !== ' ') {
-                return;
-            }
+            if (event.key !== 'Enter' && event.key !== ' ') return;
 
-            // Find the closest detail level button
-            const button = event.target.closest(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
+            const button = event.target.closest(
+                `${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`
+            );
             
-            if (!button) {
-                return; // Not a detail level button
-            }
+            if (!button) return;
 
             event.preventDefault();
-
             const level = button.dataset.level;
             
             if (level) {
-                LOG.debug(MODULE, `Button activated via keyboard (${event.key}): data-level="${level}"`);
                 setDetailLevel(level);
             }
         } catch (error) {
-            LOG.error(MODULE, 'Error handling detail level keydown:', error);
+            LOG.error(MODULE, 'Keydown handler failed:', error);
         }
     }
 
-    // ========================================================================
-    // KEYBOARD SHORTCUTS
-    // ========================================================================
-
     /**
-     * Handles global keyboard shortcuts for detail levels
+     * Handles global keyboard shortcuts
      * @private
-     * @param {Event} event - The keydown event
-     * @returns {void}
+     * @param {Event} event
      */
     function _handleKeyboardShortcuts(event) {
         try {
-            // Check for Alt+1, Alt+2, Alt+3 shortcuts
-            const shortcutKeys = Object.keys(KEYBOARD_SHORTCUTS);
-            
-            for (const key of shortcutKeys) {
+            for (const key in KEYBOARD_SHORTCUTS) {
                 const shortcut = KEYBOARD_SHORTCUTS[key];
                 
-                if (event.key === shortcut.key && event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+                if (event.key === shortcut.key && event.altKey && 
+                    !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+                    
                     event.preventDefault();
                     event.stopPropagation();
-                    
-                    LOG.debug(MODULE, `Keyboard shortcut detected: Alt+${key} for level ${shortcut.level}`);
                     setDetailLevel(shortcut.level);
                     return;
                 }
             }
         } catch (error) {
-            LOG.error(MODULE, 'Error handling keyboard shortcut:', error);
+            LOG.error(MODULE, 'Shortcut handler failed:', error);
         }
     }
 
     // ========================================================================
-    // UI - CONTROLS
+    // INITIALIZATION
     // ========================================================================
 
     /**
-     * Initializes event delegation for detail level control buttons
+     * Initializes event delegation system
      * @private
-     * @returns {boolean} success - Returns true if initialization was successful
+     * @returns {boolean}
      */
     function _initDetailLevelControls() {
         try {
-            LOG(MODULE, 'Initializing detail level controls with event delegation...');
+            _delegationContainer = document.querySelector(CONFIG.selectors.detailControlContainer) || document;
 
-            // Find the main control container for event delegation
-            const controlContainer = document.querySelector(CONFIG.selectors.detailControlContainer);
-            
-            if (!controlContainer) {
-                LOG.warn(MODULE, 'Detail control container not found, using document body for event delegation');
-                _delegationContainer = document;
-            } else {
-                _delegationContainer = controlContainer;
-            }
-
-            // Set up click event delegation
             _delegationContainer.addEventListener('click', _handleDetailLevelClick);
-            
-            // Set up keyboard event delegation for accessibility
             _delegationContainer.addEventListener('keydown', _handleDetailLevelKeydown);
-
-            // Set up global keyboard shortcuts
             document.addEventListener('keydown', _handleKeyboardShortcuts);
 
-            LOG.debug(MODULE, 'Event delegation and keyboard shortcuts initialized');
-
-            // Apply initial level from preferences (only if StateManager available)
+            // Apply initial level
             let initialLevel = CONFIG.defaultLevel;
             if (window.StateManager) {
                 try {
-                    const storedLevel = window.StateManager.get('preferences.detailLevel');
-                    if (storedLevel && _isValidLevel(storedLevel)) {
-                        initialLevel = storedLevel;
-                        LOG(MODULE, `Applying initial detail level from StateManager: ${initialLevel}`);
-                    } else {
-                        LOG(MODULE, `No valid stored preference found, using default: ${initialLevel}`);
+                    const stored = window.StateManager.get('preferences.detailLevel');
+                    if (stored && _isValidLevel(stored)) {
+                        initialLevel = stored;
                     }
-                } catch (stateError) {
-                    LOG.warn(MODULE, 'Error getting initial level from StateManager, using default:', stateError);
+                } catch (error) {
+                    LOG.warn(MODULE, 'Preference load failed:', error);
                 }
-            } else {
-                LOG(MODULE, `Applying default detail level: ${initialLevel} (StateManager not available)`);
             }
 
             _currentLevel = initialLevel;
@@ -680,63 +555,73 @@
             _updateInfoText(initialLevel);
             _updateActiveButton(initialLevel);
 
-            LOG.info(MODULE, 'Detail level controls initialized successfully with event delegation and keyboard shortcuts');
+            LOG.debug(MODULE, 'Controls initialized');
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, 'Error initializing detail level controls:', error);
+            LOG.error(MODULE, 'Controls initialization failed:', error);
             return false;
         }
     }
 
-    // ========================================================================
-    // EVENT LISTENERS
-    // ========================================================================
-
     /**
-     * Initializes system-wide event listeners for preferences synchronization
+     * Initializes preference event listeners
      * @private
-     * @returns {boolean} success - Returns true if initialization was successful
+     * @returns {boolean}
      */
     function _initDetailLevelListeners() {
         try {
-            LOG(MODULE, 'Initializing event listeners...');
-
-            // Only set up StateManager events if StateManager is available
             if (window.StateManager) {
-                // React to Preferences-Loaded Event
                 window.addEventListener('preferencesLoaded', () => {
                     try {
-                        LOG(MODULE, 'Preferences loaded event received');
                         const level = window.StateManager.get('preferences.detailLevel');
                         if (level && _isValidLevel(level)) {
-                            LOG(MODULE, `Applying loaded detail level: ${level}`);
                             setDetailLevel(level);
-                        } else {
-                            LOG(MODULE, `No valid detail level in preferences, keeping current: ${_currentLevel}`);
                         }
-                    } catch (eventError) {
-                        LOG.error(MODULE, 'Error handling preferencesLoaded event:', eventError);
+                    } catch (error) {
+                        LOG.error(MODULE, 'Preferences loaded handler failed:', error);
                     }
                 });
 
-                window.addEventListener('preferencesReset', () => {
-                    try {
-                        LOG(MODULE, 'Preferences reset event received');
-                        _resetToDefault();
-                    } catch (eventError) {
-                        LOG.error(MODULE, 'Error handling preferencesReset event:', eventError);
-                    }
-                });
-            } else {
-                LOG.debug(MODULE, 'StateManager not available - skipping preference event listeners');
+                window.addEventListener('preferencesReset', _resetToDefault);
             }
 
-            LOG.info(MODULE, 'Event listeners initialized successfully');
+            LOG.debug(MODULE, 'Listeners initialized');
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, 'Error initializing event listeners:', error);
+            LOG.error(MODULE, 'Listeners initialization failed:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Main initialization function
+     * @public
+     * @returns {boolean}
+     */
+    function init() {
+        try {
+            if (_isInitialized) {
+                LOG.warn(MODULE, 'Already initialized');
+                return false;
+            }
+
+            if (!_checkDependencies()) {
+                return false;
+            }
+
+            const success = _initDetailLevelControls() && _initDetailLevelListeners();
+            
+            if (success) {
+                _isInitialized = true;
+                LOG.info(MODULE, 'Initialization completed');
+            }
+
+            return success;
+
+        } catch (error) {
+            LOG.error(MODULE, 'Initialization failed:', error);
             return false;
         }
     }
@@ -746,178 +631,55 @@
     // ========================================================================
 
     /**
-     * Removes all event listeners and cleans up resources
+     * Cleans up event listeners
      * @private
-     * @returns {void}
      */
     function _cleanupEventListeners() {
         try {
-            LOG.debug(MODULE, 'Cleaning up event listeners...');
-
-            // Remove event delegation listeners
             if (_delegationContainer) {
                 _delegationContainer.removeEventListener('click', _handleDetailLevelClick);
                 _delegationContainer.removeEventListener('keydown', _handleDetailLevelKeydown);
-                LOG.debug(MODULE, 'Event delegation listeners removed');
             }
-
-            // Remove global keyboard shortcuts
+            
             document.removeEventListener('keydown', _handleKeyboardShortcuts);
-            LOG.debug(MODULE, 'Keyboard shortcut listeners removed');
-
-            // Remove StateManager event listeners
+            
             if (window.StateManager) {
                 window.removeEventListener('preferencesLoaded', _initDetailLevelListeners);
-                window.removeEventListener('preferencesReset', _initDetailLevelListeners);
-                LOG.debug(MODULE, 'StateManager event listeners removed');
+                window.removeEventListener('preferencesReset', _resetToDefault);
             }
 
-            LOG.info(MODULE, 'All event listeners cleaned up successfully');
+            LOG.debug(MODULE, 'Event listeners cleaned up');
         } catch (error) {
-            LOG.error(MODULE, 'Error during event listener cleanup:', error);
+            LOG.error(MODULE, 'Listener cleanup failed:', error);
         }
     }
 
     /**
-     * Resets all detail levels to default visibility
-     * @private
-     * @returns {void}
-     */
-    function _resetDetailLevels() {
-        try {
-            LOG.debug(MODULE, 'Resetting detail levels to default...');
-
-            // Show all level 1 elements
-            const level1Elements = document.querySelectorAll(CONFIG.selectors.detailLevel1);
-            level1Elements.forEach(el => {
-                try {
-                    el.classList.remove(CONFIG.classes.hidden);
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error resetting level 1 element:', elError);
-                }
-            });
-
-            // Hide all level 2 and 3 elements
-            const level2Elements = document.querySelectorAll(CONFIG.selectors.detailLevel2);
-            const level3Elements = document.querySelectorAll(CONFIG.selectors.detailLevel3);
-            
-            level2Elements.forEach(el => {
-                try {
-                    el.classList.add(CONFIG.classes.hidden);
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error resetting level 2 element:', elError);
-                }
-            });
-            
-            level3Elements.forEach(el => {
-                try {
-                    el.classList.add(CONFIG.classes.hidden);
-                } catch (elError) {
-                    LOG.warn(MODULE, 'Error resetting level 3 element:', elError);
-                }
-            });
-
-            // Reset content section focus states
-            const contentSections = document.querySelectorAll(CONFIG.selectors.contentSection);
-            contentSections.forEach(section => {
-                try {
-                    section.classList.remove(CONFIG.classes.outOfFocus);
-                } catch (sectionError) {
-                    LOG.warn(MODULE, 'Error resetting content section:', sectionError);
-                }
-            });
-
-            // Reset button active states
-            const allButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
-            allButtons.forEach(btn => {
-                try {
-                    btn.classList.remove(CONFIG.classes.active);
-                } catch (btnError) {
-                    LOG.warn(MODULE, 'Error resetting button state:', btnError);
-                }
-            });
-
-            LOG.info(MODULE, 'Detail levels reset to default successfully');
-        } catch (error) {
-            LOG.error(MODULE, 'Error resetting detail levels:', error);
-        }
-    }
-
-    /**
-     * Completely destroys the detail level system and cleans up all resources
+     * Comprehensive system destruction
      * @public
-     * @returns {boolean} success - Returns true if destruction was successful
+     * @returns {boolean}
      */
     function destroy() {
         try {
             if (!_isInitialized) {
-                LOG.warn(MODULE, 'Not initialized - nothing to destroy');
+                LOG.warn(MODULE, 'Not initialized');
                 return false;
             }
 
-            LOG(MODULE, 'Destroying detail level system...');
-
-            // Clean up event listeners
             _cleanupEventListeners();
-
-            // Reset UI to default state
-            _resetDetailLevels();
-
-            // Reset internal state
+            
+            // Reset state
             _isInitialized = false;
             _delegationContainer = null;
             _currentLevel = CONFIG.defaultLevel;
 
-            // Remove public API
             delete window.DetailLevel;
 
-            LOG.info(MODULE, 'Detail level system destroyed completely');
+            LOG.info(MODULE, 'Destruction completed');
             return true;
 
         } catch (error) {
-            LOG.error(MODULE, 'Error during detail level system destruction:', error);
-            return false;
-        }
-    }
-
-    // ========================================================================
-    // INITIALIZATION
-    // ========================================================================
-
-    /**
-     * Initializes the detail level management system
-     * @public
-     * @returns {boolean} success - Returns true if initialization was successful
-     */
-    function init() {
-        try {
-            if (_isInitialized) {
-                LOG.warn(MODULE, 'Already initialized');
-                return false;
-            }
-
-            LOG(MODULE, 'Initializing detail level module...');
-
-            // Check dependencies before proceeding
-            if (!_checkDependencies()) {
-                LOG.error(MODULE, 'Dependency check failed - initialization aborted');
-                return false;
-            }
-
-            const controlsSuccess = _initDetailLevelControls();
-            const listenersSuccess = _initDetailLevelListeners();
-
-            if (controlsSuccess && listenersSuccess) {
-                _isInitialized = true;
-                LOG.info(MODULE, 'Detail level module initialized successfully');
-                return true;
-            } else {
-                LOG.error(MODULE, 'Detail level module initialization failed - some components did not initialize properly');
-                return false;
-            }
-
-        } catch (error) {
-            LOG.error(MODULE, 'Error during detail level module initialization:', error);
+            LOG.error(MODULE, 'Destruction failed:', error);
             return false;
         }
     }
@@ -927,65 +689,23 @@
     // ========================================================================
 
     /**
-     * Public API for the Detail Level Management System
+     * Public API following toast system pattern
      * @namespace DetailLevel
      */
     window.DetailLevel = {
-        /**
-         * Initializes the detail level system
-         * @function init
-         * @returns {boolean} success - Returns true if initialization was successful
-         */
+        // Core functionality
         init: init,
-        
-        /**
-         * Sets the active detail level
-         * @function setLevel
-         * @param {string|number} level - The detail level to set
-         * @returns {boolean} success - Returns true if level was set successfully
-         */
         setLevel: setDetailLevel,
-
-        /**
-         * Gets the current active detail level
-         * @function getCurrentLevel
-         * @returns {string} currentLevel - The currently active detail level
-         */
-        getCurrentLevel: _getCurrentLevel,
-
-        /**
-         * Gets the default detail level
-         * @function getDefaultLevel
-         * @returns {string} defaultLevel - The system default detail level
-         */
-        getDefaultLevel: _getDefaultLevel,
-
-        /**
-         * Checks if a level is valid and supported
-         * @function isValidLevel
-         * @param {string|number} level - The level to validate
-         * @returns {boolean} isValid - Returns true if level is valid
-         */
-        isValidLevel: _isValidLevel,
-
-        /**
-         * Resets the detail level system to default state
-         * @function reset
-         * @returns {boolean} success - Returns true if reset was successful
-         */
+        destroy: destroy,
         reset: _resetToDefault,
 
-        /**
-         * Completely destroys the detail level system and cleans up all resources
-         * @function destroy
-         * @returns {boolean} success - Returns true if destruction was successful
-         */
-        destroy: destroy,
+        // Utility methods
+        getCurrentLevel: _getCurrentLevel,
+        getDefaultLevel: _getDefaultLevel,
+        isValidLevel: _isValidLevel,
+        isInitialized: () => _isInitialized,
 
-        /**
-         * Level constants for programmatic use
-         * @constant {Object}
-         */
+        // Constants for programmatic use
         LEVELS: {
             BASIC: 'basic',
             BEST_PRACTICE: 'bestpractice', 
@@ -995,14 +715,14 @@
             LEVEL_3: '3'
         },
 
-        /**
-         * Check if the system is initialized
-         * @function isInitialized
-         * @returns {boolean} isInitialized - Returns true if system is initialized
-         */
-        isInitialized: () => _isInitialized
+        // Debug information (following toast pattern)
+        _debug: {
+            CONFIG: CONFIG,
+            currentLevel: () => _currentLevel,
+            isInitialized: () => _isInitialized
+        }
     };
 
-    LOG(MODULE, 'Detail level module loaded');
+    LOG.info(MODULE, 'Module loaded and ready');
 
 })();
