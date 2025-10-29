@@ -12,6 +12,7 @@
  * - Persistent user preferences via StateManager
  * - Responsive UI controls with active state management
  * - Event-driven architecture for preferences synchronization
+ * - Keyboard shortcuts: Alt+1, Alt+2, Alt+3
  * 
  * Structure Rules:
  * - Level 1 ⊆ Level 2 ⊆ Level 3 (Matryoshka pattern)
@@ -87,6 +88,16 @@
     };
 
     /**
+     * Keyboard shortcuts configuration
+     * @constant {Object}
+     */
+    const KEYBOARD_SHORTCUTS = {
+        '1': { key: '1', altKey: true, level: '1' },
+        '2': { key: '2', altKey: true, level: '2' },
+        '3': { key: '3', altKey: true, level: '3' }
+    };
+
+    /**
      * Global configuration object for detail level system
      * @namespace CONFIG
      */
@@ -134,7 +145,10 @@
     CONFIG.selectors = {
         ...CONFIG.selectors,
         // Add new, non-class selectors
-        detailLevelInfo: '#detail-level-info'
+        detailLevelInfo: '#detail-level-info',
+        // Event delegation containers
+        detailControlContainer: '.detail-control-mini',
+        body: 'body'
     }
 
     /**
@@ -399,49 +413,137 @@
     }
 
     // ========================================================================
+    // EVENT DELEGATION
+    // ========================================================================
+
+    /**
+     * Handles click events for detail level buttons using event delegation
+     * @private
+     * @param {Event} event - The click event
+     * @returns {void}
+     */
+    function _handleDetailLevelClick(event) {
+        try {
+            // Find the closest detail level button
+            const button = event.target.closest(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
+            
+            if (!button) {
+                return; // Not a detail level button
+            }
+
+            event.preventDefault();
+
+            const level = button.dataset.level;
+            
+            if (level) {
+                LOG.debug(MODULE, `Button clicked: data-level="${level}"`);
+                setDetailLevel(level);
+            } else {
+                LOG.error(MODULE, 'Button has no data-level attribute', button);
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error handling detail level click:', error);
+        }
+    }
+
+    /**
+     * Handles keyboard events for detail level buttons (accessibility)
+     * @private
+     * @param {Event} event - The keydown event
+     * @returns {void}
+     */
+    function _handleDetailLevelKeydown(event) {
+        try {
+            // Only handle Enter and Space keys
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            // Find the closest detail level button
+            const button = event.target.closest(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
+            
+            if (!button) {
+                return; // Not a detail level button
+            }
+
+            event.preventDefault();
+
+            const level = button.dataset.level;
+            
+            if (level) {
+                LOG.debug(MODULE, `Button activated via keyboard (${event.key}): data-level="${level}"`);
+                setDetailLevel(level);
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error handling detail level keydown:', error);
+        }
+    }
+
+    // ========================================================================
+    // KEYBOARD SHORTCUTS
+    // ========================================================================
+
+    /**
+     * Handles global keyboard shortcuts for detail levels
+     * @private
+     * @param {Event} event - The keydown event
+     * @returns {void}
+     */
+    function _handleKeyboardShortcuts(event) {
+        try {
+            // Check for Alt+1, Alt+2, Alt+3 shortcuts
+            const shortcutKeys = Object.keys(KEYBOARD_SHORTCUTS);
+            
+            for (const key of shortcutKeys) {
+                const shortcut = KEYBOARD_SHORTCUTS[key];
+                
+                if (event.key === shortcut.key && event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    LOG.debug(MODULE, `Keyboard shortcut detected: Alt+${key} for level ${shortcut.level}`);
+                    setDetailLevel(shortcut.level);
+                    return;
+                }
+            }
+        } catch (error) {
+            LOG.error(MODULE, 'Error handling keyboard shortcut:', error);
+        }
+    }
+
+    // ========================================================================
     // UI - CONTROLS
     // ========================================================================
 
     /**
-     * Initializes event listeners for detail level control buttons
+     * Initializes event delegation for detail level control buttons
      * @private
      * @returns {boolean} success - Returns true if initialization was successful
      */
     function _initDetailLevelControls() {
         try {
-            LOG(MODULE, 'Initializing detail level controls...');
+            LOG(MODULE, 'Initializing detail level controls with event delegation...');
 
-            const buttons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
-
-            LOG.debug(MODULE, `Found ${buttons.length} detail level buttons`);
-
-            if (buttons.length === 0) {
-                LOG.warn(MODULE, 'No detail level buttons found in DOM!');
-                return false;
+            // Find the main control container for event delegation
+            const controlContainer = document.querySelector(CONFIG.selectors.detailControlContainer);
+            
+            if (!controlContainer) {
+                LOG.warn(MODULE, 'Detail control container not found, using document body for event delegation');
             }
 
-            buttons.forEach(btn => {
-                try {
-                    const level = btn.dataset.level;
+            // Use event delegation on the most appropriate container
+            const delegationTarget = controlContainer || document;
+            
+            // Set up click event delegation
+            delegationTarget.addEventListener('click', _handleDetailLevelClick);
+            
+            // Set up keyboard event delegation for accessibility
+            delegationTarget.addEventListener('keydown', _handleDetailLevelKeydown);
 
-                    LOG.debug(MODULE, `Button: "${btn.textContent.trim()}" with data-level="${level}"`);
+            // Set up global keyboard shortcuts
+            document.addEventListener('keydown', _handleKeyboardShortcuts);
 
-                    btn.addEventListener('click', (e) => {
-                        try {
-                            e.preventDefault();
-                            if (level) {
-                                setDetailLevel(level);
-                            } else {
-                                LOG.error(MODULE, 'Button has no data-level attribute', btn);
-                            }
-                        } catch (clickError) {
-                            LOG.error(MODULE, 'Error handling button click:', clickError);
-                        }
-                    });
-                } catch (btnError) {
-                    LOG.warn(MODULE, 'Error initializing button:', btnError);
-                }
-            });
+            LOG.debug(MODULE, 'Event delegation and keyboard shortcuts initialized');
 
             // Apply initial level from preferences (only if StateManager available)
             let initialLevel = 'basic'; // Default fallback
@@ -460,7 +562,7 @@
             _updateInfoText(initialLevel);
             _updateActiveButton(initialLevel);
 
-            LOG.info(MODULE, 'Detail level controls initialized successfully');
+            LOG.info(MODULE, 'Detail level controls initialized successfully with event delegation and keyboard shortcuts');
             return true;
 
         } catch (error) {
