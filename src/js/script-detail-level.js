@@ -14,6 +14,7 @@
  * - Event-driven architecture for preferences synchronization
  * - Keyboard shortcuts: Alt+1, Alt+2, Alt+3
  * - Comprehensive cleanup and destruction
+ * - Enhanced public API with utility methods
  * 
  * Structure Rules:
  * - Level 1 ⊆ Level 2 ⊆ Level 3 (Matryoshka pattern)
@@ -104,6 +105,18 @@
      */
     const CONFIG = {
         /**
+         * Default detail level when no preference is set
+         * @constant {string}
+         */
+        defaultLevel: 'basic',
+        
+        /**
+         * Storage key for user preference
+         * @constant {string}
+         */
+        storageKey: 'userDetailLevelPreference',
+        
+        /**
          * CSS classes used by the detail level system
          * @namespace classes
          */
@@ -178,9 +191,25 @@
      */
     let _delegationContainer = null;
 
+    /**
+     * Current active detail level
+     * @private
+     * @type {string}
+     */
+    let _currentLevel = CONFIG.defaultLevel;
+
     // ========================================================================
     // DETAIL LEVEL MANAGEMENT
     // ========================================================================
+
+    /**
+     * Gets the current active detail level
+     * @private
+     * @returns {string} currentLevel - The currently active detail level
+     */
+    function _getCurrentLevel() {
+        return _currentLevel;
+    }
 
     /**
      * Validates if a level is supported by the system
@@ -205,6 +234,15 @@
     }
 
     /**
+     * Gets the default detail level
+     * @private
+     * @returns {string} defaultLevel - The system default detail level
+     */
+    function _getDefaultLevel() {
+        return CONFIG.defaultLevel;
+    }
+
+    /**
      * Sets the active detail level and updates all UI components
      * @param {string|number} level - The detail level to set (1/2/3 or basic/bestpractice/expert)
      * @returns {boolean} success - Returns true if level was set successfully
@@ -220,7 +258,16 @@
             // Convert numeric value to level name
             const normalizedLevel = LEVEL_MAP[level];
 
-            LOG.debug(MODULE, `Setting detail level to: ${level} (normalized: ${normalizedLevel})`);
+            // Check if level is already active
+            if (_currentLevel === level) {
+                LOG.debug(MODULE, `Level ${level} already active - no change needed`);
+                return true;
+            }
+
+            const previousLevel = _currentLevel;
+            _currentLevel = level;
+
+            LOG.debug(MODULE, `Setting detail level from ${previousLevel} to: ${level} (normalized: ${normalizedLevel})`);
 
             // Update all UI components
             _updateDetailVisibility(normalizedLevel);
@@ -239,7 +286,16 @@
                 LOG.debug(MODULE, 'StateManager not available - skipping preference save');
             }
 
-            LOG.info(MODULE, `Detail level successfully set to: ${level}`);
+            // Dispatch custom event for other modules
+            window.dispatchEvent(new CustomEvent('detailLevelChanged', {
+                detail: { 
+                    previousLevel: previousLevel,
+                    newLevel: level,
+                    normalizedLevel: normalizedLevel
+                }
+            }));
+
+            LOG.info(MODULE, `Detail level successfully changed from ${previousLevel} to: ${level}`);
             return true;
 
         } catch (error) {
@@ -421,6 +477,54 @@
     }
 
     // ========================================================================
+    // RESET FUNCTIONALITY
+    // ========================================================================
+
+    /**
+     * Resets the detail level system to default state without destroying it
+     * @private
+     * @returns {boolean} success - Returns true if reset was successful
+     */
+    function _resetToDefault() {
+        try {
+            LOG.debug(MODULE, 'Resetting detail level system to default...');
+
+            const previousLevel = _currentLevel;
+            _currentLevel = CONFIG.defaultLevel;
+
+            // Update UI to default state
+            _updateDetailVisibility(CONFIG.defaultLevel);
+            _updateInfoText(CONFIG.defaultLevel);
+            _updateActiveButton(CONFIG.defaultLevel);
+
+            // Clear stored preference if StateManager is available
+            if (window.StateManager) {
+                try {
+                    window.StateManager.remove('preferences.detailLevel');
+                    LOG.debug(MODULE, 'Stored preference cleared from StateManager');
+                } catch (stateError) {
+                    LOG.warn(MODULE, 'Failed to clear preference from StateManager:', stateError);
+                }
+            }
+
+            // Dispatch reset event
+            window.dispatchEvent(new CustomEvent('detailLevelReset', {
+                detail: { 
+                    previousLevel: previousLevel,
+                    newLevel: CONFIG.defaultLevel
+                }
+            }));
+
+            LOG.info(MODULE, `Detail level system reset from ${previousLevel} to default: ${CONFIG.defaultLevel}`);
+            return true;
+
+        } catch (error) {
+            LOG.error(MODULE, 'Error resetting detail level system:', error);
+            return false;
+        }
+    }
+
+    // ========================================================================
     // EVENT DELEGATION
     // ========================================================================
 
@@ -554,11 +658,16 @@
             LOG.debug(MODULE, 'Event delegation and keyboard shortcuts initialized');
 
             // Apply initial level from preferences (only if StateManager available)
-            let initialLevel = 'basic'; // Default fallback
+            let initialLevel = CONFIG.defaultLevel;
             if (window.StateManager) {
                 try {
-                    initialLevel = window.StateManager.get('preferences.detailLevel');
-                    LOG(MODULE, `Applying initial detail level from StateManager: ${initialLevel}`);
+                    const storedLevel = window.StateManager.get('preferences.detailLevel');
+                    if (storedLevel && _isValidLevel(storedLevel)) {
+                        initialLevel = storedLevel;
+                        LOG(MODULE, `Applying initial detail level from StateManager: ${initialLevel}`);
+                    } else {
+                        LOG(MODULE, `No valid stored preference found, using default: ${initialLevel}`);
+                    }
                 } catch (stateError) {
                     LOG.warn(MODULE, 'Error getting initial level from StateManager, using default:', stateError);
                 }
@@ -566,6 +675,7 @@
                 LOG(MODULE, `Applying default detail level: ${initialLevel} (StateManager not available)`);
             }
 
+            _currentLevel = initialLevel;
             _updateDetailVisibility(initialLevel);
             _updateInfoText(initialLevel);
             _updateActiveButton(initialLevel);
@@ -599,11 +709,12 @@
                     try {
                         LOG(MODULE, 'Preferences loaded event received');
                         const level = window.StateManager.get('preferences.detailLevel');
-                        LOG(MODULE, `Applying loaded detail level: ${level}`);
-
-                        _updateDetailVisibility(level);
-                        _updateInfoText(level);
-                        _updateActiveButton(level);
+                        if (level && _isValidLevel(level)) {
+                            LOG(MODULE, `Applying loaded detail level: ${level}`);
+                            setDetailLevel(level);
+                        } else {
+                            LOG(MODULE, `No valid detail level in preferences, keeping current: ${_currentLevel}`);
+                        }
                     } catch (eventError) {
                         LOG.error(MODULE, 'Error handling preferencesLoaded event:', eventError);
                     }
@@ -612,11 +723,7 @@
                 window.addEventListener('preferencesReset', () => {
                     try {
                         LOG(MODULE, 'Preferences reset event received');
-                        const level = window.StateManager.get('preferences.detailLevel');
-
-                        _updateDetailVisibility(level);
-                        _updateInfoText(level);
-                        _updateActiveButton(level);
+                        _resetToDefault();
                     } catch (eventError) {
                         LOG.error(MODULE, 'Error handling preferencesReset event:', eventError);
                     }
@@ -759,6 +866,7 @@
             // Reset internal state
             _isInitialized = false;
             _delegationContainer = null;
+            _currentLevel = CONFIG.defaultLevel;
 
             // Remove public API
             delete window.DetailLevel;
@@ -839,11 +947,60 @@
         setLevel: setDetailLevel,
 
         /**
+         * Gets the current active detail level
+         * @function getCurrentLevel
+         * @returns {string} currentLevel - The currently active detail level
+         */
+        getCurrentLevel: _getCurrentLevel,
+
+        /**
+         * Gets the default detail level
+         * @function getDefaultLevel
+         * @returns {string} defaultLevel - The system default detail level
+         */
+        getDefaultLevel: _getDefaultLevel,
+
+        /**
+         * Checks if a level is valid and supported
+         * @function isValidLevel
+         * @param {string|number} level - The level to validate
+         * @returns {boolean} isValid - Returns true if level is valid
+         */
+        isValidLevel: _isValidLevel,
+
+        /**
+         * Resets the detail level system to default state
+         * @function reset
+         * @returns {boolean} success - Returns true if reset was successful
+         */
+        reset: _resetToDefault,
+
+        /**
          * Completely destroys the detail level system and cleans up all resources
          * @function destroy
          * @returns {boolean} success - Returns true if destruction was successful
          */
-        destroy: destroy
+        destroy: destroy,
+
+        /**
+         * Level constants for programmatic use
+         * @constant {Object}
+         */
+        LEVELS: {
+            BASIC: 'basic',
+            BEST_PRACTICE: 'bestpractice', 
+            EXPERT: 'expert',
+            LEVEL_1: '1',
+            LEVEL_2: '2',
+            LEVEL_3: '3'
+        },
+
+        /**
+         * Check if the system is initialized
+         * @function isInitialized
+         * @returns {boolean} isInitialized - Returns true if system is initialized
+         */
+        isInitialized: () => _isInitialized
     };
 
     LOG(MODULE, 'Detail level module loaded');
