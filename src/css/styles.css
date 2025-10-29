@@ -4912,3 +4912,71 @@ h6:has(.header-with-icons)
     margin: 2px 0;
     border: 1px solid transparent;
 }
+
+/* visually indicate when the empty state is a valid drop target */
+.favorites-empty-state.drop-target {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 2px dashed #4CAF50;
+    border-radius: 8px;
+}
+
+
+/* Make sure the cloned empty state in the list looks proper */
+.favorites-list .favorites-empty-state {
+    list-style: none;
+    margin: 0;
+    padding: 2rem;
+}
+
+/* Hide the original empty state when it's not needed */
+#favorites-empty-state.hidden {
+    display: none !important;
+}
+
+
+.favorite-item--placeholder {
+    opacity: 0.6;
+    border: 2px dashed #ccc !important;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.favorite-item--placeholder .favorite-link {
+    pointer-events: none;
+}
+
+.favorite-item--placeholder .favorite-action {
+    visibility: hidden;
+}
+
+/* Move drag handles to the right side */
+/* Quick drag handle repositioning */
+.favorite-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-right: 8px; /* Make space for drag handle */
+}
+
+.drag-handle {
+    order: 999; /* Force to the end */
+    margin-left: auto !important;
+    cursor: grab;
+    padding: 8px 4px;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+}
+
+.drag-handle:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.05);
+    border-radius: 3px;
+}
+
+/* Ensure dropdown appears above everything */
+.favorites-folder-dropdown {
+    z-index: 1000;
+}
+
+.favorites-folder-dropdown__menu {
+    z-index: 1001;
+}

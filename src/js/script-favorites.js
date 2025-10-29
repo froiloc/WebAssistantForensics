@@ -28,6 +28,21 @@
     let _eventTarget;
 
     // ============================================================
+    //  Drag and Drop Placeholder System
+    // ============================================================
+
+    // Drag state management
+    const _dragState = {
+        active: false,
+        favoriteId: null,
+        sourceFolder: null,
+        dropTarget: null,
+        hoverTimeout: null,
+        isMenuOpenForDrag: false,
+        initiatedByHandle: false
+    };
+
+    // ============================================================
     //  Event System Constants & Variables
     // ============================================================
 
@@ -45,7 +60,9 @@
     // Configuration
     const CONFIG = {
         settings: {
-            maxFolders: 15
+            maxFolders: 15,
+            dropEffect: 'move',
+            hoverDelay: 700 // ms for folder switching
         },
         classes: {
             active: 'active',
@@ -108,7 +125,8 @@
             dragging: 'favorite-dragging',
             dragOverTop: 'drag-over-top',
             dragOverBottom: 'drag-over-bottom',
-            dropTarget: 'drop-target'
+            dropTarget: 'drop-target',
+            emptyState: 'favorites-empty-state'
         }
     };
 
@@ -208,7 +226,6 @@
 
             return `
             <li class="${CONFIG.classes.favoriteItem}" data-section="${sectionId}" data-favorite-id="${favorite.id}" draggable="true">
-                <div class="${CONFIG.classes.dragHandle}" aria-label="${CONFIG.i18n.de.dragToReorder}">⋮⋮</div>
                 <button class="${CONFIG.classes.favoriteLink}" data-target="${encodedTarget}">
                     <span class="${CONFIG.classes.favoriteItemTitle}">${displayName}</span>
                     <span class="${CONFIG.classes.favoriteItemMeta}" hidden>
@@ -223,6 +240,7 @@
                         ${StatisticsManager?.createStatisticsHTML(favorite)}
                     </div>
                 </div>
+                <div class="${CONFIG.classes.dragHandle}" aria-label="${CONFIG.i18n.de.dragToReorder}">⋮⋮</div>
             </li>
             `},
 
@@ -246,15 +264,14 @@
             `,
 
         folderDropdownItem: (folder, isActive, favoriteCount) => `
-            <button class="${CONFIG.classes.folderDropdownItem} ${isActive ? CONFIG.classes.folderDropdownItemActive : ''}" data-folder-id="${folder.id}"
-            role="menuitem"  aria-checked="${isActive}" aria-label="${folder.name} (${favoriteCount} ${favoriteCount === 1 ? 'Lesezeichen' : 'Lesezeichen'})">
+            <div class="${CONFIG.classes.folderDropdownItem} ${isActive ? CONFIG.classes.folderDropdownItemActive : ''}" data-folder-id="${folder.id}" role="menuitem" aria-checked="${isActive}" aria-label="${folder.name} (${favoriteCount} ${favoriteCount === 1 ? 'Lesezeichen' : 'Lesezeichen'})">
                 <span class="${CONFIG.classes.folderDropdownCurrent}">${folder.name}</span>
                 <span class="${CONFIG.classes.folderDropdownItemCount}">${favoriteCount}</span>
                 <div class="${CONFIG.classes.folderManagementButtons} ${isActive ? '' : CONFIG.classes.hidden}">
                     <button class="${CONFIG.classes.folderRenameBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.renameFolder}: ${folder.name}"></button>
                     <button class="${CONFIG.classes.folderDeleteBtn}" data-folder-id="${folder.id}" aria-label="${CONFIG.i18n.de.deleteFolder}: ${folder.name}" ${folder.id === 'default' ? 'disabled' : ''}></button>
                 </div>
-            </button>
+            </div>
             `,
 
         folderCreationSection: (foldersRemaining) => {
@@ -432,437 +449,580 @@
     //  Drag and Drop System
     // ============================================================
 
-    function initFavoritesDragAndDrop() {
-        let draggedFavorite = null;
-        let dragSourceFolder = null;
-        let folderHoverTimeout = null;
-        let currentDropTargetFolder = null;
-
-        // Temporary debug function
-        function debugElementStructure(element, depth = 0) {
-            if (!element) return 'null';
-            const indent = '  '.repeat(depth);
-            let result = `${indent}${element.tagName}.${element.className} [data-folder-id="${element.dataset.folderId}"]\n`;
-
-            if (element.children.length > 0 && depth < 3) {
-                for (let child of element.children) {
-                    result += debugElementStructure(child, depth + 1);
-                }
-            }
-            return result;
-        }
-
-        // Add this diagnostic function
-        function diagnoseFolderDetection(e) {
-            const allFolderItems = document.querySelectorAll('[data-folder-id]');
-            const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
-
-            LOG.debug(MODULE, "🔍 FOLDER DETECTION DIAGNOSTICS", {
-                totalFolderItems: allFolderItems.length,
-                dropdownMenuExists: !!dropdownMenu,
-                dropdownMenuHidden: dropdownMenu ? dropdownMenu.classList.contains(CONFIG.classes.hidden) : 'N/A',
-                      allFolderItems: Array.from(allFolderItems).map(item => ({
-                          className: item.className,
-                          folderId: item.dataset.folderId,
-                          text: item.textContent?.trim().substring(0, 20),
-                          inDropdownMenu: dropdownMenu ? dropdownMenu.contains(item) : false
-                      })),
-                      currentTarget: e.target.className,
-                      closestFolderItem: e.target.closest('[data-folder-id]')?.className || 'none'
-            });
-        }
-
-        function makeFolderItemsDropTargets(draggedFavorite) {
-            const folderItems = document.querySelectorAll(CONFIG.selectors.folderDropdownItem);
-
-            folderItems.forEach(item => {
-                LOG.debug(MODULE, "🎯 MAKING FOLDER ITEM A DROP TARGET", item);
-                // Make folder items accept drops
-                item.addEventListener('dragover', (e) => {
-                    if (draggedFavorite) {
-                        e.preventDefault();
-                        // e.dataTransfer.dropEffect = 'copy';
-
-                        // Add visual feedback
-                        item.classList.add(CONFIG.classes.dropTarget);
-
-                        LOG.debug(MODULE, "🎯 FOLDER ITEM DROP TARGET ACTIVE", {
-                            folderId: item.dataset.folderId
-                        });
-                    }
-                });
-
-                item.addEventListener('dragleave', (e) => {
-                    // Only remove class if leaving the item entirely
-                    if (!item.contains(e.relatedTarget)) {
-                        item.classList.remove(CONFIG.classes.dropTarget);
-                    }
-                });
-
-                item.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const targetFolderId = item.dataset.folderId;
-                    LOG.debug(MODULE, "🎯 DIRECT FOLDER ITEM DROP", {
-                        favorite: draggedFavorite,
-                        targetFolder: targetFolderId
-                    });
-
-                    if (draggedFavorite && targetFolderId) {
-                        handleFolderTransfer(draggedFavorite, dragSourceFolder, targetFolderId);
-                        cleanupDragState();
-                        closeDropdown();
-                    }
-                });
-            });
-        }
-
-        // Drag start - for reordering within same folder
-        document.addEventListener('dragstart', (e) => {
-            if (e.target.classList.contains(CONFIG.classes.dragHandle) ||
-                e.target.closest(CONFIG.selectors.favoriteItem)) {
-
-                const favoriteItem = e.target.closest(CONFIG.selectors.favoriteItem);
-                draggedFavorite = favoriteItem.dataset.favoriteId;
-                dragSourceFolder = _currentFolder;
-
-                e.dataTransfer.setData('text/plain', draggedFavorite);
-                e.dataTransfer.effectAllowed = 'move';
-
-                setTimeout(() => {
-                    LOG.debug(MODULE, "GOING TO RUN makeFolderItemsDropTargets");
-                    makeFolderItemsDropTargets(draggedFavorite);
-                }, 0);
-
-                favoriteItem.classList.add(CONFIG.classes.dragging);
-                LOG.debug(MODULE, "🟢 DRAG START", {
-                    favoriteId: draggedFavorite,
-                    sourceFolder: dragSourceFolder,
-                    target: e.target.className
-                });
-            }
-        });
-
-        // Drag over - handle visual feedback
-        // In the dragover event, replace the entire logic with this:
-        // Replace the entire dragover event listener with this:
-        document.addEventListener('dragover', (e) => {
-            if (!draggedFavorite) return;
-
-            // Diagnostic function
-            function diagnoseFolderDetection(e) {
-                const allFolderItems = document.querySelectorAll('[data-folder-id]');
-                const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
-
-                LOG.debug(MODULE, "🔍 FOLDER DETECTION DIAGNOSTICS", {
-                    totalFolderItems: allFolderItems.length,
-                    dropdownMenuExists: !!dropdownMenu,
-                    dropdownMenuHidden: dropdownMenu ? dropdownMenu.classList.contains(CONFIG.classes.hidden) : 'N/A',
-                          allFolderItems: Array.from(allFolderItems).map(item => ({
-                              className: item.className,
-                              folderId: item.dataset.folderId,
-                              text: item.textContent?.trim().substring(0, 20),
-                              inDropdownMenu: dropdownMenu ? dropdownMenu.contains(item) : false
-                          })),
-                          currentTarget: e.target.className,
-                          closestFolderItem: e.target.closest('[data-folder-id]')?.className || 'none'
-                });
-            }
-
-            const favoriteItem = e.target.closest(CONFIG.selectors.favoriteItem);
-            const folderDropdown = e.target.closest(CONFIG.selectors.folderDropdown);
-            const folderDropdownItem = e.target.closest(CONFIG.selectors.folderDropdownItem);
-            const folderDropdownMenu = e.target.closest(CONFIG.selectors.folderDropdownMenu);
-            const anyFolderItem = e.target.closest('[data-folder-id]');
-
-            // Run diagnostics when we're in the dropdown area
-            if (folderDropdown || folderDropdownMenu) {
-                diagnoseFolderDetection(e);
-            }
-
-            LOG.debug(MODULE, "🟡 DRAG OVER ANALYSIS", {
-                target: e.target.className,
-                hasFavoriteItem: !!favoriteItem,
-                hasFolderDropdown: !!folderDropdown,
-                hasFolderDropdownItem: !!folderDropdownItem,
-                hasFolderDropdownMenu: !!folderDropdownMenu,
-                hasAnyFolderItem: !!anyFolderItem,
-                isInDropdownMenu: !!folderDropdownMenu
-            });
-
-            // Enhanced folder detection that doesn't rely on specific dropdown menu
-            if (anyFolderItem) {
-                // Check if this folder item is in ANY dropdown menu
-                const isInAnyDropdown = anyFolderItem.closest('[role="menu"]') ||
-                anyFolderItem.closest('.favorites-folder-dropdown__menu') ||
-                anyFolderItem.closest(CONFIG.selectors.folderDropdownMenu);
-
-                if (isInAnyDropdown) {
-                    const actualFolderItem = anyFolderItem;
-                    const targetFolderId = actualFolderItem.dataset.folderId;
-
-                    // Skip if this is the create section or empty state
-                    if (!targetFolderId || actualFolderItem.closest('.favorites-folder-dropdown__create-section') || actualFolderItem.closest(CONFIG.selectors.folderDropdownEmpty)) {
-                        LOG.debug(MODULE, "⏭️  SKIPPING - not a valid folder item");
-                        return;
-                    }
-
-                    // ✅ CRITICAL FIX: This makes the folder item a valid drop target
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'copy';
-
-                    LOG.debug(MODULE, "🎯 FOLDER HOVER DETECTED", {
-                        targetElement: e.target.className,
-                        actualFolderItem: actualFolderItem.className,
-                        targetFolderId: targetFolderId
-                    });
-
-                    // Add visual feedback to the actual folder item
-                    document.querySelectorAll('[data-folder-id]').forEach(item => {
-                        item.classList.remove(CONFIG.classes.dropTarget);
-                    });
-                    actualFolderItem.classList.add(CONFIG.classes.dropTarget);
-
-                    // Clear previous timeout
-                    clearTimeout(folderHoverTimeout);
-
-                    // Set new timeout for folder switching (only if different folder)
-                    if (targetFolderId !== _currentFolder) {
-                        folderHoverTimeout = setTimeout(() => {
-                            if (targetFolderId !== _currentFolder && targetFolderId !== currentDropTargetFolder) {
-                                currentDropTargetFolder = targetFolderId;
-                                LOG.debug(MODULE, "🔄 SWITCHING FOLDER via hover", {
-                                    from: _currentFolder,
-                                    to: targetFolderId
-                                });
-                                switchToFolder(targetFolderId);
-                            }
-                        }, 700);
-                    }
-                    return; // Important: return early to prevent other handlers
-                }
-            }
-
-            // Then check for reordering within same folder
-            if (favoriteItem && favoriteItem.dataset.favoriteId !== draggedFavorite) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-
-                const rect = favoriteItem.getBoundingClientRect();
-                const isAfter = e.clientY > rect.top + rect.height / 2;
-
-                favoriteItem.classList.toggle(CONFIG.classes.dragOverTop, !isAfter);
-                favoriteItem.classList.toggle(CONFIG.classes.dragOverBottom, isAfter);
-
-                LOG.debug(MODULE, "📦 REORDER TARGET", {
-                    targetFavorite: favoriteItem.dataset.favoriteId,
-                    position: isAfter ? 'after' : 'before'
-                });
-                return;
-            }
-
-            // Then check for dropdown container hover
-            if (folderDropdown) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-
-                const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
-                if (dropdownMenu && dropdownMenu.classList.contains(CONFIG.classes.hidden)) {
-                    document.querySelector(CONFIG.selectors.folderDropdownButton).click();
-                    LOG.debug(MODULE, "📂 DROPDOWN OPENED by drag");
-                }
-                return;
-            }
-
-            // Finally check for general dropdown menu hover
-            if (folderDropdownMenu) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-                LOG.debug(MODULE, "📋 IN DROPDOWN MENU (no folder target)");
-                return;
-            }
-        });
-
-        // Drag leave - handle closing dropdown when leaving
-        document.addEventListener('dragleave', (e) => {
-            if (!draggedFavorite) return;
-            if (e.target.nodeName === '#text')
-            {
-                e.target = e.target.parentNode;
-            }
-            const folderDropdown = e.target.closest(CONFIG.selectors.folderDropdown);
-            const folderDropdownMenu = e.target.closest(CONFIG.selectors.folderDropdownMenu);
-
-            LOG.debug(MODULE, "🔴 DRAG LEAVE", {
-                target: e.target.className,
-                relatedTarget: e.relatedTarget?.className,
-                hasFolderDropdown: !!folderDropdown,
-                hasFolderDropdownMenu: !!folderDropdownMenu
-            });
-
-            // If leaving the dropdown menu area entirely
-            if (folderDropdownMenu && !e.relatedTarget?.closest(CONFIG.selectors.folderDropdownMenu)) {
-                clearTimeout(folderHoverTimeout);
-                currentDropTargetFolder = null;
-
-                LOG.debug(MODULE, "🚪 LEAVING DROPDOWN MENU");
-
-                // Close dropdown after a short delay
-                setTimeout(() => {
-                    if (!document.querySelector(CONFIG.selectors.folderDropdownMenu).contains(document.activeElement)) {
-                        closeDropdown();
-                        LOG.debug(MODULE, "📂 DROPDOWN CLOSED by drag leave");
-                    }
-                }, 300);
-            }
-
-            // Clear hover states from folder items when leaving dropdown entirely
-            if (folderDropdown && !e.relatedTarget?.closest(CONFIG.selectors.folderDropdown)) {
-                document.querySelectorAll(CONFIG.selectors.folderDropdownItem).forEach(item => {
-                    item.classList.remove(CONFIG.classes.dropTarget);
-                });
-                LOG.debug(MODULE, "🧹 CLEARED DROP TARGETS");
-            }
-        });
-
-        // Drop handler - process the actual drop
-        document.addEventListener('drop', (e) => {
-            e.preventDefault();
-            clearTimeout(folderHoverTimeout);
-
-            const favoriteItem = e.target.closest(CONFIG.selectors.favoriteItem);
-            const folderDropdownItem = e.target.closest(CONFIG.selectors.folderDropdownItem);
-
-            LOG.debug(MODULE, "🎯 DROP EVENT", {
-                target: e.target.className,
-                hasFavoriteItem: !!favoriteItem,
-                hasFolderDropdownItem: !!folderDropdownItem,
-                draggedFavorite: draggedFavorite
-            });
-
-            if (favoriteItem) {
-                // This is either a REORDER or a MOVE (if spring-loading happened)
-                LOG.debug(MODULE, "📦 REORDER/MOVE DROP", {
-                    dragged: draggedFavorite,
-                    target: favoriteItem.dataset.favoriteId,
-                    source: dragSourceFolder,
-                    current: _currentFolder
-                });
-
-                // ✅ *** NEW LOGIC ***
-                // Check if the source folder is different from the current folder.
-                // If it is, the spring-loader must have triggered,
-                // so this is a MOVE operation, not a reorder.
-                if (dragSourceFolder !== _currentFolder) {
-                    LOG.debug(MODULE, "📂 FOLDER TRANSFER (via spring-load drop)", {
-                        favorite: draggedFavorite,
-                        from: dragSourceFolder,
-                        to: _currentFolder
-                    });
-                    // Handle it as a transfer to the NEWLY active folder
-                    handleFolderTransfer(draggedFavorite, dragSourceFolder, _currentFolder);
-                } else {
-                    // Source and current folders are the same, so this is a true REORDER.
-                    handleReorderDrop(draggedFavorite, favoriteItem.dataset.favoriteId);
-                }
-            } else if (folderDropdownItem) {
-                // Folder transfer drop - get the actual folder item
-                const actualFolderItem = folderDropdownItem.closest(CONFIG.selectors.folderDropdownItem);
-                const targetFolderId = actualFolderItem.dataset.folderId;
-
-                // Validate we have a target folder
-                if (!targetFolderId) {
-                    LOG.debug(MODULE, "❌ DROP CANCELLED - no folder ID", {
-                        element: actualFolderItem.className
-                    });
-                    cleanupDragState();
-                    return;
-                }
-
-                LOG.debug(MODULE, "📂 FOLDER TRANSFER DROP", {
-                    favorite: draggedFavorite,
-                    from: dragSourceFolder,
-                    to: targetFolderId
-                });
-
-                handleFolderTransfer(draggedFavorite, dragSourceFolder, targetFolderId);
-            } else {
-                // Drop outside valid targets - cancel operation
-                LOG.debug(MODULE, "❌ DROP CANCELLED - no valid target", {
-                    target: e.target.className
-                });
-            }
-
-            cleanupDragState();
-            closeDropdown();
-        });
-
-        // Drag end - cleanup
-        document.addEventListener('dragend', (e) => {
-            LOG.debug(MODULE, "🔚 DRAG END", {
-                target: e.target.className
-            });
-            clearTimeout(folderHoverTimeout);
-            cleanupDragState();
-            closeDropdown();
-        });
-
-        function cleanupDragState() {
-            LOG.debug(MODULE, "🧹 CLEANUP DRAG STATE");
-
-            document.querySelectorAll(`${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragging},
-                                      ${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragOverTop},
-                                      ${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragOverBottom}`)
-            .forEach(el => el.classList.remove(
-                CONFIG.classes.dragging,
-                CONFIG.classes.dragOverTop,
-                CONFIG.classes.dragOverBottom
-            ));
-
-            document.querySelectorAll(`${CONFIG.selectors.folderDropdownItem}.${CONFIG.classes.dropTarget}`)
-            .forEach(el => el.classList.remove(CONFIG.classes.dropTarget));
-
-            draggedFavorite = null;
-            dragSourceFolder = null;
-            currentDropTargetFolder = null;
-        }
-    }
-
-    function handleReorderDrop(draggedId, targetId) {
-        const favorites = window.StateManager.get('favorites.items');
-        const currentFolderFavorites = favorites.filter(fav => fav.folderId === _currentFolder);
-
-        const draggedIndex = currentFolderFavorites.findIndex(fav => fav.id === draggedId);
-        const targetIndex = currentFolderFavorites.findIndex(fav => fav.id === targetId);
-
-        if (draggedIndex === -1 || targetIndex === -1) return;
-
-        // Reorder array
-        const [movedFavorite] = currentFolderFavorites.splice(draggedIndex, 1);
-        currentFolderFavorites.splice(targetIndex, 0, movedFavorite);
-
-        // Update all favorites (maintaining other folders)
-        const otherFavorites = favorites.filter(fav => fav.folderId !== _currentFolder);
-        const updatedFavorites = [...otherFavorites, ...currentFolderFavorites];
-
-        window.StateManager.set('favorites.items', updatedFavorites);
-        LOG.info(MODULE, `Reordered favorite ${draggedId} to position ${targetIndex}`);
+    // ============================================================
+    //  Enhanced Drag Handle System
+    // ============================================================
+
+    /**
+     * Initialize enhanced drag handles with hover activation
+     */
+    function initEnhancedDragHandles() {
+        _dragState.isMenuOpenForDrag = false;
+
+        repositionDragHandles();
+        setupDragHandleHover();
+        setupDragInitiationTracking();
+
+        LOG.info(MODULE, 'Enhanced drag handles with hover activation initialized');
     }
 
     /**
-     * Handles moving a favorite item to a different folder.
-     * Ensures the moved item is placed at the logical end of the target folder's items.
+     * Reposition drag handles to end of favorite items
+     */
+    function repositionDragHandles() {
+        document.querySelectorAll(CONFIG.selectors.favoriteItem).forEach(item => {
+            const dragHandle = item.querySelector(CONFIG.selectors.dragHandle);
+            if (dragHandle && !dragHandle.classList.contains('repositioned')) {
+                item.appendChild(dragHandle);
+                dragHandle.classList.add('repositioned');
+            }
+        });
+    }
+
+    /**
+     * Set up drag initiation tracking via mousedown events
+     */
+    function setupDragInitiationTracking() {
+        // Track mousedown on drag handles to know if drag was initiated by handle
+        document.addEventListener('mousedown', (e) => {
+            // Check if the mousedown is on a drag handle
+            _dragState.initiatedByHandle = !!e.target.closest(CONFIG.selectors.dragHandle);
+            if (_dragState.initiatedByHandle) {
+                LOG.debug(MODULE, "🟡 MOUSEDOWN on drag handle - drag initiation tracked");
+            }
+        });
+
+        // NOTE: No need to reset initiatedByHandle - every dragstart will be preceded by a mousedown
+        // that sets the correct value for the upcoming drag operation
+    }
+
+    /**
+     * Set up drag handle hover behavior
+     */
+    function setupDragHandleHover() {
+        document.addEventListener('mouseenter', (e) => {
+            if (e.target.classList.contains(CONFIG.classes.dragHandle) ||
+                e.target.closest(CONFIG.selectors.dragHandle)) {
+
+                clearTimeout(_dragState.hoverTimeout);
+
+            _dragState.hoverTimeout = setTimeout(() => {
+                if (!isDropdownOpen() && !_dragState.active) {
+                    openDropdownForDrag();
+                    _dragState.isMenuOpenForDrag = true;
+                    LOG.debug(MODULE, "📂 Dropdown opened via drag handle hover");
+                }
+            }, 300);
+                }
+        }, true);
+
+        document.addEventListener('mouseleave', (e) => {
+            if (e.target.classList.contains(CONFIG.classes.dragHandle) ||
+                e.target.closest(CONFIG.selectors.dragHandle)) {
+
+                clearTimeout(_dragState.hoverTimeout);
+
+            if (_dragState.isMenuOpenForDrag) {
+                _dragState.hoverTimeout = setTimeout(() => {
+                    if (isDropdownOpen() && !_dragState.active) {
+                        closeDropdown();
+                        _dragState.isMenuOpenForDrag = false;
+                        LOG.debug(MODULE, "📂 Dropdown closed after drag handle leave");
+                    }
+                }, 500);
+            }
+                }
+        }, true);
+    }
+
+    // ============================================================
+    //  Core Drag and Drop Functions
+    // ============================================================
+
+    /**
+     * Initialize favorites drag and drop system
+     */
+    function initFavoritesDragAndDrop() {
+        LOG.debug(MODULE, 'Initializing drag and drop system');
+
+        // Set up event listeners for the entire drag lifecycle
+        document.addEventListener('dragstart', handleDragStart);
+        document.addEventListener('dragover', handleDragOver);
+        document.addEventListener('dragleave', handleDragLeave);
+        document.addEventListener('drop', handleDrop);
+        document.addEventListener('dragend', handleDragEnd);
+
+        LOG.info(MODULE, 'Drag and drop system initialized');
+    }
+
+    /**
+     * Handle drag start event
+     */
+    function handleDragStart(e) {
+        // Only handle drag handle drags
+        LOG.debug(MODULE, "🟡 DRAG START EVENT TRIGGERED", {
+            target: e.target.className,
+            isDragHandle: _dragState.initiatedByHandle,
+            currentDragState: { ..._dragState }
+        });
+
+        const isOurDraggableElement = e.target.className === CONFIG.classes.favoriteItem;
+
+        if (!_dragState.initiatedByHandle) {
+            LOG.debug(MODULE, "❌ DRAG START IGNORED - not a drag handle");
+            if (isOurDraggableElement)
+            {
+                // This is our draggable element,
+                // but it was not grabbed by its handle.
+                // So we must stop the dragging!
+                LOG.warn(MODULE, "THIS IS OUR DRAGGABLE ELEMENT BUT ITS NOT GRABBED BY ITS HANDLE!")
+                event.preventDefault(); // 🚫 stops the drag from starting
+                return false;
+            } else
+            {
+                LOG.debug(MODULE, "❌ DRAG START IGNORED - no our favorite item and not our drag handle");
+                // This is not our drag action. Let it bubble up.
+                return;
+            }
+        }
+
+        if (!isOurDraggableElement) {
+            LOG.debug(MODULE, "❌ DRAG START IGNORED - no favorite item found for drag handle");
+            // This is not our drag action. Let it bubble up.
+            return;
+        }
+
+        // Set drag state with debug info
+        _dragState.active = true;
+        _dragState.favoriteId = e.target.dataset.favoriteId;
+        _dragState.sourceFolder = _currentFolder;
+        _dragState.startTime = Date.now();
+        _dragState.lastEvent = 'dragstart';
+
+        // Set drag data
+        e.dataTransfer.setData('text/plain', _dragState.favoriteId);
+        e.dataTransfer.effectAllowed = CONFIG.settings.dropEffect;
+
+        // Visual feedback
+        e.target.classList.add(CONFIG.classes.dragging);
+
+        LOG.debug(MODULE, "🟢 DRAG START SUCCESS", {
+            favoriteId: _dragState.favoriteId,
+            sourceFolder: _dragState.sourceFolder,
+            active: _dragState.active,
+            timestamp: _dragState.startTime,
+            dropdownOpen: isDropdownOpen()
+        });
+    }
+
+    /**
+     * Handle drag over event with proper drop targeting
+     */
+    function handleDragOver(e) {
+        _dragState.lastEvent = 'dragover';
+
+        if (!_dragState.active) {
+            LOG.debug(MODULE, "❌ DRAG OVER IGNORED - drag state not active", {
+                currentState: { ..._dragState },
+                target: e.target.className
+            });
+            return;
+        }
+
+        e.preventDefault();
+        e.dataTransfer.dropEffect = CONFIG.settings.dropEffect;
+
+        const target = analyzeDropTarget(e);
+        _dragState.dropTarget = target;
+
+        LOG.debug(MODULE, "🟡 DRAG OVER ANALYSIS", {
+            targetType: target.type,
+            targetElement: target.element?.className,
+            currentState: { ..._dragState }
+        });
+
+        switch (target.type) {
+            case 'favorite-item':
+                handleFavoriteItemDragOver(e, target);
+                break;
+            case 'folder-item':
+                handleFolderItemDragOver(e, target);
+                break;
+            case 'empty-state':
+                handleEmptyStateDragOver(e, target);
+                break;
+            case 'dropdown-area':
+                handleDropdownAreaDragOver(e, target);
+                break;
+            case 'none':
+                LOG.debug(MODULE, "🔵 DRAG OVER - no valid target");
+                break;
+        }
+    }
+
+    /**
+     * Analyze the current drop target
+     */
+    function analyzeDropTarget(e) {
+        const favoriteItem = e.target.closest(CONFIG.selectors.favoriteItem);
+        const folderItem = e.target.closest(CONFIG.selectors.folderDropdownItem);
+        const emptyState = e.target.closest(CONFIG.selectors.emptyState);
+        const dropdownMenu = e.target.closest(CONFIG.selectors.folderDropdownMenu);
+        const dropdown = e.target.closest(CONFIG.selectors.folderDropdown);
+
+        if (favoriteItem && favoriteItem.dataset.favoriteId !== _dragState.favoriteId) {
+            return {
+                type: 'favorite-item',
+                element: favoriteItem,
+                favoriteId: favoriteItem.dataset.favoriteId
+            };
+        }
+
+        if (folderItem && folderItem.dataset.folderId) {
+            return {
+                type: 'folder-item',
+                element: folderItem,
+                folderId: folderItem.dataset.folderId
+            };
+        }
+
+        if (emptyState) {
+            return {
+                type: 'empty-state',
+                element: emptyState
+            };
+        }
+
+        if (dropdownMenu || dropdown) {
+            return {
+                type: 'dropdown-area',
+                element: dropdownMenu || dropdown
+            };
+        }
+
+        return { type: 'none' };
+    }
+
+    /**
+     * Handle drag over a favorite item (reordering)
+     */
+    function handleFavoriteItemDragOver(e, target) {
+        const rect = target.element.getBoundingClientRect();
+        const isAfter = e.clientY > rect.top + rect.height / 2;
+
+        // Clear previous states
+        clearDragVisualStates();
+
+        // Set new state
+        target.element.classList.toggle(CONFIG.classes.dragOverTop, !isAfter);
+        target.element.classList.toggle(CONFIG.classes.dragOverBottom, isAfter);
+
+        LOG.debug(MODULE, "📦 REORDER TARGET", {
+            targetFavorite: target.favoriteId,
+            position: isAfter ? 'after' : 'before'
+        });
+    }
+
+    /**
+     * Handle drag over a folder item (folder transfer)
+     */
+    function handleFolderItemDragOver(e, target) {
+        clearDragVisualStates();
+        target.element.classList.add(CONFIG.classes.dropTarget);
+
+        // Schedule folder switch if different from current
+        if (target.folderId !== _currentFolder) {
+            clearTimeout(_dragState.hoverTimeout);
+            _dragState.hoverTimeout = setTimeout(() => {
+                if (target.folderId !== _currentFolder) {
+                    LOG.debug(MODULE, "🔄 SWITCHING FOLDER via hover", {
+                        from: _currentFolder,
+                        to: target.folderId
+                    });
+                    switchToFolder(target.folderId);
+                }
+            }, CONFIG.settings.hoverDelay);
+        }
+    }
+
+    /**
+     * Handle drag over empty state
+     */
+    function handleEmptyStateDragOver(e, target) {
+        clearDragVisualStates();
+        target.element.classList.add(CONFIG.classes.dropTarget);
+    }
+
+    /**
+     * Handle drag over dropdown area
+     */
+    function handleDropdownAreaDragOver(e, target) {
+        // Only open dropdown if it's not already open
+        // This gives visual feedback but doesn't guarantee folder targets will work
+        if (!isDropdownOpen()) {
+            document.querySelector(CONFIG.selectors.folderDropdownButton)?.click();
+            LOG.debug(MODULE, "📂 DROPDOWN OPENED by drag over area");
+        }
+    }
+
+    /**
+     * Handle drag leave event
+     */
+    function handleDragLeave(e) {
+        _dragState.lastEvent = 'dragleave';
+
+        if (!_dragState.active) {
+            LOG.debug(MODULE, "🔵 DRAG LEAVE IGNORED - drag state not active");
+            return;
+        }
+
+        LOG.debug(MODULE, "🟡 DRAG LEAVE", {
+            target: e.target.className,
+            relatedTarget: e.relatedTarget?.className,
+            currentState: { ..._dragState }
+        });
+
+        // Only clear states when leaving relevant areas
+        if (!e.relatedTarget ||
+            !e.relatedTarget.closest?.(`
+            ${CONFIG.selectors.favoritesList},
+            ${CONFIG.selectors.folderDropdownMenu},
+            ${CONFIG.selectors.emptyState}
+            `)) {
+            clearDragVisualStates();
+            }
+    }
+
+    /**
+     * Handle drop event
+     */
+    function handleDrop(e) {
+        _dragState.lastEvent = 'drop';
+
+        LOG.debug(MODULE, "🎯 DROP EVENT TRIGGERED", {
+            active: _dragState.active,
+            currentState: { ..._dragState },
+            target: e.target.className,
+            dropTarget: _dragState.dropTarget
+        });
+
+        if (!_dragState.active) {
+            LOG.error(MODULE, "❌ DROP FAILED - drag state not active at drop time!", {
+                fullState: { ..._dragState },
+                eventTarget: e.target.className
+            });
+            return;
+        }
+
+        e.preventDefault();
+        clearTimeout(_dragState.hoverTimeout);
+        clearDragVisualStates();
+
+        const target = _dragState.dropTarget;
+
+        LOG.debug(MODULE, "🟢 PROCESSING DROP", {
+            targetType: target.type,
+            targetDetails: target
+        });
+
+        switch (target.type) {
+            case 'favorite-item':
+                handleFavoriteItemDrop(target);
+                break;
+            case 'folder-item':
+                handleFolderItemDrop(target);
+                break;
+            case 'empty-state': // Achtung, 2. Check im default:
+                handleEmptyStateDrop();
+                break;
+            default: // Hier 2. Check für empty-state.
+                if (e.target.closest(`.${CONFIG.classes.emptyState}`)) {
+                    handleEmptyStateDrop();
+                    break;
+                }
+                LOG.debug(MODULE, "❌ DROP CANCELLED - no valid target type", {
+                    targetType: target.type
+                });
+        }
+
+        cleanupDragState();
+        closeDropdown();
+    }
+
+    /**
+     * Handle drop on favorite item (reorder or move)
+     */
+    function handleFavoriteItemDrop(target) {
+        if (_dragState.sourceFolder !== _currentFolder) {
+            // This is a move from another folder (via spring-loading)
+            LOG.debug(MODULE, "📂 FOLDER TRANSFER (via spring-load drop)", {
+                favorite: _dragState.favoriteId,
+                from: _dragState.sourceFolder,
+                to: _currentFolder
+            });
+            handleFolderTransfer(_dragState.favoriteId, _dragState.sourceFolder, _currentFolder);
+        } else {
+            // This is a reorder within the same folder
+            handleReorderDrop(_dragState.favoriteId, target.favoriteId);
+        }
+    }
+
+    /**
+     * Handle drop on folder item
+     */
+    function handleFolderItemDrop(target) {
+        // FIXED: Additional safety check for folder items
+        if (!target.folderId) {
+            LOG.error(MODULE, "❌ FOLDER DROP FAILED - no folder ID", target);
+            return;
+        }
+
+        LOG.debug(MODULE, "📂 FOLDER TRANSFER DROP", {
+            favorite: _dragState.favoriteId,
+            from: _dragState.sourceFolder,
+            to: target.folderId
+        });
+        handleFolderTransfer(_dragState.favoriteId, _dragState.sourceFolder, target.folderId);
+    }
+
+
+    /**
+     * Handle drop on empty state
+     */
+    function handleEmptyStateDrop() {
+        LOG.debug(MODULE, "📭 EMPTY STATE DROP", {
+            favorite: _dragState.favoriteId,
+            from: _dragState.sourceFolder,
+            to: _currentFolder
+        });
+        handleFolderTransfer(_dragState.favoriteId, _dragState.sourceFolder, _currentFolder);
+    }
+
+    /**
+     * Handle drag end event
+     */
+    function handleDragEnd(e) {
+        _dragState.lastEvent = 'dragend';
+
+        LOG.debug(MODULE, "🔚 DRAG END EVENT", {
+            activeAtEnd: _dragState.active,
+            fullState: { ..._dragState },
+            duration: _dragState.startTime ? Date.now() - _dragState.startTime : 'unknown'
+        });
+
+        if (!_dragState.active) {
+            LOG.warn(MODULE, "⚠️ DRAG END CALLED BUT DRAG WAS NOT ACTIVE", {
+                lastEvent: _dragState.lastEvent,
+                currentState: { ..._dragState }
+            });
+        }
+
+        cleanupDragState();
+
+        // Reset hover flag with delay
+        if (_dragState.isMenuOpenForDrag) {
+            setTimeout(() => {
+                if (!_dragState.active) {
+                    closeDropdown();
+                    _dragState.isMenuOpenForDrag = false;
+                    LOG.debug(MODULE, "📂 Dropdown closed after drag completion");
+                }
+            }, 1000);
+        }
+    }
+
+    // ============================================================
+    //  Drag Utility Functions
+    // ============================================================
+
+    /**
+     * Clear all drag visual states
+     */
+    function clearDragVisualStates() {
+        document.querySelectorAll(`
+        ${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragOverTop},
+        ${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragOverBottom},
+        ${CONFIG.selectors.folderDropdownItem}.${CONFIG.classes.dropTarget},
+        ${CONFIG.selectors.emptyState}.${CONFIG.classes.dropTarget}
+        `).forEach(el => {
+            el.classList.remove(
+                CONFIG.classes.dragOverTop,
+                CONFIG.classes.dragOverBottom,
+                CONFIG.classes.dropTarget
+            );
+        });
+    }
+
+    /**
+     * Clean up drag state completely
+     */
+    function cleanupDragState() {
+        LOG.debug(MODULE, "🧹 CLEANUP DRAG STATE", {
+            wasActive: _dragState.active,
+            lastEvent: _dragState.lastEvent,
+            fullStateBeforeCleanup: { ..._dragState }
+        });
+
+        clearDragVisualStates();
+
+        // Remove dragging class from any favorite item
+        document.querySelectorAll(`${CONFIG.selectors.favoriteItem}.${CONFIG.classes.dragging}`)
+        .forEach(el => el.classList.remove(CONFIG.classes.dragging));
+
+        // Clear timeouts
+        clearTimeout(_dragState.hoverTimeout);
+
+        // Reset state
+        _dragState.active = false;
+        _dragState.favoriteId = null;
+        _dragState.sourceFolder = null;
+        _dragState.dropTarget = null;
+        _dragState.startTime = null;
+        // Keep lastEvent for debugging
+
+        LOG.debug(MODULE, "🧹 DRAG STATE CLEANUP COMPLETE", {
+            newState: { ..._dragState }
+        });
+    }
+
+    // ============================================================
+    //  Drag and Drop Helper Functions
+    // ============================================================
+
+    /**
+     * Check if dropdown is currently open
+     */
+    function isDropdownOpen() {
+        const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
+        return dropdownMenu && !dropdownMenu.classList.contains(CONFIG.classes.hidden);
+    }
+
+    /**
+     * Open dropdown for drag operations
+     */
+    function openDropdownForDrag() {
+        const dropdownButton = document.querySelector(CONFIG.selectors.folderDropdownButton);
+        const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
+        const dropdown = document.querySelector(CONFIG.selectors.folderDropdown);
+
+        if (dropdownButton && dropdownMenu && dropdown) {
+            dropdownButton.setAttribute('aria-expanded', 'true');
+            dropdownMenu.classList.remove(CONFIG.classes.hidden);
+            dropdown.classList.add(CONFIG.classes.folderDropdownOpen);
+        }
+    }
+
+    // ============================================================
+    //  Existing Core Functions (UNCHANGED)
+    // ============================================================
+
+    /**
+     * Handles moving a favorite item to a different folder
      */
     function handleFolderTransfer(favoriteId, sourceFolderId, targetFolderId) {
-        // 1. Prevent moving to the same folder
         if (sourceFolderId === targetFolderId) {
             LOG.debug(MODULE, 'Folder transfer cancelled - same folder');
-            // If the drop happened directly on the folder item of the *same* folder,
-            // treat it like dropping outside a valid target.
-            Toast.show('Cannot move item to the same folder.', 'info'); // User feedback
-            cleanupDragState(); // Ensure visual cleanup
-            closeDropdown();
+            Toast.show('Cannot move item to the same folder.', 'info');
             return;
         }
 
@@ -874,38 +1034,81 @@
             return;
         }
 
-        // 2. Create a copy of the favorite and update its folderId
         const favoriteToMove = {
             ...favorites[favoriteIndex],
             folderId: targetFolderId
         };
 
-        // 3. Create a new array *without* the moved favorite item
-        //    This preserves the order of all other items.
         const updatedFavoritesWithoutMoved = favorites.filter(fav => fav.id !== favoriteId);
-
-        // 4. Append the updated favorite to the VERY END of the new array.
-        //    When filtered by folder later, it will naturally appear last.
         updatedFavoritesWithoutMoved.push(favoriteToMove);
 
-        // 5. Save the reordered array back to StateManager
         window.StateManager.set('favorites.items', updatedFavoritesWithoutMoved);
 
-        LOG.info(MODULE, `Transferred favorite ${favoriteId} from ${sourceFolderId} to ${targetFolderId} (placed at end)`);
+        LOG.info(MODULE, `Transferred favorite ${favoriteId} from ${sourceFolderId} to ${targetFolderId}`);
         Toast.show(CONFIG.i18n.de.favoriteMoved, 'success');
 
-        // 6. Refresh display and switch folder if necessary
-        //    If the user dropped onto a folder *different* from the currently viewed one,
-        //    switch the view to that target folder so they see the result immediately.
         if (_currentFolder !== targetFolderId) {
-            switchToFolder(targetFolderId); // This also calls renderFavoritesList
+            switchToFolder(targetFolderId);
         } else {
-            // If they dropped into the *currently viewed* folder, just re-render it.
             renderFavoritesList(_currentFolder);
         }
+    }
 
-        // No need for cleanupDragState() or closeDropdown() here,
-        // as they are called in the main 'drop' and 'dragend' handlers already.
+    /**
+     * Handles reordering favorites within the same folder
+     */
+    function handleReorderDrop(draggedId, targetId) {
+        const favorites = window.StateManager.get('favorites.items');
+        const currentFolderFavorites = favorites.filter(fav => fav.folderId === _currentFolder);
+
+        const draggedIndex = currentFolderFavorites.findIndex(fav => fav.id === draggedId);
+        const targetIndex = currentFolderFavorites.findIndex(fav => fav.id === targetId);
+
+        if (draggedIndex === -1 || targetIndex === -1) return;
+
+        const [movedFavorite] = currentFolderFavorites.splice(draggedIndex, 1);
+        currentFolderFavorites.splice(targetIndex, 0, movedFavorite);
+
+        const otherFavorites = favorites.filter(fav => fav.folderId !== _currentFolder);
+        const updatedFavorites = [...otherFavorites, ...currentFolderFavorites];
+
+        window.StateManager.set('favorites.items', updatedFavorites);
+        LOG.info(MODULE, `Reordered favorite ${draggedId} to position ${targetIndex}`);
+    }
+
+    // ============================================================
+    //  Existing Folder Management Functions (UNCHANGED)
+    // ============================================================
+
+    function switchToFolder(folderId) {
+        if (_currentFolder === folderId) {
+            LOG.debug(MODULE, `Already in folder: ${folderId}, skipping switch`);
+            closeDropdown();
+            return;
+        }
+
+        LOG.debug(MODULE, `Switching to folder: ${folderId} from: ${_currentFolder}`);
+        _currentFolder = folderId;
+
+        const folders = window.StateManager.getFolders();
+        updateDropdownButton(folderId, folders);
+        updateDropdownActiveState(folderId);
+        renderFavoritesList(folderId);
+        closeDropdown();
+
+        LOG.info(MODULE, `Switched to folder: ${folderId}`);
+    }
+
+    function closeDropdown() {
+        const dropdownButton = document.querySelector(CONFIG.selectors.folderDropdownButton);
+        const dropdownMenu = document.querySelector(CONFIG.selectors.folderDropdownMenu);
+        const dropdown = document.querySelector(CONFIG.selectors.folderDropdown);
+
+        if (dropdownButton && dropdownMenu && dropdown) {
+            dropdownButton.setAttribute('aria-expanded', 'false');
+            dropdownMenu.classList.add(CONFIG.classes.hidden);
+            dropdown.classList.remove(CONFIG.classes.folderDropdownOpen);
+        }
     }
 
     // ============================================================
@@ -1021,7 +1224,7 @@
 
         // Toggle dropdown on button click
         dropdownButton.addEventListener('click', (e) => {
-            e.stopPropagation();
+            // e.stopPropagation(); // TODO: BAD BAD BAD for drag and drop
             const isExpanded = dropdownButton.getAttribute('aria-expanded') === 'true';
             const newState = !isExpanded;
 
@@ -1053,19 +1256,19 @@
                 switchToFolder(folderId);
             } else if (renameBtn && !renameBtn.disabled) {
                 // Rename folder
-                e.stopPropagation();
+                //e.stopPropagation();
                 const folderId = renameBtn.dataset.folderId;
                 LOG.debug(MODULE, `Rename folder requested: ${folderId}`);
                 renameFolder(folderId);
             } else if (deleteBtn && !deleteBtn.disabled) {
                 // Delete folder
-                e.stopPropagation();
+                //e.stopPropagation();
                 const folderId = deleteBtn.dataset.folderId;
                 LOG.debug(MODULE, `Delete folder requested: ${folderId}`);
                 deleteFolder(folderId);
             } else if (createBtn) {
                 // Create new folder
-                e.stopPropagation();
+                //e.stopPropagation();
                 LOG.debug(MODULE, 'Create folder requested');
                 createNewFolder();
             }
@@ -1591,35 +1794,46 @@
 
     function renderFavoritesList(folderId = _currentFolder) {
         const favorites = window.StateManager.getFolderFavorites(folderId);
-
-        const emptyState = document.querySelector(CONFIG.selectors.emptyState);
         const favoritesList = document.querySelector(CONFIG.selectors.favoritesList);
         const skeleton = document.querySelector(CONFIG.selectors.favoritesSkeleton);
+        const originalEmptyState = document.querySelector(CONFIG.selectors.emptyState);
 
         // Always hide skeleton first
         hideSkeletonLoading();
 
-        if (favorites.length === 0) {
-            // Update with dynamic suggestions before showing
-            updateEmptyStateSuggestions();
-            // Show empty state, hide list
-            emptyState.classList.remove(CONFIG.classes.hidden);
-            favoritesList.classList.add(CONFIG.classes.hidden);
-            return;
+        // ✅ QUICK FIX: Always hide the original empty state
+        if (originalEmptyState) {
+            originalEmptyState.classList.add(CONFIG.classes.hidden);
         }
 
-        // Hide empty state, show list
-        emptyState.classList.add(CONFIG.classes.hidden);
-        favoritesList.classList.remove(CONFIG.classes.hidden);
+        if (favorites.length === 0) {
+            // ✅ QUICK FIX: Clone the empty state into favorites list
+            favoritesList.innerHTML = ''; // Clear any existing content
 
-        // Render favorites into the pre-existing list
-        favoritesList.innerHTML = favorites.map(favorite =>
+            if (originalEmptyState) {
+                const emptyStateClone = originalEmptyState.cloneNode(true);
+                emptyStateClone.classList.remove(CONFIG.classes.hidden);
+                emptyStateClone.id = 'favorites-empty-state-clone'; // Avoid ID duplication
+                emptyStateClone.setAttribute('data-empty-state', 'true');
+                favoritesList.appendChild(emptyStateClone);
+
+                // Update suggestions for the cloned empty state
+                updateEmptyStateSuggestions();
+            }
+
+            favoritesList.classList.remove(CONFIG.classes.hidden);
+            LOG.debug(MODULE, `Rendered cloned empty state for folder: ${folderId}`);
+        } else {
+            // Normal favorites rendering
+            favoritesList.innerHTML = favorites.map(favorite =>
             CONFIG.templates.favoriteItem(favorite)
-        ).join('');
+            ).join('');
+            favoritesList.classList.remove(CONFIG.classes.hidden);
+
+            LOG.debug(MODULE, `Rendered ${favorites.length} favorites for folder: ${folderId}`);
+        }
 
         updateFolderBadgeCounts();
-
-        LOG.debug(MODULE, `Rendered ${favorites.length} favorites for folder: ${folderId}`);
     }
 
     function updateFavoritesDisplay(updatedFavorite = null) {
@@ -2268,7 +2482,7 @@
 
             // Toggle current button
             toggleBtn.setAttribute('aria-expanded', !isExpanded);
-            e.stopPropagation();
+            //e.stopPropagation();
             return;
         }
 
@@ -2293,7 +2507,7 @@
         // Handle favorite edit clicks (from favorites list)
         else if (e.target.closest(CONFIG.selectors.favoriteEditBtn)) {
             const btn = e.target.closest(CONFIG.selectors.favoriteEditBtn);
-            e.stopPropagation();
+            //e.stopPropagation();
             const favoriteId = btn.dataset.favoriteId;
             editFavorite(favoriteId);
         }
@@ -2308,7 +2522,7 @@
         // Handle remove button clicks
         else if (e.target.closest(CONFIG.selectors.favoriteRemoveBtn)) {
             const btn = e.target.closest(CONFIG.selectors.favoriteRemoveBtn);
-            e.stopPropagation();
+            //e.stopPropagation();
             const favoriteId = btn.dataset.favoriteId;
             removeFavorite(favoriteId);
         }
@@ -2318,8 +2532,8 @@
      * Handle subsection selection button click in favorites sidebar
      */
     function handleSidebarSubsectionClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
+        //event.preventDefault();
+        //event.stopPropagation();
 
         LOG.debug(MODULE, 'Subsection selection button clicked in favorites sidebar');
 
@@ -2757,6 +2971,10 @@
             initFolderTabClickHandlers();
             initFolderDropdown();
 
+            // Initialize drag and drop systems
+            initFavoritesDragAndDrop();
+            initEnhancedDragHandles();
+
             _isInitialized = true;
 
             LOG.info(MODULE, 'Favorites Manager initialized successfully');
@@ -2785,7 +3003,7 @@
         getFavorites: getFavorites,
         getFolders: getFolders,
 
-        // ✅ NEW: Native Event System
+        // Native Event System
         addEventListener: addEventListener,
         removeEventListener: removeEventListener,
         EVENTS: FAVORITES_EVENTS, // Export event constants
@@ -2798,12 +3016,12 @@
         _debug: window.BUILD_INFO?.debugMode ? {
             StatisticsManager: StatisticsManager,
             generateFavoriteTitle: generateFavoriteTitle,
-            // ✅ NEW: Event system debug access
-            _eventTarget: _eventTarget,
+            eventTarget: () => _eventTarget,
             dispatchFavoritesEvent: dispatchFavoritesEvent,
             navigateToFavorite: navigateToFavorite,
-            _currentFolder: () => _currentFolder,
-            createSubsectionFavorite: createSubsectionFavorite
+            currentFolder: () => _currentFolder,
+            createSubsectionFavorite: createSubsectionFavorite,
+            dragState: () => _dragState
         } : undefined
     };
     LOG.debug(MODULE, 'FavoritesManager API exported with toggle support');
