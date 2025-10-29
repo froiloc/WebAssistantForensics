@@ -25,6 +25,46 @@
         'expert': '3'
     };
 
+    const CONFIG = {
+        classes : {
+            detailLevel1: 'detail-level-1',
+            detailLevel2: 'detail-level-2',
+            detailLevel3: 'detail-level-3',
+            detailLevelBtn: 'detail-level-btn',
+            detailBtnMini: 'detail-btn-mini',
+            active: 'active'
+        }
+    }
+
+    // Generate CONFIG.selectors from classes
+    CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
+        // Prepend '.' to the class value to create a class selector
+        if (typeof CONFIG.classes[key] === 'string')
+        {
+            acc[key] = `.${CONFIG.classes[key]}`;
+        } else if (typeof CONFIG.classes[key] === 'function')
+        {
+            acc[key] = (a) => `.${CONFIG.classes[key](a)}`;
+        }
+        return acc;
+    }, {});
+
+    // Extend/Modify CONFIG.selectors
+    CONFIG.selectors = {
+        ...CONFIG.selectors,
+        // Add new, non-class selectors
+        detailLevelInfo: '#detail-level-info'
+    }
+
+    // extend CONFIG with i18n
+    CONFIG.i18n = {
+        de: {
+            level1: 'Zeigt nur grundlegende Informationen',
+            level2: 'Zeigt Best Practices und empfohlene Ansätze',
+            level3: 'Zeigt alle technischen Details und Hintergründe'
+        }
+    };
+
     let _isInitialized = false;
 
     // ========================================================================
@@ -52,15 +92,15 @@
     function updateDetailVisibility(level) {
         const currentLevel = LEVEL_MAP[level]
 
-        const level1Elements = document.querySelectorAll('.detail-level-1');
+        const level1Elements = document.querySelectorAll(CONFIG.selectors.detailLevel1);
         level1Elements.forEach(el => el.style.display = 'block');
 
-        const level2Elements = document.querySelectorAll('.detail-level-2');
+        const level2Elements = document.querySelectorAll(CONFIG.selectors.detailLevel2);
         level2Elements.forEach(el => {
             el.style.display = currentLevel >= 2 ? 'block' : 'none';
         });
 
-        const level3Elements = document.querySelectorAll('.detail-level-3');
+        const level3Elements = document.querySelectorAll(CONFIG.selectors.detailLevel3);
         level3Elements.forEach(el => {
             el.style.display = currentLevel >= 3 ? 'block' : 'none';
         });
@@ -68,16 +108,16 @@
     }
 
     function updateInfoText(level) {
-        const infoElement = document.getElementById('detail-level-info');
+        const infoElement = document.getElementById(CONFIG.selectors.detailLevelInfo);
         if (!infoElement) {
-            LOG.debug(MODULE, 'Info element (#detail-level-info) not found');
+            LOG.debug(MODULE, `Info element (${CONFIG.selectors.detailLevelInfo}) not found`);
             return;
         }
 
         const infoTexts = {
-            basic: 'Zeigt nur grundlegende Informationen',
-            bestpractice: 'Zeigt Best Practices und empfohlene Ansätze',
-            expert: 'Zeigt alle technischen Details und Hintergründe'
+            basic: CONFIG.i18n.de.level1,
+            best_practice: CONFIG.i18n.de.level2,
+            expert: CONFIG.i18n.de.level3
         };
 
         infoElement.textContent = infoTexts[level] || '';
@@ -86,8 +126,8 @@
 
     function updateActiveButton(level) {
         // Entferne .active von allen Buttons
-        document.querySelectorAll('.detail-level-btn, .detail-btn-mini').forEach(btn => {
-            btn.classList.remove('active');
+        document.querySelectorAll(`${CONFIG.i18n.de.detailLevelBtn}, ${CONFIG.i18n.de.detailBtnMini}`).forEach(btn => {
+            btn.classList.remove(CONFIG.classes.active);
         });
 
         // Konvertiere Level zu Nummer für Button-Selektor
@@ -97,16 +137,16 @@
 
         // Aktiviere Buttons mit passendem data-level (numerisch oder Wort)
         const selectors = [
-            `.detail-level-btn[data-level="${levelNumber}"]`,
-            `.detail-level-btn[data-level="${level}"]`,
-            `.detail-btn-mini[data-level="${levelNumber}"]`,
-            `.detail-btn-mini[data-level="${level}"]`
+            `${CONFIG.selectors.detailLevelBtn}[data-level="${levelNumber}"]`,
+            `${CONFIG.selectors.detailLevelBtn}[data-level="${level}"]`,
+            `${CONFIG.selectors.detailBtnMini}[data-level="${levelNumber}"]`,
+            `${CONFIG.selectors.detailBtnMini}[data-level="${level}"]`
         ];
 
         const activeButtons = document.querySelectorAll(selectors.join(', '));
 
         activeButtons.forEach(btn => {
-            btn.classList.add('active');
+            btn.classList.add(CONFIG.classes.active);
             LOG.debug(MODULE, `Activated button: data-level="${btn.dataset.level}"`);
         });
 
@@ -116,7 +156,7 @@
             LOG.warn(MODULE, `No buttons found for level: ${level}/${levelNumber}`);
 
             // Debug: Liste alle verfügbaren Buttons
-            const allButtons = document.querySelectorAll('.detail-level-btn, .detail-btn-mini');
+            const allButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
             LOG.debug(MODULE, 'Available buttons:', Array.from(allButtons).map(btn => ({
                 text: btn.textContent.trim(),
                                                                                        level: btn.dataset.level
@@ -131,7 +171,7 @@
     function initDetailLevelControls() {
         LOG(MODULE, 'Initializing detail level controls...');
 
-        const buttons = document.querySelectorAll('.detail-level-btn, .detail-btn-mini');
+        const buttons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
 
         LOG.debug(MODULE, `Found ${buttons.length} detail level buttons`);
 

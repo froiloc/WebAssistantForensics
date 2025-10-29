@@ -133,9 +133,16 @@
     // Generate CONFIG.selectors from classes
     CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
         // Prepend '.' to the class value to create a class selector
-        acc[key] = `.${CONFIG.classes[key]}`;
+        if (typeof CONFIG.classes[key] === 'string')
+        {
+            acc[key] = `.${CONFIG.classes[key]}`;
+        } else if (typeof CONFIG.classes[key] === 'function')
+        {
+            acc[key] = (a) => `.${CONFIG.classes[key](a)}`;
+        }
         return acc;
     }, {});
+
 
     // Extend/Modify CONFIG.selectors
     CONFIG.selectors = {

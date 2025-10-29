@@ -2228,7 +2228,26 @@ body.tips-hidden .sidebar-container {
     border-left: 4px solid var(--color-info);
 }
 
-.toast__icon {
+.toast--success::before {
+    content: "✓";
+}
+
+.toast--warning::before {
+    content: "⚠";
+}
+
+.toast--error::before {
+    content: "✗";
+}
+
+.toast--info::before {
+    content: "ℹ";
+}
+
+.toast--success::before,
+.toast--warning::before,
+.toast--error::before,
+.toast--info::before {
     flex-shrink: 0;
     font-size: 1.2em;
 }
@@ -2256,6 +2275,10 @@ body.tips-hidden .sidebar-container {
 .toast__close:focus {
     outline: 2px solid var(--color-focus);
     outline-offset: 1px;
+}
+
+.toast__close::before {
+    content: "×";
 }
 
 /* Dark theme adjustments */
