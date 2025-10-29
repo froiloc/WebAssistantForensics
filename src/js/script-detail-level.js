@@ -13,6 +13,7 @@
  * - Responsive UI controls with active state management
  * - Event-driven architecture for preferences synchronization
  * - Keyboard shortcuts: Alt+1, Alt+2, Alt+3
+ * - Comprehensive cleanup and destruction
  * 
  * Structure Rules:
  * - Level 1 ⊆ Level 2 ⊆ Level 3 (Matryoshka pattern)
@@ -169,6 +170,13 @@
      * @type {boolean}
      */
     let _isInitialized = false;
+
+    /**
+     * Reference to the event delegation container for cleanup
+     * @private
+     * @type {HTMLElement|null}
+     */
+    let _delegationContainer = null;
 
     // ========================================================================
     // DETAIL LEVEL MANAGEMENT
@@ -529,16 +537,16 @@
             
             if (!controlContainer) {
                 LOG.warn(MODULE, 'Detail control container not found, using document body for event delegation');
+                _delegationContainer = document;
+            } else {
+                _delegationContainer = controlContainer;
             }
 
-            // Use event delegation on the most appropriate container
-            const delegationTarget = controlContainer || document;
-            
             // Set up click event delegation
-            delegationTarget.addEventListener('click', _handleDetailLevelClick);
+            _delegationContainer.addEventListener('click', _handleDetailLevelClick);
             
             // Set up keyboard event delegation for accessibility
-            delegationTarget.addEventListener('keydown', _handleDetailLevelKeydown);
+            _delegationContainer.addEventListener('keydown', _handleDetailLevelKeydown);
 
             // Set up global keyboard shortcuts
             document.addEventListener('keydown', _handleKeyboardShortcuts);
@@ -627,6 +635,144 @@
     }
 
     // ========================================================================
+    // CLEANUP AND DESTRUCTION
+    // ========================================================================
+
+    /**
+     * Removes all event listeners and cleans up resources
+     * @private
+     * @returns {void}
+     */
+    function _cleanupEventListeners() {
+        try {
+            LOG.debug(MODULE, 'Cleaning up event listeners...');
+
+            // Remove event delegation listeners
+            if (_delegationContainer) {
+                _delegationContainer.removeEventListener('click', _handleDetailLevelClick);
+                _delegationContainer.removeEventListener('keydown', _handleDetailLevelKeydown);
+                LOG.debug(MODULE, 'Event delegation listeners removed');
+            }
+
+            // Remove global keyboard shortcuts
+            document.removeEventListener('keydown', _handleKeyboardShortcuts);
+            LOG.debug(MODULE, 'Keyboard shortcut listeners removed');
+
+            // Remove StateManager event listeners
+            if (window.StateManager) {
+                window.removeEventListener('preferencesLoaded', _initDetailLevelListeners);
+                window.removeEventListener('preferencesReset', _initDetailLevelListeners);
+                LOG.debug(MODULE, 'StateManager event listeners removed');
+            }
+
+            LOG.info(MODULE, 'All event listeners cleaned up successfully');
+        } catch (error) {
+            LOG.error(MODULE, 'Error during event listener cleanup:', error);
+        }
+    }
+
+    /**
+     * Resets all detail levels to default visibility
+     * @private
+     * @returns {void}
+     */
+    function _resetDetailLevels() {
+        try {
+            LOG.debug(MODULE, 'Resetting detail levels to default...');
+
+            // Show all level 1 elements
+            const level1Elements = document.querySelectorAll(CONFIG.selectors.detailLevel1);
+            level1Elements.forEach(el => {
+                try {
+                    el.classList.remove(CONFIG.classes.hidden);
+                } catch (elError) {
+                    LOG.warn(MODULE, 'Error resetting level 1 element:', elError);
+                }
+            });
+
+            // Hide all level 2 and 3 elements
+            const level2Elements = document.querySelectorAll(CONFIG.selectors.detailLevel2);
+            const level3Elements = document.querySelectorAll(CONFIG.selectors.detailLevel3);
+            
+            level2Elements.forEach(el => {
+                try {
+                    el.classList.add(CONFIG.classes.hidden);
+                } catch (elError) {
+                    LOG.warn(MODULE, 'Error resetting level 2 element:', elError);
+                }
+            });
+            
+            level3Elements.forEach(el => {
+                try {
+                    el.classList.add(CONFIG.classes.hidden);
+                } catch (elError) {
+                    LOG.warn(MODULE, 'Error resetting level 3 element:', elError);
+                }
+            });
+
+            // Reset content section focus states
+            const contentSections = document.querySelectorAll(CONFIG.selectors.contentSection);
+            contentSections.forEach(section => {
+                try {
+                    section.classList.remove(CONFIG.classes.outOfFocus);
+                } catch (sectionError) {
+                    LOG.warn(MODULE, 'Error resetting content section:', sectionError);
+                }
+            });
+
+            // Reset button active states
+            const allButtons = document.querySelectorAll(`${CONFIG.selectors.detailLevelBtn}, ${CONFIG.selectors.detailBtnMini}`);
+            allButtons.forEach(btn => {
+                try {
+                    btn.classList.remove(CONFIG.classes.active);
+                } catch (btnError) {
+                    LOG.warn(MODULE, 'Error resetting button state:', btnError);
+                }
+            });
+
+            LOG.info(MODULE, 'Detail levels reset to default successfully');
+        } catch (error) {
+            LOG.error(MODULE, 'Error resetting detail levels:', error);
+        }
+    }
+
+    /**
+     * Completely destroys the detail level system and cleans up all resources
+     * @public
+     * @returns {boolean} success - Returns true if destruction was successful
+     */
+    function destroy() {
+        try {
+            if (!_isInitialized) {
+                LOG.warn(MODULE, 'Not initialized - nothing to destroy');
+                return false;
+            }
+
+            LOG(MODULE, 'Destroying detail level system...');
+
+            // Clean up event listeners
+            _cleanupEventListeners();
+
+            // Reset UI to default state
+            _resetDetailLevels();
+
+            // Reset internal state
+            _isInitialized = false;
+            _delegationContainer = null;
+
+            // Remove public API
+            delete window.DetailLevel;
+
+            LOG.info(MODULE, 'Detail level system destroyed completely');
+            return true;
+
+        } catch (error) {
+            LOG.error(MODULE, 'Error during detail level system destruction:', error);
+            return false;
+        }
+    }
+
+    // ========================================================================
     // INITIALIZATION
     // ========================================================================
 
@@ -690,7 +836,14 @@
          * @param {string|number} level - The detail level to set
          * @returns {boolean} success - Returns true if level was set successfully
          */
-        setLevel: setDetailLevel
+        setLevel: setDetailLevel,
+
+        /**
+         * Completely destroys the detail level system and cleans up all resources
+         * @function destroy
+         * @returns {boolean} success - Returns true if destruction was successful
+         */
+        destroy: destroy
     };
 
     LOG(MODULE, 'Detail level module loaded');
