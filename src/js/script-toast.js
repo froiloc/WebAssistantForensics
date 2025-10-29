@@ -100,7 +100,8 @@
     let _toastContainer = null;
     let _activeToasts = new Set();
     let _isInitialized = false;
-    // let _eventListeners = new Map();
+    let _previousActiveElement = null;
+    let _errorToastsActive = new Set();
 
     /**
      * Initializes the toast system
@@ -119,6 +120,7 @@
         // Set up event delegation once
         initEventDelegation();
 
+        _previousActiveElement = null;
         _isInitialized = true;
 
         LOG.info(MODULE, 'Toast System: Initialized successfully');
@@ -197,13 +199,24 @@
         // Add to container at the top for proper reading order
         _toastContainer.insertBefore(toast, _toastContainer.firstChild);
 
-        // Focus management for important toasts
+        // Make close button focusable for keyboard users
+        const closeButton = toast.querySelector(CONFIG.selectors.toastClose);
+        closeButton.setAttribute('tabindex', '0');
+
+        // Focus management for important error toasts
         if (validatedToastType === CONFIG.types.error) {
-            toast.setAttribute('tabindex', '0');
+            // Make the toast focusable programmatically (but not via tab) and focus it
+            toast.setAttribute('tabindex', '-1');
             toast.focus();
 
-            // Return focus when toast is closed
-            toast._previousActiveElement = document.activeElement;
+            // Remember this toast as one where we restore the focus
+            _errorToastsActive.add(toast);
+
+            // Return focus when toast is closed and no other error toast is active
+            if (_previousActiveElement === null) {
+                _previousActiveElement = document.activeElement;
+            }
+
         }
 
         // Store reference
@@ -219,38 +232,6 @@
         requestAnimationFrame(() => {
             toast.classList.add(CONFIG.classes.toastVisible);
         });
-
-        /** code not required anylonger
-        // Set up close button
-        const closeButton = toast.querySelector(CONFIG.selectors.toastClose);
-        const closeClickCallback = () => {
-            removeToast(toast);
-        };
-
-        // Delete or Backspace key to close toast
-        const closeKeydownCallback = (e) => {
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                removeToast(toast);
-            }
-        };
-
-        // Define event listeners
-        const listeners = [
-            {target: closeButton, type: 'click', callback: closeClickCallback},
-            {target: toast, type: 'keydown', callback: closeKeydownCallback}
-        ];
-
-        // Subscribe to each listener
-        listeners.forEach(listener => {
-            if (listener && listener.target && listener.type && listener.callback) {
-                // Remove the listener
-                listener.target.addEventListener(listener.type, listener.callback);
-            }
-        });
-
-        // Store references for cleanup
-        _eventListeners.set(toast, listeners);
-        **/
 
         // Auto-remove if duration is provided and positive
         if (duration > 0) {
@@ -280,25 +261,22 @@
         // Wait for animation to complete before removing
         setTimeout(() => {
             if (toast.parentNode) {
-                /** Code not required anylonger
-                // Remove event listener to prevent memory leak
-                // Clean up event listeners
-                const listeners = _eventListeners.get(toast);
-                listeners.forEach(listener => {
-                    if (listener && listener.target && listener.type && listener.callback) {
-                        // Remove the listener
-                        listener.target.removeEventListener(listener.type, listener.callback);
-                    }
-                });
-                _eventListeners.delete(toast);
-                **/
-                // Remove the element itself from its parent
-                toast.parentNode.removeChild(toast);
+                // Remove the toast element itself
+                toast.remove();
 
-                // Restore focus if this was a focused error toast
-                if (toast._previousActiveElement &&
-                    typeof toast._previousActiveElement.focus === 'function') {
-                    toast._previousActiveElement.focus();
+                // If the toast is the last error toast
+                if (_errorToastsActive.has(toast)) {
+                    _errorToastsActive.delete(toast);
+                    // Restore focus if this was a focused error toast
+                    if (_errorToastsActive.size === 0 &&
+                        _previousActiveElement &&
+                        _previousActiveElement.isConnected &&
+                        typeof _previousActiveElement.focus === 'function') {
+                        // refocus to the element that was focused before the first error toast
+                        _previousActiveElement.focus();
+                        // reset to null
+                        _previousActiveElement = null;
+                    }
                 }
             }
             _activeToasts.delete(toast);
@@ -349,6 +327,9 @@
 
         // Clear references
         _activeToasts.clear();
+        _errorToastsActive.clear();
+        _isInitialized = false;
+        _previousActiveElement = null;
         _toastContainer = null;
 
         // Remove public API
@@ -372,8 +353,7 @@
             CONFIG: CONFIG,
             removeToast: removeToast,
             activeToasts: () => _activeToasts,
-            toastContainer: () => _toastContainer,
-            // eventListeners: () => _eventListeners
+            toastContainer: () => _toastContainer
         }
     };
 
