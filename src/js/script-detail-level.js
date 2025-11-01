@@ -67,7 +67,7 @@
         warn: (message, ...data) => _global.LOG.warn(MODULE, message, ...data),
         error: (message, ...data) => _global.LOG.error(MODULE, message, ...data)
     };
-    LOG.debug('Dependency check passed');
+    LOG.debug('Dependency check passed. Loading...');
 
     // ========================================================================
     // CONFIGURATION AND SETTINGS

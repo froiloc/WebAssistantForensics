@@ -141,7 +141,7 @@ _global.exampleModule = { /* ... */ }; // BAD: Prohibited
 - Names of internal (non-private, non-API) functions and variables must use **CamelCase** and start with a **small letter**. Words are concatenated without spaces, and each word after the first starts with a capital letter.
 - Static strings (describing states) can be UPPERCASE and snake case. Words are separated by underscores '_' and each word is in **lowercase**.
 - Names of files use **Kebab Case**, words are separated by hyphens '-' and each word is **lowercase**.
-- The only exemptions from these rules are MODULE and CONFIG.
+- The only exemptions from these rules are MODULE, LOG and CONFIG.
 
 **Example:**
 
@@ -386,6 +386,8 @@ const lang = document.documentElement.lang || 'de'; // BAD: Logic belongs in the
 | **Rule ID** | **Rationale**                                                                                                                                                                              |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **3.1-3.5** | **Decoupling & Reliability:** Implements a robust internal and external communication pattern, allowing modules to interact without tight coupling and ensuring consistent execution flow. |
+
+- These rules only apply to stateful modules.
 
 ### 3.1 Internal Event System Initialization
 
@@ -1283,6 +1285,7 @@ _global.ExampleModule = {
 **Definitions:**
 
 - At the very end, right before the IIFE final message, the helper function `_loaded()` must be called, to ensure that the event system is running before initialization.
+- This rule only applies to stateful modules.
 
 **Example:**
 
