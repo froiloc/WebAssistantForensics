@@ -318,6 +318,33 @@ strong {
     transition: background-color var(--transition-medium), border-color var(--transition-medium);
 }
 
+/* ===== DETAIL LEVEL VISIBILITY CLASSES ===== */
+.detail-level-1,
+.detail-level-2,
+.detail-level-3 {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity var(--transition-medium),
+    transform var(--transition-medium);
+}
+
+/* Single state class for hidden elements */
+.detail-level--hidden {
+    display: none !important;
+    opacity: 0;
+    transform: translateY(-5px);
+}
+
+/* Content section focus states */
+.content-section {
+    transition: opacity var(--transition-medium);
+}
+
+.content-section--out-of-focus {
+    opacity: 0.4;
+}
+
 /* ===== LISTEN ===== */
 ul, ol {
     margin-left: 30px;
