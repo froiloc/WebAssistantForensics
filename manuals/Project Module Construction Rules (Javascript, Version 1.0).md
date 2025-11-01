@@ -12,7 +12,7 @@ This document, **Version 1.0**, incorporates all architectural, communication, e
 
 | **Rule ID** | **Rationale**                                                                                                                                                                                |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1.1-1.7** | **Isolation & Clarity:** Prevents global namespace pollution, ensures strict parsing, and clearly separates internal logic from the public API, enhancing encapsulation and maintainability. |
+| **1.1-1.8** | **Isolation & Clarity:** Prevents global namespace pollution, ensures strict parsing, and clearly separates internal logic from the public API, enhancing encapsulation and maintainability. |
 
 ### 1.1 Isolation (IIFE)
 
@@ -119,13 +119,14 @@ let isInitialized = false; // BAD: Looks like a public variable
 
 **Definitions:**
 
-- Names of the exposed API object attached to `_global` must use **Pascal Case** and start with a **capital letter**. Words are concatenated without spaces, and each word starts with a capital letter.
+- Names of the exposed API object attached to `_global` must use **Pascal Case** and start with a **capital letter**. Words are concatenated without spaces, and each word starts with a capital letter. Single words are allowed.
 
 **Example:**
 
 ```javascript
 // RULE 1.5.2: Names of the exposed API object must use CamelCase and start with a capital letter.
-_global.ExampleModule = { // GOOD: Starts with a capital letter
+_global.ExampleModule = {/* ... */ } // GOOD: Starts with a capital letter on each word
+_global.Setup = { // GOOD: starts with a capital letter
     // ...
 };
 
@@ -140,6 +141,7 @@ _global.exampleModule = { /* ... */ }; // BAD: Prohibited
 - Names of internal (non-private, non-API) functions and variables must use **CamelCase** and start with a **small letter**. Words are concatenated without spaces, and each word after the first starts with a capital letter.
 - Static strings (describing states) can be UPPERCASE and snake case. Words are separated by underscores '_' and each word is in **lowercase**.
 - Names of files use **Kebab Case**, words are separated by hyphens '-' and each word is **lowercase**.
+- The only exemptions from these rules are MODULE and CONFIG.
 
 **Example:**
 
@@ -163,7 +165,7 @@ const imageSrc = 'menu-selected-annotated.png';
 **Definitions:**
 
 - Comments are either on top of the commented line or follow within the line after the command.
-- Descriptive text must start with a capital letter.
+- Descriptive text must start with a capital letter, digit or special character.
 - Comment do not require a period at the end
 
 **Example:**
@@ -216,6 +218,26 @@ _global.ExampleModule = {
 };
 ```
 
+### 1.8 Indent
+
+**Definitions:**
+
+- The indent for sub structure is 4 spaces. No tabs allowed.
+
+**Example:**
+
+```javascript
+// RULE 1.8: Indent it 4 spaces.
+function a { 
+    let a; // GOOD: 4 spaces
+    if (a == a) {
+        a = 1; // GOOD: 4 spaces more for substructure
+  } else { // BAD: less than 4 spaces used as indent
+        a = 0;
+       } // BAD: more than 4 spaces used as indent
+};
+```
+
 ---
 
 ## II. Configuration & Standards
@@ -229,6 +251,7 @@ _global.ExampleModule = {
 **Definitions:**
 
 - Centralize all module defaults, strings, classes, and templates in a comprehensive **`CONFIG`** object.
+- The CONFIG object may be composed in steps but must be completed before any functional or variable part of the module.
 
 **Example:**
 
@@ -249,13 +272,14 @@ const timeout = 5000; // BAD: Should be in CONFIG
 
 **Definitions:**
 
-- The `CONFIG` object must explicitly include sections for `classes`, `selectors`, `templates`, and `i18n`. It may contain `settings`, `constants` and other sections.
+- The `CONFIG` object must explicitly include sections for `classes`, `selectors`, and `i18n`. It may contain `settings`, `templates`, `constants` and other sections.
   - **classes**: contains all CSS classes introduced or used by the module
   - **selectors**: contains all CSS slectors to elements used by the module
-  - **templates**: contains HTML snippets that are dynamically added
   - **i18n**: contains language objects ISO 639-1 that contain translated strings directed to the user. Must contain `de`.
   - **settings:** contains settings used in the module.
+  - **templates**: contains HTML snippets that are dynamically added. Mandatory if dynamic HTML is used.
   - **constants**: contains constants or arrays of constants to be exposed via the API.
+- The sections may be defined separately but must be defined before any functional or variable part of the module.
 
 **Example:**
 
@@ -264,9 +288,9 @@ const timeout = 5000; // BAD: Should be in CONFIG
 const CONFIG = {
     classes: { active: 'is-active' }, // GOOD
     selectors: { container: '#id' }, // GOOD
-    templates: { widget: '<div>...</div>' }, // GOOD
     i18n: { de: { /* ... */ } }, // GOOD
     settings: {shortcut1: 'Enter' }, // GOOD, optional
+    templates: { widget: '<div>...</div>' }, // GOOD
     constants: { // GOOD, optional
         events: {
             STATE_CHANGED: 'moduleStateChanged', // GOOD, UPPERCASE Snake Case
@@ -282,11 +306,18 @@ const CONFIG = {
 **Definitions:**
 
 - Constant numbers or strings in any function body are prohibited; only references to the `CONFIG` object are allowed.
+- The only exceptions are if a string or value is a strong logical requirement and therefore cannot be the subject of any alteration.
+- CONFIG.selectors may contain static/constant strings! Selector definitions must not be placed in CONFIG.constants.
 
 **Example:**
 
 ```javascript
 // RULE 2.3: Only references to CONFIG are allowed; no constant strings/numbers in functions.
+// GOOD: exception because of strong logical requirement, other events could not be used here
+_toastContainer.removeEventListener('keydown', _keydownListener); 
+// GOOD: exception, there is a strong requirement to set role to 'alert' in case of an error message.
+note.setAttribute('role', validatedToastType === CONFIG.types.error ? 'alert' : 'status');
+
 // GOOD: Keyboard navigation uses CONFIG
 if (event.key === CONFIG.settings.shortcutEscape) {
     // Handle dismissal
@@ -302,12 +333,12 @@ if (event.key === 'Escape') { // BAD: Use CONFIG.settings.shortcutEscape
 
 **Definitions:**
 
-- Any manually defined selector in `CONFIG.selectors` must override the automatically generated one.
+- Any manually defined selector in `CONFIG.selectors` may override the automatically generated one or add a new one.
 
 **Example:**
 
 ```javascript
-// RULE 2.4: Manual selectors in CONFIG.selectors must override automatically generated ones.
+// RULE 2.4: Manual selectors in CONFIG.selectors may override automatically generated ones or add a new one.
 const CONFIG = {
     classes: { container: 'ex-container' }, // Auto: .ex-container
 }
@@ -1016,7 +1047,7 @@ function _handleDelegation(event) {
 
 **Definitions:**
 
-- Provide a standardized **`_debug`** object within the public API to expose internal state for testing and debugging tools. This object must be read-only (i.e., contain functions that return internal values).
+- Provide a standardized **`_debug`** object within the public API to expose internal state for testing and debugging tools. This object must be read-only (i.e., contain functions that return internal values). Only in the API's _debug it is allowed to expose private functions.
 
 **Example:**
 
@@ -1024,7 +1055,8 @@ function _handleDelegation(event) {
 // RULE 7.3: Provide a standardized _debug object within the public API.
 _global.ExampleModule = {
     // ... other API methods ...
-    _debug: { // GOOD: Standardized name
+    // Debug functions (only when debugMode active)
+    _debug: !_global.BUILD_INFO?.debugMode ? undefined : { // GOOD: Standardized name
         // ... contents per Rule 7.4 ...
     }
 };
@@ -1040,13 +1072,21 @@ _global.ExampleModule = {
 
 ```javascript
 // RULE 7.4: The _debug object must expose CONFIG, _currentState, and _isInitialized.
-/*let _currentState = 'active';*/
+/*
+let _currentState = 'active';
+let _activeElements = new Set();
+function _internalFunction(...params) {
+    // Do something
+}
+*/
 _global.ExampleModule = {
     // ...
-    _debug: { 
+    _debug: !_global.BUILD_INFO?.debugMode ? undefined : { 
         CONFIG: CONFIG, // GOOD: Exposes the CONFIG object directly (read-only)
+        activeElements: () => Array.from(_activeElements), // GOOD: Do expose immutable array instead of mutable Set
         // GOOD: Uses a function to return the value of the private state
         currentState: () => _currentState, 
+        internalFunction: (...parameters) => _internalFunction(...parameters) // GOOD: Expose via a wrapper function
     }
 };
 ```
@@ -1082,7 +1122,7 @@ _global.ExampleModule = {
 
 | **Rule ID** | **Rationale**                                                                                                                                                                    |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **8.1-8.7** | **Memory Management & Interface:** Ensures the module is fully cleaned up to prevent memory leaks in SPA environments and defines a consistent, fully featured public interface. |
+| **8.1-8.8** | **Memory Management & Interface:** Ensures the module is fully cleaned up to prevent memory leaks in SPA environments and defines a consistent, fully featured public interface. |
 
 ### 8.1 Public Method (`destroy()`)
 
@@ -1231,7 +1271,7 @@ _global.ExampleModule = {
     EVENTS: CONFIG.constants.events, 
 
     // Debug information (Rule 7.3)
-    _debug: { /* ... */ }, 
+    _debug: !_global.BUILD_INFO?.debugMode ? undefined : { /* ... */ }, 
 
     // State variable access (Rule 7.5)
     isInitialized: () => _isInitialized 
@@ -1242,7 +1282,7 @@ _global.ExampleModule = {
 
 **Definitions:**
 
-- At the very end before the final message the helper function `_loaded()` must be called, to ensure that the event system is running before initialization.
+- At the very end, right before the IIFE final message, the helper function `_loaded()` must be called, to ensure that the event system is running before initialization.
 
 **Example:**
 
@@ -1436,8 +1476,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
     // RULE 2.10: ID-based or complex selectors must be added after auto-generation
     CONFIG.selectors = {
         ...CONFIG.selectors,
-        container: '#example-container',
-        // RULE 2.3: Use CONFIG.constants.selectors instead of hardcoded strings
+        container: '#example-container', // RULE 2.3: Use CONFIG.constants.selectors instead of hardcoded strings
         body: 'body'
     };
 
@@ -1975,7 +2014,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
         },
 
         // RULE 7.3: Provide a standardized _debug object
-        _debug: {
+        _debug: !_global.BUILD_INFO?.debugMode ? undefined : { 
             // RULE 7.4: Expose CONFIG
             CONFIG: CONFIG,
             // RULE 7.4: Expose _currentState via function
