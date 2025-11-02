@@ -5030,3 +5030,70 @@ h6:has(.header-with-icons)
 .favorites-folder-dropdown__menu {
     z-index: 1001;
 }
+
+/*
+ * ============================================================================
+ * ADDITIONAL CSS FOR REFACTORED TIPS FOOTER
+ * ============================================================================
+ * - Adds icons to buttons using ::before pseudo-elements.
+ * - Removes reliance on IDs for styling.
+ * - Ensures a minimum touch-target size for accessibility.
+ * ============================================================================
+ */
+
+/* Base styles for all buttons in the footer
+ * - Ensures correct font, size, and accessibility target.
+ */
+.tips-footer button {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-width: 40px; /* WCAG Target Size */
+    min-height: 40px; /* WCAG Target Size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+}
+
+/* Navigation buttons (Prev/Next)
+ * - Uses ::before for the icon.
+ */
+.tips-nav-btn.tips-prev-btn::before {
+    content: '◀';
+    font-size: 1.2em; /* Adjust size as needed */
+}
+
+.tips-nav-btn.tips-next-btn::before {
+    content: '▶';
+    font-size: 1.2em; /* Adjust size as needed */
+}
+
+/* Close Button
+ * - Uses ::before for the 'X' icon.
+ */
+.tips-close-btn::before {
+    content: '✕';
+    font-weight: bold;
+    font-size: 1.1em; /* Adjust size as needed */
+}
+
+/* The dynamic icon (💡, ⌨️, etc.)
+ * - This is NOT a pseudo-element, but the style for the <span>
+ *   that JS populates.
+ */
+.tips-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+    /* The original CSS had this, so we keep it */
+}
+
+/* Class for the <body> tag
+ * - This replaces the direct .style manipulation in JS.
+ * - Your existing styles.css already uses this variable.
+ */
+body.tips-hidden {
+    --tips-footer-height: 0px;
+}
+
+#show-tips-footer-btn::before {
+    content: '💡';
+}

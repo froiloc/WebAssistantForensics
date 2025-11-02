@@ -420,21 +420,14 @@
             </aside>
 
             <!-- Tips Footer -->
-            <div id="tips-footer" class="tips-footer" role="complementary" aria-label="Tipps und Tastenkombinationen">
-                <button id="tips-prev-btn" class="tips-nav-btn tips-prev-btn" aria-label="Vorheriger Tipp" title="Vorheriger Tipp">
-                    ◀
-                </button>
-
+            <div id="tips-footer" class="tips-footer hidden" role="complementary" data-testid="tips-footer">
+                <button class="tips-nav-btn tips-prev-btn" data-action="prev-tip" title="Vorheriger Tipp"></button>
                 <div class="tips-content">
-                    <span class="tips-icon">💡</span>
-                    <p id="tips-text" class="tips-text">Laden...</p>
+                    <span class="tips-icon" aria-hidden="false"></span>
+                    <p class="tips-text" role="status" aria-live="polite"></p>
                 </div>
-
-                <button id="tips-next-btn" class="tips-nav-btn tips-next-btn" aria-label="Nächster Tipp" title="Nächster Tipp">
-                    ▶
-                </button>
-
-                <button id="close-tips-footer" class="tips-close-btn" aria-label="Tipps ausblenden">✕</button>
+                <button class="tips-nav-btn tips-next-btn" data-action="next-tip" title="Nächster Tipp"></button>
+                <button class="tips-close-btn" data-action="close-tips"></button>
             </div>
         </div>
     </div>
@@ -1513,9 +1506,7 @@
             <p data-ref="disclaimer"><strong>Hinweis:</strong> Dieser Leitfaden basiert auf Magnet AXIOM Examiner. Spezifische Funktionen können je nach Version variieren.</p>
             <p data-ref="contact">Für Rückfragen wenden Sie sich an Ihre IT-Forensik-Abteilung.</p>
             <div class="footer-actions">
-                <button id="show-tips-footer-btn" class="footer-btn" style="display: none;">
-                    💡 Tipps einblenden
-                </button>
+                <button id="show-tips-footer-btn" class="footer-btn hidden" aria-controls="tips-footer" aria-expanded="false" aria-label="Tipps einblenden">Tipps einblenden</button>
             </div>
         </footer>
     </div>
@@ -1565,7 +1556,7 @@
     <script src="js/script-preferences.js"></script>
 
     <!-- 15. THEME - Theme Management System -->
-    <script src="js/script-theme.js"></script>
+    <script src="js/script-theme.refactored.js"></script>
 
     <!-- 16. GLOSSARY - Dynamischer Glossar -->
     <script src="js/script-glossary-manager.js"></script>
@@ -1589,7 +1580,7 @@
     <script src="js/script-init.js"></script>
 
     <!-- A1. AGENT - Static Agent -->
-    <script src="js/agent.js"></script>
+    <script src="js/script-agent.2.js"></script>
 
     <!-- A2. MEDIA HANDLER - makes media working -->
     <script src="js/media-handler.js"></script>

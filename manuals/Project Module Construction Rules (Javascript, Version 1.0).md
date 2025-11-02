@@ -334,6 +334,23 @@ if (event.key === 'Escape') { // BAD: Use CONFIG.settings.shortcutEscape
 **Definitions:**
 
 - Any manually defined selector in `CONFIG.selectors` may override the automatically generated one or add a new one.
+- The code for 'Generate selectors from classes' and 'Replace or add selectors' must be used completely as in the example. No reduction allowed. That is the following lines of code:
+
+```javascript
+    // Generate selectors from classes
+    CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
+        if (typeof CONFIG.classes[key] === 'string') {
+            acc[key] = `.${CONFIG.classes[key]}`;
+        } else if (typeof CONFIG.classes[key] === 'function') {
+            acc[key] = (param) => `.${CONFIG.classes[key](param)}`;
+        }
+        return acc;
+    }, {});
+
+    // Replace or add selectors
+    CONFIG.selectors = { ...CONFIG.selectors, // Use the existing selectors and extend by the following ones
+    };
+ ```
 
 **Example:**
 
@@ -345,18 +362,18 @@ const CONFIG = {
 // Generate selectors ← THIS PART MUST BE INCLUDED 
 //  after CONFIG.classes has been defined and 
 //  before manually adding or changing CONFIG.selectors
-    CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
-        if (typeof CONFIG.classes[key] === 'string') {
-            acc[key] = `.${CONFIG.classes[key]}`;
-        } else if (typeof CONFIG.classes[key] === 'function') {
-            acc[key] = (param) => `.${CONFIG.classes[key](param)}`;
-        }
-        return acc;
-    }, {});
+CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
+    if (typeof CONFIG.classes[key] === 'string') {
+        acc[key] = `.${CONFIG.classes[key]}`;
+    } else if (typeof CONFIG.classes[key] === 'function') {
+        acc[key] = (param) => `.${CONFIG.classes[key](param)}`;
+    }
+    return acc;
+}, {});
 
-// Add or change selectors
-CONFIG.selectors: { ...CONFIG.selectors, // Use the existing selectors and extend by the following ones
-    container: '#custom-container-id' } // GOOD: Manual ID overrides class selector
+// Replace or add selectors
+CONFIG.selectors = { ...CONFIG.selectors, // Use the existing selectors and extend by the following ones
+    container: '#custom-container-id' } // GOOD: Manual ID overrides class selector
 };
 ```
 
@@ -365,6 +382,8 @@ CONFIG.selectors: { ...CONFIG.selectors, // Use the existing selectors and exten
 **Definitions:**
 
 - An internal helper function, such as `_t(key)`, must be used to retrieve localized strings from `CONFIG.i18n` based on the current document language, with a defined fallback.
+- Only to be used for user directed communication, i.e. .innerText, prompt, Toast, msgbox, aria-label.
+- Do NOT use in LOG.debug, LOG.info, LOG.warn, or LOG.error!
 
 **Example:**
 
@@ -866,7 +885,7 @@ element.setAttribute('aria-label', 'Schließen'); // BAD: Hardcoded ARIA attribu
 
 | **Rule ID** | **Rationale**                                                                                                                                                               |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **6.1-6.6** | **Separation of Concerns & Inclusivity:** Ensures maintainability by separating presentation from behavior and guarantees WCAG compliance for an inclusive user experience. |
+| **6.1-6.8** | **Separation of Concerns & Inclusivity:** Ensures maintainability by separating presentation from behavior and guarantees WCAG compliance for an inclusive user experience. |
 
 ### 6.1 Styling Strategy
 
@@ -992,6 +1011,82 @@ function _setupAria() {
 
 // BAD: Using non-standard or incorrect attributes.
 container.setAttribute('accessible', true); // BAD: Not a valid ARIA attribute
+```
+
+### 6.7. DOM Strategy & Static HTML Preference
+
+**Definitions:**
+
+- Prefer using existing static HTML elements over dynamic creation whenever possible. First attempt to select and reuse elements that already exist in the DOM before creating new ones.
+
+**Example:**
+
+```javascript
+// RULE 6.7: Prefer using existing static HTML elements over dynamic creation.
+function _setupDOM() {
+    // GOOD: Look for static container first
+    _containerElement = document.querySelector(CONFIG.selectors.container);
+    
+    if (!_containerElement) {
+        LOG.warn('No static container found, creating dynamic fallback');
+        _containerElement = _createDynamicContainer(); // Fallback to Rule 6.8
+    } else {
+        LOG.debug('Using existing static container');
+    }
+    
+    return true;
+}
+
+// BAD: Always creating dynamic elements without checking for existing ones
+function _setupDOM() {
+    _containerElement = document.createElement('div'); // BAD: No static check
+    // ...
+}
+```
+
+### 6.8. Dynamic Fallback & Reuse
+
+**Definitions:**
+
+- When static HTML doesn't exist, provide a dynamic creation fallback. For existing static elements, reuse and show them instead of creating duplicates. Always hide rather than remove static elements during cleanup.
+
+**Example:**
+
+```javascript
+// RULE 6.8: Provide dynamic fallback and reuse existing elements.
+function _createDynamicContainer() {
+    try {
+        const container = document.createElement('div');
+        container.id = 'example-container';
+        container.className = CONFIG.classes.container;
+        container.innerHTML = CONFIG.templates.widget;
+        document.body.appendChild(container);
+        return container;
+    } catch (error) {
+        LOG.error('Dynamic container creation failed:', error);
+        return null;
+    }
+}
+
+// During initialization - REUSE existing elements
+if (_containerElement) {
+    _containerElement.classList.remove(CONFIG.classes.hidden); // GOOD: Reuse and show
+}
+
+// During destruction - HIDE rather than remove static elements
+function destroy() {
+    if (_containerElement && _containerElement.id === 'example-container') {
+        _containerElement.classList.add(CONFIG.classes.hidden); // GOOD: Hide for reuse
+    }
+    // ...
+}
+
+// BAD: Removing static elements during cleanup
+function destroy() {
+    if (_containerElement) {
+        _containerElement.remove(); // BAD: Destroys reusable static HTML
+    }
+}
 ```
 
 ---
@@ -1371,7 +1466,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
     }
 
     // ========================================================================
-    // CONFIGURATION (RULES 2.1-2.11)
+    // CONFIGURATION (RULES 2.1-2.5)
     // ========================================================================
 
     // RULE 2.1: All configuration must be centralized in a CONFIG object
@@ -1415,7 +1510,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
             }
         },
 
-        // RULE 2.5: Module settings must be defined in CONFIG.settings
+        // RULE 2.2: Module settings must be defined in CONFIG.settings
         settings: {
             defaultTimeout: 300,
             defaultLanguage: 'de',
@@ -1424,7 +1519,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
             shortcutEscape: 'Escape'
         },
 
-        // RULE 2.6: Internationalization strings must be in CONFIG.i18n
+        // RULE 2.2: Internationalization strings must be in CONFIG.i18n
         i18n: {
             de: {
                 buttonLabel: 'Aktion ausführen',
@@ -1445,7 +1540,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
         }
     };
 
-    // RULE 2.7: CSS classes must be defined in CONFIG.classes
+    // RULE 2.2: CSS classes must be defined in CONFIG.classes
     CONFIG.classes = {
         container: 'example-container',
         widget: 'example-widget',
@@ -1457,7 +1552,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
         active: 'example--active',
         hidden: 'example--hidden',
         loading: 'example--loading',
-        // RULE 2.9: Dynamic class generators must be included in CONFIG.classes
+        // RULE 2.2: Dynamic class generators must be included in CONFIG.classes
         typeClass: (type) => {
             return `example--${CONFIG.types[type] || CONFIG.types.primary}`;
         },
@@ -1466,7 +1561,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
         }
     };
 
-    // RULE 2.8: CSS selectors must be auto-generated from CONFIG.classes
+    // RULE 2.2: CSS selectors must be auto-generated from CONFIG.classes
     CONFIG.selectors = Object.keys(CONFIG.classes).reduce((acc, key) => {
         if (typeof CONFIG.classes[key] === 'string') {
             acc[key] = `.${CONFIG.classes[key]}`;
@@ -1476,14 +1571,14 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
         return acc;
     }, {});
 
-    // RULE 2.10: ID-based or complex selectors must be added after auto-generation
+    // RULE 2.4: ID-based or complex selectors must be added after auto-generation
     CONFIG.selectors = {
         ...CONFIG.selectors,
-        container: '#example-container', // RULE 2.3: Use CONFIG.constants.selectors instead of hardcoded strings
+        container: '#example-container', // RULE 2.4: Use CONFIG.constants.selectors instead of hardcoded strings
         body: 'body'
     };
 
-    // RULE 2.11: HTML templates must be defined in CONFIG.templates
+    // RULE 2.2: HTML templates must be defined in CONFIG.templates
     CONFIG.templates = {
         widget: `
             <div class="${CONFIG.classes.widget}" ${CONFIG.constants.aria.ROLE}="${CONFIG.constants.aria.ROLE_REGION}" ${CONFIG.constants.aria.LIVE}="${CONFIG.constants.aria.LIVE_POLITE}">
@@ -1494,7 +1589,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
                 <div class="${CONFIG.classes.content}"></div>
             </div>
         `,
-        // RULE 2.11: Templates can be functions that accept parameters
+        // RULE 2.2: Templates can be functions that accept parameters
         messageBody: (message, type = 'primary') => {
             const escapedMessage = _escapeHTML(message);
             const typeClass = CONFIG.classes.typeClass(type);
@@ -1511,10 +1606,10 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
     };
 
     // ========================================================================
-    // MODULE EVENTS (RULE 2.4)
+    // MODULE EVENTS (RULE 3.3)
     // ========================================================================
 
-    // RULE 2.4: Event names must be exported for external use
+    // RULE 3.3: Event names must be exported for external use
     const MODULE_EVENTS = CONFIG.constants.events;
 
     // Initialize state after CONFIG is defined
@@ -1748,7 +1843,6 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
             );
 
             // RULE 6.6: Utilize correct ARIA attributes for accessibility
-            // RULE 2.3: Use CONFIG.constants.aria instead of hardcoded attribute names
             _containerElement.setAttribute(CONFIG.constants.aria.LIVE, CONFIG.constants.aria.LIVE_POLITE);
             _containerElement.setAttribute(CONFIG.constants.aria.LABEL, statusText);
 
@@ -1878,7 +1972,7 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
             // Initial UI setup
             const titleElement = _containerElement.querySelector(CONFIG.selectors.title);
             if (titleElement) {
-                // RULE 2.3: Use _t() for internationalized strings
+                // RULE 5.3: Use _t() for internationalized strings
                 titleElement.textContent = _t('widgetTitle');
             }
 
@@ -1944,16 +2038,16 @@ This final example module includes **only positive (GOOD) code** and quotes **ev
             });
             _unsubscribeFunctions = [];
 
-            // RULE 8.4: Hide static elements instead of removing them
+            // RULE 6.8: Hide static elements instead of removing them
             if (_containerElement) {
                 _containerElement.classList.add(CONFIG.classes.hidden);
             }
 
-            // RULE 7.4 & 8.2: Reset all internal state
+            // RULE 8.2: Reset all internal state
             _isInitialized = false;
             // RULE 2.3: Use CONFIG.constants.states instead of hardcoded strings
             _currentState = CONFIG.constants.states.INACTIVE;
-            // RULE 7.4: Clear container references
+            // RULE 8.4: Clear container references
             _containerElement = null;
             _eventTarget = null;
 
